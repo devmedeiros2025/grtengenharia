@@ -17,6 +17,7 @@ let state = {
   logs: [],
   stages: [],
   notifications: [],
+  routines: [],
 };
 
 /* ── HTTP helpers ────────────────────────────────────────────────────────── */
@@ -37,21 +38,13 @@ async function api(method, path, body) {
 /* ── Toast ───────────────────────────────────────────────────────────────── */
 
 function toast(msg, type = 'info') {
-  const el = document.getElementById('toast-global');
-  if (!el) {
-    const div = document.createElement('div');
-    div.id = 'toast-global';
-    div.className = `toast ${type}`;
-    div.textContent = msg;
-    document.body.appendChild(div);
-    requestAnimationFrame(() => div.classList.add('show'));
-    setTimeout(() => { div.classList.remove('show'); setTimeout(() => div.remove(), 300); }, 3500);
-    return;
-  }
-  el.className = `toast ${type}`;
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => { el.classList.remove('show'); }, 3500);
+  const container = document.getElementById('toast-container') || document.body;
+  const div = document.createElement('div');
+  div.className = `toast ${type}`;
+  div.textContent = msg;
+  container.appendChild(div);
+  requestAnimationFrame(() => div.classList.add('show'));
+  setTimeout(() => { div.classList.remove('show'); setTimeout(() => div.remove(), 300); }, 3500);
 }
 
 /* ── Auth ────────────────────────────────────────────────────────────────── */
@@ -80,7 +73,7 @@ function navigate(page) {
   if (pg) pg.classList.add('active');
   const nav = document.querySelector(`.nav-item[data-page="${page}"]`);
   if (nav) nav.classList.add('active');
-  const titles = { dashboard: 'Dashboard', deals: 'Pipeline', leads: 'Leads', companies: 'Empresas', tasks: 'Tarefas', equipment: 'Equipamentos', 'service-orders': 'Ordens de Serviço', contracts: 'Contratos', calendar: 'Calendário', webhooks: 'Webhooks', apikeys: 'API Keys', logs: 'Logs', bi: 'BI Analytics', invoices: 'Faturamento', proposals: 'Propostas', projects: 'Obras & Projetos', tickets: 'Chamados', rental: 'Locação', campaigns: 'Campanhas', followups: 'Pós-Venda', hunter: 'Hunter' };
+  const titles = { dashboard: 'Dashboard', deals: 'Pipeline', leads: 'Leads', companies: 'Empresas', tasks: 'Tarefas', 'daily-routines': 'Rotinas Diárias', equipment: 'Equipamentos', 'service-orders': 'Ordens de Serviço', contracts: 'Contratos', calendar: 'Calendário', webhooks: 'Webhooks', apikeys: 'API Keys', logs: 'Logs', bi: 'BI Analytics', invoices: 'Faturamento', proposals: 'Propostas', projects: 'Obras & Projetos', tickets: 'Chamados', rental: 'Locação', campaigns: 'Campanhas', followups: 'Pós-Venda', hunter: 'Hunter' };
   document.getElementById('page-title').textContent = titles[page] || page;
   // load data
   if (page === 'dashboard') loadDashboard();
@@ -88,6 +81,7 @@ function navigate(page) {
   if (page === 'deals') { if (!state.companies || state.companies.length === 0) loadCompanies(); loadDeals(); }
   if (page === 'companies') loadCompanies();
   if (page === 'tasks') loadTasks();
+  if (page === 'daily-routines') loadDailyRoutines();
   if (page === 'webhooks') loadWebhooks();
   if (page === 'apikeys') loadApiKeys();
   if (page === 'logs') loadLogs();
@@ -125,7 +119,8 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 
 async function loadLeads() {
   try {
-    state.leads = await api('GET', '/leads');
+    const res = await api('GET', '/leads');
+    state.leads = Array.isArray(res) ? res : (res.leads || []);
     renderLeads();
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -178,9 +173,9 @@ async function loadDashboard() {
     // Stats
     const stats = await api('GET', '/leads/stats/summary');
     document.getElementById('stat-total').textContent = stats.total ?? '—';
-    document.getElementById('stat-new').textContent = stats.new ?? '—';
-    document.getElementById('stat-converted').textContent = stats.converted ?? '—';
-    document.getElementById('stat-lost').textContent = stats.lost ?? '—';
+    document.getElementById('stat-new').textContent = stats.byStatus?.new ?? stats.new ?? '—';
+    document.getElementById('stat-converted').textContent = stats.byStatus?.converted ?? stats.converted ?? '—';
+    document.getElementById('stat-lost').textContent = stats.byStatus?.lost ?? stats.lost ?? '—';
     document.getElementById('lead-count-badge').textContent = stats.total ?? 0;
 
     // Deals stats
@@ -213,7 +208,8 @@ async function loadDashboard() {
     } catch { document.getElementById('stat-tasks-pending').textContent = '—'; }
 
     // Recent leads
-    state.leads = await api('GET', '/leads');
+    const leadsRes = await api('GET', '/leads');
+    state.leads = Array.isArray(leadsRes) ? leadsRes : (leadsRes.leads || []);
     const recent = state.leads.slice(0, 5);
     const tbody = document.getElementById('dash-leads-tbody');
     const empty = document.getElementById('dash-empty');
@@ -659,8 +655,8 @@ async function deleteDeal(id) {
 
 document.getElementById('btn-new-deal').addEventListener('click', async () => {
   // Ensure companies are loaded for the dropdown
-  if (!state.companies) {
-    try { state.companies = await api('GET', '/companies'); } catch {}
+  if (!state.companies || !Array.isArray(state.companies)) {
+    try { const coRes = await api('GET', '/companies'); state.companies = coRes.companies || coRes.data || []; } catch {}
   }
   openDealModal(null);
 });
@@ -818,6 +814,237 @@ document.getElementById('modal-task-form').addEventListener('submit', async (e) 
 document.getElementById('task-filter-status').addEventListener('change', renderTasks);
 document.getElementById('task-filter-priority').addEventListener('change', renderTasks);
 document.getElementById('btn-refresh-tasks').addEventListener('click', loadTasks);
+
+/* ── ROTINAS DIÁRIAS / KANBAN ────────────────────────────────────────────── */
+
+function routinePriorityLabel(p) {
+  const m = { high: 'Alta', medium: 'Média', low: 'Baixa' };
+  return m[p] || p || 'Média';
+}
+
+function routineStatusLabel(s) {
+  const m = { pending: 'Pendente', in_progress: 'Em Andamento', done: 'Concluída' };
+  return m[s] || s || 'Pendente';
+}
+
+function formatDateKanban(d) {
+  if (!d) return '';
+  const date = new Date(d);
+  return date.toLocaleDateString('pt-BR');
+}
+
+function isOverdue(d) {
+  if (!d) return false;
+  const due = new Date(d);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return due < today;
+}
+
+async function loadDailyRoutines() {
+  try {
+    state.routines = await api('GET', '/daily-routines');
+    renderKanban();
+    populateAssigneeFilter();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function populateAssigneeFilter() {
+  const sel = document.getElementById('routine-filter-assigned');
+  const current = sel.value;
+  const assignees = [...new Set(state.routines.map(r => r.assigned_to).filter(Boolean))];
+  sel.innerHTML = '<option value="">Todos Responsáveis</option>' +
+    assignees.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
+  sel.value = current;
+}
+
+function filteredRoutines() {
+  const priorityFilter = document.getElementById('routine-filter-priority').value;
+  const assignedFilter = document.getElementById('routine-filter-assigned').value;
+  return state.routines.filter(r => {
+    if (priorityFilter && r.priority !== priorityFilter) return false;
+    if (assignedFilter && r.assigned_to !== assignedFilter) return false;
+    return true;
+  });
+}
+
+function renderKanban() {
+  const filtered = filteredRoutines();
+  const empty = document.getElementById('routines-empty');
+  const board = document.getElementById('kanban-board');
+
+  const hasItems = filtered.length > 0;
+  board.style.display = hasItems ? 'grid' : 'none';
+  empty.style.display = hasItems ? 'none' : 'block';
+
+  const columns = { pending: [], in_progress: [], done: [] };
+  for (const r of filtered) {
+    if (columns[r.status]) columns[r.status].push(r);
+  }
+
+  for (const [status, items] of Object.entries(columns)) {
+    const body = document.getElementById(`kanban-${status}`);
+    const countEl = document.getElementById(`count-${status}`);
+    countEl.textContent = items.length;
+
+    if (items.length === 0) {
+      body.innerHTML = `<div class="kanban-column-empty"><div class="empty-icon">📋</div><span>Nenhuma rotina</span></div>`;
+      continue;
+    }
+
+    body.innerHTML = items.map(r => `
+      <div class="kanban-card" draggable="true" data-id="${r.id}" data-status="${r.status}">
+        <div class="kanban-card-title">${esc(r.title)}</div>
+        ${r.description ? `<div class="kanban-card-desc">${esc(r.description.substring(0, 100))}${r.description.length > 100 ? '...' : ''}</div>` : ''}
+        <div style="margin-bottom:6px">
+          <span class="badge badge-${r.priority || 'medium'}">${routinePriorityLabel(r.priority)}</span>
+        </div>
+        <div class="kanban-card-meta">
+          <div class="kanban-card-assignee">👤 ${esc(r.assigned_to || 'Não atribuído')}</div>
+          ${r.due_date ? `<div class="kanban-card-due ${isOverdue(r.due_date) && status !== 'done' ? 'overdue' : ''}">📅 ${formatDateKanban(r.due_date)}</div>` : ''}
+          <div class="kanban-card-actions">
+            <button onclick="editRoutine(${r.id})" title="Editar">✎</button>
+            <button class="btn-del" onclick="deleteRoutine(${r.id})" title="Excluir">✕</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Attach drag events
+  document.querySelectorAll('.kanban-card[draggable]').forEach(card => {
+    card.addEventListener('dragstart', onDragStart);
+    card.addEventListener('dragend', onDragEnd);
+  });
+  document.querySelectorAll('.kanban-body').forEach(body => {
+    body.addEventListener('dragover', onDragOver);
+    body.addEventListener('dragenter', onDragEnter);
+    body.addEventListener('dragleave', onDragLeave);
+    body.addEventListener('drop', onDrop);
+  });
+
+  updateRoutineBadge();
+}
+
+function updateRoutineBadge() {
+  const pending = state.routines.filter(r => r.status !== 'done').length;
+  const badge = document.getElementById('routine-count-badge');
+  if (badge) {
+    badge.textContent = pending;
+    badge.style.display = pending > 0 ? 'inline' : 'none';
+  }
+}
+
+let draggedCard = null;
+
+function onDragStart(e) {
+  draggedCard = e.target.closest('.kanban-card');
+  if (!draggedCard) return;
+  draggedCard.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', draggedCard.dataset.id);
+}
+
+function onDragEnd(e) {
+  const card = e.target.closest('.kanban-card');
+  if (card) card.classList.remove('dragging');
+  document.querySelectorAll('.kanban-body').forEach(b => b.classList.remove('drag-over'));
+  draggedCard = null;
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function onDragEnter(e) {
+  const body = e.target.closest('.kanban-body');
+  if (body) body.classList.add('drag-over');
+}
+
+function onDragLeave(e) {
+  const body = e.target.closest('.kanban-body');
+  if (body && !body.contains(e.relatedTarget)) body.classList.remove('drag-over');
+}
+
+async function onDrop(e) {
+  e.preventDefault();
+  const body = e.target.closest('.kanban-body');
+  if (!body) return;
+  body.classList.remove('drag-over');
+
+  const id = e.dataTransfer.getData('text/plain');
+  const newStatus = body.closest('.kanban-column').dataset.status;
+  if (!id || !newStatus) return;
+
+  const card = document.querySelector(`.kanban-card[data-id="${id}"]`);
+  const oldStatus = card ? card.dataset.status : null;
+  if (oldStatus === newStatus) return;
+
+  try {
+    await api('PATCH', `/daily-routines/${id}`, { status: newStatus });
+    toast(`Rotina movida para ${routineStatusLabel(newStatus)}`, 'success');
+    loadDailyRoutines();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+/* ── Modal CRUD ─────────────────────────────────────────────────────────── */
+
+function openRoutineModal(routine) {
+  document.getElementById('modal-routine-title').textContent = routine ? 'Editar Rotina' : 'Nova Rotina';
+  document.getElementById('routine-id').value = routine ? routine.id : '';
+  document.getElementById('routine-title').value = routine ? (routine.title || '') : '';
+  document.getElementById('routine-desc').value = routine ? (routine.description || '') : '';
+  document.getElementById('routine-status').value = routine ? (routine.status || 'pending') : 'pending';
+  document.getElementById('routine-priority').value = routine ? (routine.priority || 'medium') : 'medium';
+  document.getElementById('routine-assigned').value = routine ? (routine.assigned_to || '') : '';
+  document.getElementById('routine-due').value = routine ? (routine.due_date ? routine.due_date.substring(0, 10) : '') : '';
+  openModal('modal-routine');
+}
+
+function editRoutine(id) {
+  const routine = state.routines.find(r => r.id === id);
+  if (routine) openRoutineModal(routine);
+}
+
+async function deleteRoutine(id) {
+  if (!confirm('Excluir esta rotina?')) return;
+  try {
+    await api('DELETE', `/daily-routines/${id}`);
+    toast('Rotina excluída', 'success');
+    loadDailyRoutines();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+document.getElementById('btn-new-routine').addEventListener('click', () => openRoutineModal(null));
+document.getElementById('btn-refresh-routines').addEventListener('click', loadDailyRoutines);
+
+document.getElementById('routine-filter-priority').addEventListener('change', renderKanban);
+document.getElementById('routine-filter-assigned').addEventListener('change', renderKanban);
+
+document.getElementById('modal-routine-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('routine-id').value;
+  const body = {
+    title: document.getElementById('routine-title').value,
+    description: document.getElementById('routine-desc').value,
+    status: document.getElementById('routine-status').value,
+    priority: document.getElementById('routine-priority').value,
+    assigned_to: document.getElementById('routine-assigned').value || null,
+    due_date: document.getElementById('routine-due').value || null,
+  };
+  try {
+    if (id) {
+      await api('PATCH', `/daily-routines/${id}`, body);
+      toast('Rotina atualizada', 'success');
+    } else {
+      await api('POST', '/daily-routines', body);
+      toast('Rotina criada', 'success');
+    }
+    closeModal('modal-routine');
+    loadDailyRoutines();
+  } catch (e) { toast(e.message, 'error'); }
+});
 
 /* ── WEBHOOKS ────────────────────────────────────────────────────────────── */
 
@@ -1051,6 +1278,16 @@ async function loadLogs() {
   } catch (e) { toast(e.message, 'error'); }
 }
 
+function renderPayloadPreview(payload) {
+  try {
+    const obj = typeof payload === 'string' ? JSON.parse(payload) : payload;
+    const str = JSON.stringify(obj);
+    return `<div style="color:var(--text-muted);font-size:10px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;max-height:40px">${esc(str.substring(0, 200))}</div>`;
+  } catch {
+    return `<div style="color:var(--text-muted);font-size:10px;margin-top:2px">${esc(String(payload).substring(0, 200))}</div>`;
+  }
+}
+
 function renderLogs() {
   const list = document.getElementById('logs-list');
   const empty = document.getElementById('logs-empty');
@@ -1071,7 +1308,7 @@ function renderLogs() {
           <span style="color:var(--text-secondary)">${esc(l.webhook_name || l.endpoint || '')}</span>
         </div>
         <div class="log-meta">${fmtDate(l.created_at)} · ${l.direction === 'inbound' ? 'Recebido' : esc(l.endpoint || '')} · ${esc(l.status)}${l.status_code ? ' (' + l.status_code + ')' : ''}</div>
-        ${l.payload ? `<div style="color:var(--text-muted);font-size:10px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;max-height:40px">${esc(JSON.stringify(typeof l.payload === 'string' ? JSON.parse(l.payload) : l.payload).substring(0, 200))}</div>` : ''}
+        ${l.payload ? renderPayloadPreview(l.payload) : ''}
       </div>
     `;
   }).join('');
@@ -2573,8 +2810,30 @@ function fmtCurrency(v) {
 
 /* ── Event Listeners ────────────────────────────────────────────────────── */
 
+/* ── Sidebar Toggle ───────────────────────────────────────────────────────── */
+
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.querySelector('.sidebar-overlay');
+  if (!sidebar) return;
+  sidebar.classList.toggle('active');
+  if (overlay) overlay.classList.toggle('active');
+}
+
+function closeSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.querySelector('.sidebar-overlay');
+  if (sidebar) sidebar.classList.remove('active');
+  if (overlay) overlay.classList.remove('active');
+}
+
+document.querySelector('.hamburger')?.addEventListener('click', toggleSidebar);
+document.querySelector('.sidebar-overlay')?.addEventListener('click', closeSidebar);
 document.querySelectorAll('.nav-item[data-page]').forEach(item => {
-  item.addEventListener('click', () => navigate(item.dataset.page));
+  item.addEventListener('click', () => {
+    navigate(item.dataset.page);
+    closeSidebar();
+  });
 });
 
 document.getElementById('btn-logout').addEventListener('click', logout);
