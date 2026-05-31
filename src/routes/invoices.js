@@ -12,7 +12,7 @@ export default async function (app) {
   });
 
   app.get('/api/invoices/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const invoice = invoiceService.getById(parseInt(req.params.id));
+    const invoice = await invoiceService.getById(parseInt(req.params.id));
     if (!invoice) return reply.code(404).send({ error: 'Fatura não encontrada' });
     return invoice;
   });
@@ -22,7 +22,7 @@ export default async function (app) {
   });
 
   app.delete('/api/invoices/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const deleted = invoiceService.delete_(parseInt(req.params.id));
+    const deleted = await invoiceService.delete_(parseInt(req.params.id));
     if (!deleted) return reply.code(404).send({ error: 'Fatura não encontrada' });
     return { success: true };
   });

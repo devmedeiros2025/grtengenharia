@@ -20,7 +20,7 @@ export async function notificationRoutes(app) {
   app.patch('/api/notifications/:id/read', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const notification = notificationService.markAsRead(Number(request.params.id));
+    const notification = await notificationService.markAsRead(Number(request.params.id));
     if (!notification) return reply.code(404).send({ error: 'Notificação não encontrada' });
     return notification;
   });

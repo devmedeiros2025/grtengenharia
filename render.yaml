@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: crm-grt-api
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3002"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_PATH
+        value: /data/crm.db
+      - key: CORS_ORIGIN
+        value: https://crm-grt.vercel.app
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: N8N_WEBHOOK_URL
+        sync: false
+      - key: N8N_API_KEY
+        sync: false

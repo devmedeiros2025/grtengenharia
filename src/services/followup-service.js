@@ -1,67 +1,59 @@
-import { getDb } from '../db/schema.js';
+import db from '../db/adapter.js';
 
-export function getAll({ page = 1, limit = 10, status, lead_id, user_id } = {}) {
-  const db = getDb();
+export async function getAll({ page = 1, limit = 10, status, lead_id, user_id } = {}) {
   let sql = 'SELECT f.*, l.name as lead_name FROM followups f LEFT JOIN leads l ON l.id = f.lead_id WHERE 1=1';
   const params = [];
   if (status) { sql += ' AND f.status = ?'; params.push(status); }
   if (lead_id) { sql += ' AND f.lead_id = ?'; params.push(Number(lead_id)); }
   if (user_id) { sql += ' AND f.user_id = ?'; params.push(Number(user_id)); }
-  const total = db.prepare(sql.replace('SELECT f.*, l.name as lead_name', 'SELECT COUNT(*) as total')).get(...params).total;
+  const totalRow = await db.row(sql.replace('SELECT f.*, l.name as lead_name', 'SELECT COUNT(*) as total'), params);
+  const total = totalRow?.total || 0;
   const totalPages = Math.ceil(total / limit);
   const offset = (page - 1) * limit;
   sql += ' ORDER BY f.due_date ASC, f.priority DESC';
   params.push(limit, offset);
-  const followups = db.prepare(sql).all(...params);
+  const followups = await db.raw(sql, params);
   return { followups, total, page, totalPages };
 }
 
-export function getById(id) {
-  const db = getDb();
-  return db.prepare('SELECT f.*, l.name as lead_name FROM followups f LEFT JOIN leads l ON l.id = f.lead_id WHERE f.id = ?').get(id) || null;
+export async function getById(id) {
+  return db.row('SELECT f.*, l.name as lead_name FROM followups f LEFT JOIN leads l ON l.id = f.lead_id WHERE f.id = ?', [id]);
 }
 
-export function create({ lead_id, action, description, due_date, priority, user_id, notes }) {
-  const db = getDb();
-  const result = db.prepare(`
-    INSERT INTO followups (lead_id, action, description, due_date, priority, user_id, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(lead_id || null, action || 'call', description || null, due_date || null, priority || 'medium', user_id || null, notes || null);
-  return getById(Number(result.lastInsertRowid));
+export async function create({ lead_id, action, description, due_date, priority, user_id, notes }) {
+  const result = await db.create('followups', {
+    lead_id: lead_id || null, action: action || 'call', description: description || null,
+    due_date: due_date || null, priority: priority || 'medium',
+    user_id: user_id || null, notes: notes || null,
+  });
+  return getById(result.id);
 }
 
-export function update(id, data) {
-  const db = getDb();
-  const fields = [];
-  const params = [];
-  for (const key of ['lead_id', 'action', 'description', 'due_date', 'priority', 'status', 'completed_at', 'user_id', 'notes']) {
-    if (data[key] !== undefined) { fields.push(`${key} = ?`); params.push(data[key]); }
-  }
+export async function update(id, data) {
+  const updateData = { ...data };
   if (data.status === 'completed' && !data.completed_at) {
-    fields.push("completed_at = datetime('now')");
+    updateData.completed_at = new Date().toISOString();
   }
-  if (fields.length === 0) return getById(id);
-  fields.push("updated_at = datetime('now')");
-  db.prepare(`UPDATE followups SET ${fields.join(', ')} WHERE id = ?`).run(...params, id);
+  const existing = await db.get('followups', id);
+  if (!existing) return null;
+  await db.update('followups', id, updateData);
   return getById(id);
 }
 
-export function delete_(id) {
-  const db = getDb();
-  return db.prepare('DELETE FROM followups WHERE id = ?').run(id).changes > 0;
+export async function delete_(id) {
+  return db.delete('followups', id);
 }
 
-export function getOverdue() {
-  const db = getDb();
-  return db.prepare(`
+export async function getOverdue() {
+  return db.raw(`
     SELECT f.*, l.name as lead_name
     FROM followups f
     LEFT JOIN leads l ON l.id = f.lead_id
     WHERE f.status = 'pending' AND f.due_date <= date('now')
     ORDER BY f.due_date ASC
-  `).all();
+  `);
 }
 
-export function complete(id) {
+export async function complete(id) {
   return update(id, { status: 'completed' });
 }

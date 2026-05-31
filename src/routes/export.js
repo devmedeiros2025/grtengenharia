@@ -9,7 +9,7 @@ export async function exportRoutes(app) {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
     const { status, source, search } = request.query;
-    const result = leadService.listLeads({ status, source, search, page: 1, limit: 10000 });
+    const result = await leadService.listLeads({ status, source, search, page: 1, limit: 10000 });
     const leads = result.leads || [];
 
     const csv = stringify(leads.map(l => ({
@@ -27,7 +27,7 @@ export async function exportRoutes(app) {
   app.get('/api/companies/export', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const result = companyService.listCompanies({ page: 1, limit: 10000 });
+    const result = await companyService.listCompanies({ page: 1, limit: 10000 });
     const companies = result.companies || [];
 
     const csv = stringify(companies.map(c => ({
@@ -45,7 +45,7 @@ export async function exportRoutes(app) {
   app.get('/api/deals/export', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const result = dealService.listDeals({ page: 1, limit: 10000 });
+    const result = await dealService.listDeals({ page: 1, limit: 10000 });
     const deals = result.deals || [];
 
     const csv = stringify(deals.map(d => ({

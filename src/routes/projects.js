@@ -11,7 +11,7 @@ export default async function (app) {
   });
 
   app.get('/api/projects/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const project = projectService.getById(parseInt(req.params.id));
+    const project = await projectService.getById(parseInt(req.params.id));
     if (!project) return reply.code(404).send({ error: 'Projeto não encontrado' });
     return project;
   });
@@ -21,7 +21,7 @@ export default async function (app) {
   });
 
   app.delete('/api/projects/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const deleted = projectService.delete_(parseInt(req.params.id));
+    const deleted = await projectService.delete_(parseInt(req.params.id));
     if (!deleted) return reply.code(404).send({ error: 'Projeto não encontrado' });
     return { success: true };
   });
@@ -35,7 +35,7 @@ export default async function (app) {
   });
 
   app.delete('/api/projects/phases/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const deleted = projectService.deletePhase(parseInt(req.params.id));
+    const deleted = await projectService.deletePhase(parseInt(req.params.id));
     if (!deleted) return reply.code(404).send({ error: 'Fase não encontrada' });
     return { success: true };
   });

@@ -11,7 +11,7 @@ export default async function (app) {
   });
 
   app.get('/api/campaigns/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const campaign = campaignService.getById(parseInt(req.params.id));
+    const campaign = await campaignService.getById(parseInt(req.params.id));
     if (!campaign) return reply.code(404).send({ error: 'Campanha não encontrada' });
     return campaign;
   });
@@ -21,7 +21,7 @@ export default async function (app) {
   });
 
   app.delete('/api/campaigns/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const deleted = campaignService.delete_(parseInt(req.params.id));
+    const deleted = await campaignService.delete_(parseInt(req.params.id));
     if (!deleted) return reply.code(404).send({ error: 'Campanha não encontrada' });
     return { success: true };
   });
@@ -31,7 +31,7 @@ export default async function (app) {
   });
 
   app.delete('/api/campaigns/targets/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const deleted = campaignService.removeTarget(parseInt(req.params.id));
+    const deleted = await campaignService.removeTarget(parseInt(req.params.id));
     if (!deleted) return reply.code(404).send({ error: 'Alvo não encontrado' });
     return { success: true };
   });

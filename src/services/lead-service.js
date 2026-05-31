@@ -1,110 +1,108 @@
-import { getDb } from '../db/schema.js';
+import db from '../db/adapter.js';
 import { logger } from '../lib/logger.js';
 import { dispatchOutboundWebhooks } from './webhook-service.js';
 
-export function createLead(data) {
-  const db = getDb();
-
-  const {
-    name, email, phone, company,
-    source = 'api', campaign = null,
-    message = null, metadata = '{}',
-  } = data;
+export async function createLead(data) {
+  const { name, email, phone, company, source = 'api', campaign = null, message = null, metadata = '{}' } = data;
 
   if (!name || name.trim().length === 0) {
     throw new Error('Nome é obrigatório');
   }
 
-  const stmt = db.prepare(`
-    INSERT INTO leads (name, email, phone, company, source, campaign, message, metadata)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `);
+  const result = await db.create('leads', {
+    name: name.trim(), email: email || null, phone: phone || null,
+    company: company || null, source, campaign: campaign || null,
+    message: message || null,
+    metadata: typeof metadata === 'string' ? metadata : JSON.stringify(metadata),
+  });
 
-  const result = stmt.run(
-    name.trim(), email || null, phone || null,
-    company || null, source, campaign || null,
-    message || null, typeof metadata === 'string' ? metadata : JSON.stringify(metadata),
-  );
-
-  const lead = getLeadById(Number(result.lastInsertRowid));
-
-  // Dispara outbound webhooks
-  dispatchOutboundWebhooks('lead.created', lead).catch(err =>
-    logger.error('Error dispatching outbound webhook:', err.message)
-  );
-
+  const lead = await getLeadById(result?.id);
+  if (lead) {
+    dispatchOutboundWebhooks('lead.created', lead).catch(err =>
+      logger.error('Error dispatching outbound webhook:', err.message)
+    );
+  }
   return lead;
 }
 
-export function getLeadById(id) {
-  const db = getDb();
-  const row = db.prepare('SELECT * FROM leads WHERE id = ?').get(id);
+export async function getLeadById(id) {
+  const row = await db.get('leads', id);
   if (!row) return null;
   return formatLead(row);
 }
 
-export function listLeads({ status, source, search, page = 1, limit = 50 } = {}) {
-  const db = getDb();
+export async function listLeads({ status, source, search, page = 1, limit = 50 } = {}) {
   const conditions = [];
   const params = [];
 
-  if (status) {
-    conditions.push('status = ?');
-    params.push(status);
-  }
-  if (source) {
-    conditions.push('source = ?');
-    params.push(source);
-  }
-  if (search) {
-    conditions.push('(name LIKE ? OR email LIKE ? OR company LIKE ? OR phone LIKE ?)');
-    const q = `%${search}%`;
-    params.push(q, q, q, q);
-  }
+  if (status) conditions.push({ field: 'status', op: 'eq', value: status });
+  if (source) conditions.push({ field: 'source', op: 'eq', value: source });
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
   const offset = (page - 1) * limit;
 
-  const countRow = db.prepare(`SELECT COUNT(*) as total FROM leads ${where}`).get(...params);
-  const total = countRow.total;
+  // For search with OR, use filtered results
+  if (search) {
+    const where = [];
+    if (status) { where.push('status = ?'); params.push(status); }
+    if (source) { where.push('source = ?'); params.push(source); }
+    if (search) {
+      const q = `%${search}%`;
+      where.push('(name LIKE ? OR email LIKE ? OR company LIKE ? OR phone LIKE ?)');
+      params.push(q, q, q, q);
+    }
+    const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
 
-  const rows = db.prepare(
-    `SELECT * FROM leads ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`
-  ).all(...params, limit, offset);
+    const countRow = await db.row(`SELECT COUNT(*) as total FROM leads ${whereClause}`, params);
+    const total = countRow?.total || 0;
+
+    const rows = await db.raw(
+      `SELECT * FROM leads ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [...params, limit, offset]
+    );
+
+    return {
+      leads: rows.map(formatLead),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  // No search - use structured pagination
+  const result = await db.paginate('leads', {
+    conditions: conditions.length > 0 ? conditions : null,
+    page, limit,
+    orderBy: ['created_at', 'desc'],
+  });
 
   return {
-    leads: rows.map(formatLead),
-    total,
-    page,
-    limit,
-    totalPages: Math.ceil(total / limit),
+    leads: result.data.map(formatLead),
+    total: result.total,
+    page: result.page,
+    limit: result.limit,
+    totalPages: result.totalPages,
   };
 }
 
-export function updateLead(id, data) {
-  const db = getDb();
-  const lead = getLeadById(id);
+export async function updateLead(id, data) {
+  const lead = await getLeadById(id);
   if (!lead) return null;
 
+  const updateData = {};
   const allowed = ['name', 'email', 'phone', 'company', 'status', 'score', 'message', 'metadata'];
-  const sets = [];
-  const params = [];
-
   for (const field of allowed) {
     if (data[field] !== undefined) {
-      sets.push(`${field} = ?`);
-      params.push(field === 'metadata' && typeof data[field] === 'object'
+      updateData[field] = field === 'metadata' && typeof data[field] === 'object'
         ? JSON.stringify(data[field])
-        : data[field]);
+        : data[field];
     }
   }
 
-  if (sets.length === 0) return lead;
+  if (Object.keys(updateData).length === 0) return lead;
 
-  sets.push("updated_at = datetime('now')");
-  db.prepare(`UPDATE leads SET ${sets.join(', ')} WHERE id = ?`).run(...params, id);
-
-  const updated = getLeadById(id);
+  await db.update('leads', id, updateData);
+  const updated = await getLeadById(id);
 
   dispatchOutboundWebhooks('lead.updated', updated).catch(err =>
     logger.error('Error dispatching outbound webhook:', err.message)
@@ -113,27 +111,24 @@ export function updateLead(id, data) {
   return updated;
 }
 
-export function deleteLead(id) {
-  const db = getDb();
-  const lead = getLeadById(id);
+export async function deleteLead(id) {
+  const lead = await getLeadById(id);
   if (!lead) return false;
-  db.prepare('DELETE FROM leads WHERE id = ?').run(id);
-  return true;
+  return db.delete('leads', id);
 }
 
-export function getLeadsStats() {
-  const db = getDb();
-  const rows = db.prepare(`
-    SELECT status, COUNT(*) as count FROM leads GROUP BY status
-  `).all();
+export async function getLeadsStats() {
+  const [rows, totalRow, todayRow] = await Promise.all([
+    db.raw('SELECT status, COUNT(*) as count FROM leads GROUP BY status'),
+    db.row('SELECT COUNT(*) as t FROM leads'),
+    db.row("SELECT COUNT(*) as t FROM leads WHERE date(created_at) = date('now')"),
+  ]);
 
-  const total = db.prepare('SELECT COUNT(*) as t FROM leads').get().t;
-  const today = db.prepare(`
-    SELECT COUNT(*) as t FROM leads WHERE date(created_at) = date('now')
-  `).get().t;
+  const total = totalRow?.t || 0;
+  const today = todayRow?.t || 0;
 
   const stats = { total, today, byStatus: {} };
-  for (const r of rows) {
+  for (const r of rows || []) {
     stats.byStatus[r.status] = r.count;
   }
   return stats;

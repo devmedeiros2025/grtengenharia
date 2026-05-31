@@ -2,8 +2,7 @@ import { mkdirSync, existsSync, unlinkSync, writeFileSync, readFileSync } from '
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
-import { getDb } from '../db/schema.js';
-import { config } from '../config.js';
+import db from '../db/adapter.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const UPLOAD_DIR = join(__dirname, '..', '..', 'uploads');
@@ -13,21 +12,21 @@ if (!existsSync(UPLOAD_DIR)) {
   mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-export function saveFile(buffer, originalName, mimeType, { leadId, companyId, dealId, contractId } = {}) {
+export async function saveFile(buffer, originalName, mimeType, { leadId, companyId, dealId, contractId } = {}) {
   const ext = originalName.split('.').pop() || 'bin';
   const filename = `${randomUUID()}.${ext}`;
   const filepath = join(UPLOAD_DIR, filename);
 
   writeFileSync(filepath, buffer);
 
-  const db = getDb();
-  const result = db.prepare(`
-    INSERT INTO attachments (lead_id, company_id, deal_id, contract_id, filename, original_name, mime_type, size)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(leadId || null, companyId || null, dealId || null, contractId || null, filename, originalName, mimeType, buffer.length);
+  const result = await db.create('attachments', {
+    lead_id: leadId || null, company_id: companyId || null, deal_id: dealId || null,
+    contract_id: contractId || null, filename, original_name: originalName,
+    mime_type: mimeType, size: buffer.length,
+  });
 
   return {
-    id: result.lastInsertRowid,
+    id: result.id,
     filename,
     original_name: originalName,
     mime_type: mimeType,
@@ -35,9 +34,8 @@ export function saveFile(buffer, originalName, mimeType, { leadId, companyId, de
   };
 }
 
-export function getFile(id) {
-  const db = getDb();
-  return db.prepare('SELECT * FROM attachments WHERE id = ?').get(id);
+export async function getFile(id) {
+  return db.get('attachments', id);
 }
 
 export function getFileBuffer(filename) {
@@ -46,8 +44,7 @@ export function getFileBuffer(filename) {
   return readFileSync(filepath);
 }
 
-export function listFiles({ leadId, companyId, dealId, contractId } = {}) {
-  const db = getDb();
+export async function listFiles({ leadId, companyId, dealId, contractId } = {}) {
   const conditions = [];
   const params = [];
 
@@ -57,17 +54,16 @@ export function listFiles({ leadId, companyId, dealId, contractId } = {}) {
   if (contractId) { conditions.push('contract_id = ?'); params.push(contractId); }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(' OR ')}` : '';
-  return db.prepare(`SELECT * FROM attachments ${where} ORDER BY created_at DESC`).all(...params);
+  return db.raw(`SELECT * FROM attachments ${where} ORDER BY created_at DESC`, params);
 }
 
-export function deleteFile(id) {
-  const file = getFile(id);
+export async function deleteFile(id) {
+  const file = await getFile(id);
   if (!file) return false;
 
   const filepath = join(UPLOAD_DIR, file.filename);
   try { unlinkSync(filepath); } catch {}
 
-  const db = getDb();
-  db.prepare('DELETE FROM attachments WHERE id = ?').run(id);
+  await db.delete('attachments', id);
   return true;
 }

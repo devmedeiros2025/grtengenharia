@@ -15,7 +15,7 @@ export default async function (app) {
   });
 
   app.delete('/api/rental/availability/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const deleted = rentalService.removeBlock(parseInt(req.params.id));
+    const deleted = await rentalService.removeBlock(parseInt(req.params.id));
     if (!deleted) return reply.code(404).send({ error: 'Bloco não encontrado' });
     return { success: true };
   });

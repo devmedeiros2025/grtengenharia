@@ -11,13 +11,13 @@ export default async function (app) {
   });
 
   app.get('/api/hunter/enrichments/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const enrichment = hunterService.getEnrichmentById(parseInt(req.params.id));
+    const enrichment = await hunterService.getEnrichmentById(parseInt(req.params.id));
     if (!enrichment) return reply.code(404).send({ error: 'Enriquecimento não encontrado' });
     return enrichment;
   });
 
   app.delete('/api/hunter/enrichments/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const deleted = hunterService.removeEnrichment(parseInt(req.params.id));
+    const deleted = await hunterService.removeEnrichment(parseInt(req.params.id));
     if (!deleted) return reply.code(404).send({ error: 'Enriquecimento não encontrado' });
     return { success: true };
   });

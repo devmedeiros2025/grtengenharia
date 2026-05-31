@@ -25,7 +25,7 @@ export async function leadRoutes(app) {
   app.get('/api/leads/:id', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const lead = leadService.getLeadById(Number(request.params.id));
+    const lead = await leadService.getLeadById(Number(request.params.id));
     if (!lead) return reply.code(404).send({ error: 'Lead não encontrado' });
     return lead;
   });
@@ -36,7 +36,7 @@ export async function leadRoutes(app) {
   }, async (request, reply) => {
     try {
       const data = createLeadSchema.parse(request.body);
-      const lead = leadService.createLead(data);
+      const lead = await leadService.createLead(data);
       return reply.code(201).send(lead);
     } catch (err) {
       return handleValidationError(err, reply);
@@ -49,7 +49,7 @@ export async function leadRoutes(app) {
   }, async (request, reply) => {
     try {
       const data = updateLeadSchema.parse(request.body);
-      const lead = leadService.updateLead(Number(request.params.id), data);
+      const lead = await leadService.updateLead(Number(request.params.id), data);
       if (!lead) return reply.code(404).send({ error: 'Lead não encontrado' });
       return lead;
     } catch (err) {
@@ -61,7 +61,7 @@ export async function leadRoutes(app) {
   app.delete('/api/leads/:id', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const ok = leadService.deleteLead(Number(request.params.id));
+    const ok = await leadService.deleteLead(Number(request.params.id));
     if (!ok) return reply.code(404).send({ error: 'Lead não encontrado' });
     return { ok: true };
   });

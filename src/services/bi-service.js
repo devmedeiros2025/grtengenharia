@@ -1,53 +1,54 @@
-import { getDb } from '../db/schema.js';
+import db from '../db/adapter.js';
 
-export function getConversionRate() {
-  const db = getDb();
-  const total = db.prepare('SELECT COUNT(*) as c FROM leads').get().c || 1;
-  const converted = db.prepare("SELECT COUNT(*) as c FROM leads WHERE status = 'converted'").get().c || 0;
+export async function getConversionRate() {
+  const [totalRow, convertedRow] = await Promise.all([
+    db.row('SELECT COUNT(*) as c FROM leads'),
+    db.row("SELECT COUNT(*) as c FROM leads WHERE status = 'converted'"),
+  ]);
+  const total = totalRow?.c || 1;
+  const converted = convertedRow?.c || 0;
   return { total, converted, rate: parseFloat(((converted / total) * 100).toFixed(1)) };
 }
 
-export function getAverageTicket() {
-  const db = getDb();
-  const row = db.prepare("SELECT AVG(value) as avg FROM deals WHERE stage = 'closed_won'").get();
-  return { averageTicket: row?.avg ? parseFloat(row.avg.toFixed(2)) : 0 };
+export async function getAverageTicket() {
+  const row = await db.row("SELECT AVG(value) as avg FROM deals WHERE stage = 'closed_won'");
+  return { averageTicket: row?.avg ? parseFloat(Number(row.avg).toFixed(2)) : 0 };
 }
 
-export function getFleetUtilization() {
-  const db = getDb();
-  const total = db.prepare('SELECT COUNT(*) as c FROM equipment').get().c || 1;
-  const inUse = db.prepare("SELECT COUNT(*) as c FROM equipment WHERE status = 'in_use'").get().c || 0;
-  const available = db.prepare("SELECT COUNT(*) as c FROM equipment WHERE status = 'available'").get().c || 0;
-  const maintenance = db.prepare("SELECT COUNT(*) as c FROM equipment WHERE status = 'maintenance'").get().c || 0;
+export async function getFleetUtilization() {
+  const [totalRow, inUseRow, availableRow, maintenanceRow] = await Promise.all([
+    db.row('SELECT COUNT(*) as c FROM equipment'),
+    db.row("SELECT COUNT(*) as c FROM equipment WHERE status = 'in_use'"),
+    db.row("SELECT COUNT(*) as c FROM equipment WHERE status = 'available'"),
+    db.row("SELECT COUNT(*) as c FROM equipment WHERE status = 'maintenance'"),
+  ]);
+  const total = totalRow?.c || 1;
+  const inUse = inUseRow?.c || 0;
+  const available = availableRow?.c || 0;
+  const maintenance = maintenanceRow?.c || 0;
   return {
-    total,
-    inUse,
-    available,
-    maintenance,
+    total, inUse, available, maintenance,
     utilization: parseFloat(((inUse / total) * 100).toFixed(1)),
   };
 }
 
-export function getLeadsBySource() {
-  const db = getDb();
-  return db.prepare('SELECT source, COUNT(*) as count FROM leads WHERE source IS NOT NULL AND source != \'\' GROUP BY source ORDER BY count DESC').all();
+export async function getLeadsBySource() {
+  return db.raw("SELECT source, COUNT(*) as count FROM leads WHERE source IS NOT NULL AND source != '' GROUP BY source ORDER BY count DESC");
 }
 
-export function getDealsByMonth() {
-  const db = getDb();
-  return db.prepare(`
+export async function getDealsByMonth() {
+  return db.raw(`
     SELECT strftime('%Y-%m', created_at) as month,
            COUNT(*) as count,
            SUM(value) as total_value
     FROM deals
     GROUP BY month
     ORDER BY month ASC
-  `).all();
+  `);
 }
 
-export function getTopClients(limit = 5) {
-  const db = getDb();
-  return db.prepare(`
+export async function getTopClients(limit = 5) {
+  return db.raw(`
     SELECT c.id, c.name, COUNT(d.id) as deal_count, SUM(d.value) as total_value
     FROM companies c
     JOIN deals d ON d.company_id = c.id
@@ -55,17 +56,24 @@ export function getTopClients(limit = 5) {
     GROUP BY c.id
     ORDER BY total_value DESC
     LIMIT ?
-  `).all(limit);
+  `, [limit]);
 }
 
-export function getTotalCounts() {
-  const db = getDb();
+export async function getTotalCounts() {
+  const [l, d, c, e, ct, t] = await Promise.all([
+    db.row('SELECT COUNT(*) as c FROM leads'),
+    db.row('SELECT COUNT(*) as c FROM deals'),
+    db.row('SELECT COUNT(*) as c FROM companies'),
+    db.row('SELECT COUNT(*) as c FROM equipment'),
+    db.row('SELECT COUNT(*) as c FROM contracts'),
+    db.row('SELECT COUNT(*) as c FROM tasks'),
+  ]);
   return {
-    totalLeads: db.prepare('SELECT COUNT(*) as c FROM leads').get().c,
-    totalDeals: db.prepare('SELECT COUNT(*) as c FROM deals').get().c,
-    totalCompanies: db.prepare('SELECT COUNT(*) as c FROM companies').get().c,
-    totalEquipment: db.prepare('SELECT COUNT(*) as c FROM equipment').get().c,
-    totalContracts: db.prepare('SELECT COUNT(*) as c FROM contracts').get().c,
-    totalTasks: db.prepare('SELECT COUNT(*) as c FROM tasks').get().c,
+    totalLeads: l?.c || 0,
+    totalDeals: d?.c || 0,
+    totalCompanies: c?.c || 0,
+    totalEquipment: e?.c || 0,
+    totalContracts: ct?.c || 0,
+    totalTasks: t?.c || 0,
   };
 }

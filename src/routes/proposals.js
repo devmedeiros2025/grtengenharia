@@ -11,7 +11,7 @@ export default async function (app) {
   });
 
   app.get('/api/proposals/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const proposal = proposalService.getById(parseInt(req.params.id));
+    const proposal = await proposalService.getById(parseInt(req.params.id));
     if (!proposal) return reply.code(404).send({ error: 'Proposta não encontrada' });
     return proposal;
   });
@@ -21,7 +21,7 @@ export default async function (app) {
   });
 
   app.delete('/api/proposals/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const deleted = proposalService.delete_(parseInt(req.params.id));
+    const deleted = await proposalService.delete_(parseInt(req.params.id));
     if (!deleted) return reply.code(404).send({ error: 'Proposta não encontrada' });
     return { success: true };
   });

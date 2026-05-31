@@ -11,7 +11,7 @@ export default async function (app) {
   });
 
   app.get('/api/followups/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const followup = followupService.getById(parseInt(req.params.id));
+    const followup = await followupService.getById(parseInt(req.params.id));
     if (!followup) return reply.code(404).send({ error: 'Acompanhamento não encontrado' });
     return followup;
   });
@@ -21,7 +21,7 @@ export default async function (app) {
   });
 
   app.delete('/api/followups/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const deleted = followupService.delete_(parseInt(req.params.id));
+    const deleted = await followupService.delete_(parseInt(req.params.id));
     if (!deleted) return reply.code(404).send({ error: 'Acompanhamento não encontrado' });
     return { success: true };
   });

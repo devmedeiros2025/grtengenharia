@@ -11,7 +11,7 @@ export default async function (app) {
   });
 
   app.get('/api/tickets/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const ticket = ticketService.getById(parseInt(req.params.id));
+    const ticket = await ticketService.getById(parseInt(req.params.id));
     if (!ticket) return reply.code(404).send({ error: 'Chamado não encontrado' });
     return ticket;
   });
@@ -21,7 +21,7 @@ export default async function (app) {
   });
 
   app.delete('/api/tickets/:id', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const deleted = ticketService.delete_(parseInt(req.params.id));
+    const deleted = await ticketService.delete_(parseInt(req.params.id));
     if (!deleted) return reply.code(404).send({ error: 'Chamado não encontrado' });
     return { success: true };
   });

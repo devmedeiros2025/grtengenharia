@@ -1,71 +1,73 @@
-import { getDb } from '../db/schema.js';
+import db from '../db/adapter.js';
 
-export function getAll({ page = 1, limit = 10, status, type } = {}) {
-  const db = getDb();
+export async function getAll({ page = 1, limit = 10, status, type } = {}) {
   let sql = 'SELECT * FROM campaigns WHERE 1=1';
   const params = [];
   if (status) { sql += ' AND status = ?'; params.push(status); }
   if (type) { sql += ' AND type = ?'; params.push(type); }
-  const total = db.prepare(sql.replace('SELECT *', 'SELECT COUNT(*) as total')).get(...params).total;
+  const totalRow = await db.row(sql.replace('SELECT *', 'SELECT COUNT(*) as total'), params);
+  const total = totalRow?.total || 0;
   const totalPages = Math.ceil(total / limit);
   const offset = (page - 1) * limit;
   sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
   params.push(limit, offset);
-  const campaigns = db.prepare(sql).all(...params).map(normalize);
+  const campaigns = (await db.raw(sql, params)).map(normalize);
   return { campaigns, total, page, totalPages };
 }
 
-export function getById(id) {
-  const db = getDb();
-  const campaign = normalize(db.prepare('SELECT * FROM campaigns WHERE id = ?').get(id));
+export async function getById(id) {
+  const row = await db.row('SELECT * FROM campaigns WHERE id = ?', [id]);
+  const campaign = normalize(row);
   if (!campaign) return null;
-  campaign.targets = db.prepare('SELECT * FROM campaign_targets WHERE campaign_id = ?').all(id);
+  const targets = await db.raw('SELECT * FROM campaign_targets WHERE campaign_id = ?', [id]);
+  campaign.targets = targets || [];
   return campaign;
 }
 
-export function create({ name, type, description, start_date, end_date, budget, status, notes }) {
-  const db = getDb();
-  const result = db.prepare(`
-    INSERT INTO campaigns (name, type, description, start_date, end_date, budget, status, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(name, type || 'email', description || null, start_date || null, end_date || null, budget || 0, status || 'draft', notes || null);
-  return getById(Number(result.lastInsertRowid));
+export async function create({ name, type, description, start_date, end_date, budget, status, notes }) {
+  const result = await db.create('campaigns', {
+    name, type: type || 'email', description: description || null,
+    start_date: start_date || null, end_date: end_date || null,
+    budget: budget || 0, status: status || 'draft', notes: notes || null,
+  });
+  return getById(result.id);
 }
 
-export function update(id, data) {
-  const db = getDb();
-  const fields = [];
-  const params = [];
-  for (const key of ['name', 'type', 'description', 'start_date', 'end_date', 'budget', 'status', 'notes']) {
-    if (data[key] !== undefined) { fields.push(`${key} = ?`); params.push(data[key]); }
-  }
-  if (fields.length === 0) return getById(id);
-  fields.push("updated_at = datetime('now')");
-  db.prepare(`UPDATE campaigns SET ${fields.join(', ')} WHERE id = ?`).run(...params, id);
+export async function update(id, data) {
+  const existing = await db.get('campaigns', id);
+  if (!existing) return null;
+  await db.update('campaigns', id, data);
   return getById(id);
 }
 
-export function delete_(id) {
-  const db = getDb();
-  const transaction = db.transaction(() => {
-    db.prepare('DELETE FROM campaign_targets WHERE campaign_id = ?').run(id);
-    return db.prepare('DELETE FROM campaigns WHERE id = ?').run(id).changes > 0;
+export async function delete_(id) {
+  return db.transaction(async (supabase) => {
+    if (supabase) {
+      await supabase.from('campaign_targets').delete().eq('campaign_id', id);
+      const { error } = await supabase.from('campaigns').delete().eq('id', id);
+      if (error) throw new Error(error.message);
+      return true;
+    } else {
+      const { default: schema } = await import('../db/schema.js');
+      const syncDb = schema.getDb();
+      const tx = syncDb.transaction(() => {
+        syncDb.prepare('DELETE FROM campaign_targets WHERE campaign_id = ?').run(id);
+        return syncDb.prepare('DELETE FROM campaigns WHERE id = ?').run(id).changes > 0;
+      });
+      return tx();
+    }
   });
-  return transaction();
 }
 
-export function addTarget(campaign_id, { name, email, phone, company_id }) {
-  const db = getDb();
-  const result = db.prepare(`
-    INSERT INTO campaign_targets (campaign_id, name, email, phone, company_id)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(campaign_id, name || null, email || null, phone || null, company_id || null);
-  return db.prepare('SELECT * FROM campaign_targets WHERE id = ?').get(Number(result.lastInsertRowid));
+export async function addTarget(campaign_id, { name, email, phone, company_id }) {
+  return db.create('campaign_targets', {
+    campaign_id, name: name || null, email: email || null,
+    phone: phone || null, company_id: company_id || null,
+  });
 }
 
-export function removeTarget(id) {
-  const db = getDb();
-  return db.prepare('DELETE FROM campaign_targets WHERE id = ?').run(id).changes > 0;
+export async function removeTarget(id) {
+  return db.delete('campaign_targets', id);
 }
 
 function normalize(c) {

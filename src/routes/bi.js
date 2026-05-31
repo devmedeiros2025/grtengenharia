@@ -2,10 +2,12 @@ import * as biService from '../services/bi-service.js';
 
 export default async function (app) {
   app.get('/api/bi/kpis', { preHandler: [app.requireAuth] }, async (req, reply) => {
-    const conversion = biService.getConversionRate();
-    const avgTicket = biService.getAverageTicket();
-    const fleet = biService.getFleetUtilization();
-    const counts = biService.getTotalCounts();
+    const [conversion, avgTicket, fleet, counts] = await Promise.all([
+      biService.getConversionRate(),
+      biService.getAverageTicket(),
+      biService.getFleetUtilization(),
+      biService.getTotalCounts(),
+    ]);
     return { ...conversion, ...avgTicket, ...fleet, ...counts };
   });
 

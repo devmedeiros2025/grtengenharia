@@ -31,9 +31,41 @@ export async function companyRoutes(app) {
   app.get('/api/companies/:id', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const company = svc.getCompany(Number(request.params.id));
+    const company = await svc.getCompany(Number(request.params.id));
     if (!company) return reply.code(404).send({ error: 'Empresa não encontrada' });
     return company;
+  });
+
+  // Create company
+  app.post('/api/companies', {
+    preHandler: [app.requireAuth],
+  }, async (request, reply) => {
+    try {
+      const data = createCompanySchema.parse(request.body);
+      const company = await svc.createCompany(data);
+      return reply.code(201).send(company);
+    } catch (err) { return handleValidationError(err, reply); }
+  });
+
+  // Update company
+  app.patch('/api/companies/:id', {
+    preHandler: [app.requireAuth],
+  }, async (request, reply) => {
+    try {
+      const data = updateCompanySchema.parse(request.body);
+      const company = await svc.updateCompany(Number(request.params.id), data);
+      if (!company) return reply.code(404).send({ error: 'Empresa não encontrada' });
+      return company;
+    } catch (err) { return handleValidationError(err, reply); }
+  });
+
+  // Delete company
+  app.delete('/api/companies/:id', {
+    preHandler: [app.requireAuth],
+  }, async (request, reply) => {
+    const ok = await svc.deleteCompany(Number(request.params.id));
+    if (!ok) return reply.code(404).send({ error: 'Empresa não encontrada' });
+    return { ok: true };
   });
 
   // POST /api/companies

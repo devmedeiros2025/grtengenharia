@@ -26,8 +26,8 @@ describe('Equipment Service', () => {
     try { unlinkSync(testDbPath + '-shm'); } catch {}
   });
 
-  it('should create equipment with valid data', () => {
-    const eq = equipmentService.createEquipment({
+  it('should create equipment with valid data', async () => {
+    const eq = await equipmentService.createEquipment({
       name: 'Retroescavadeira X1',
       type: 'Retroescavadeira',
       brand: 'Caterpillar',
@@ -40,15 +40,14 @@ describe('Equipment Service', () => {
     assert.ok(eq.id > 0);
   });
 
-  it('should create equipment with empty name (no throw)', () => {
-    // Service does not throw — it inserts with empty name
-    const eq = equipmentService.createEquipment({ name: '' });
+  it('should create equipment with empty name (no throw)', async () => {
+    const eq = await equipmentService.createEquipment({ name: '' });
     assert.ok(eq);
     assert.equal(eq.name, '');
   });
 
-  it('should list equipment with pagination', () => {
-    const result = equipmentService.listEquipment({ page: 1, limit: 10 });
+  it('should list equipment with pagination', async () => {
+    const result = await equipmentService.listEquipment({ page: 1, limit: 10 });
     assert.ok(result.equipment, 'Should have equipment array');
     assert.ok(Array.isArray(result.equipment));
     assert.ok(result.total >= 0);
@@ -57,56 +56,56 @@ describe('Equipment Service', () => {
     assert.ok(result.totalPages >= 0);
   });
 
-  it('should filter equipment by status', () => {
-    equipmentService.createEquipment({ name: 'EmUso Teste', status: 'in_use' });
-    const result = equipmentService.listEquipment({ status: 'in_use' });
+  it('should filter equipment by status', async () => {
+    await equipmentService.createEquipment({ name: 'EmUso Teste', status: 'in_use' });
+    const result = await equipmentService.listEquipment({ status: 'in_use' });
     assert.ok(result.equipment.length > 0);
     assert.equal(result.equipment[0].status, 'in_use');
   });
 
-  it('should search equipment by name', () => {
-    const result = equipmentService.listEquipment({ search: 'Retro' });
+  it('should search equipment by name', async () => {
+    const result = await equipmentService.listEquipment({ search: 'Retro' });
     assert.ok(result.equipment.length > 0);
     assert.ok(result.equipment.some(e => e.name.includes('Retro')));
   });
 
-  it('should get equipment by id', () => {
-    const created = equipmentService.createEquipment({ name: 'GetTest' });
-    const found = equipmentService.getEquipment(created.id);
+  it('should get equipment by id', async () => {
+    const created = await equipmentService.createEquipment({ name: 'GetTest' });
+    const found = await equipmentService.getEquipment(created.id);
     assert.ok(found);
     assert.equal(found.name, 'GetTest');
   });
 
-  it('should return null for non-existent equipment', () => {
-    const found = equipmentService.getEquipment(99999);
+  it('should return null for non-existent equipment', async () => {
+    const found = await equipmentService.getEquipment(99999);
     assert.equal(found, null);
   });
 
-  it('should update equipment fields', () => {
-    const created = equipmentService.createEquipment({ name: 'UpdateTest' });
-    const updated = equipmentService.updateEquipment(created.id, { daily_rate: 2000, plate: 'XYZ-9876' });
+  it('should update equipment fields', async () => {
+    const created = await equipmentService.createEquipment({ name: 'UpdateTest' });
+    const updated = await equipmentService.updateEquipment(created.id, { daily_rate: 2000, plate: 'XYZ-9876' });
     assert.ok(updated);
     assert.equal(updated.daily_rate, 2000);
     assert.equal(updated.plate, 'XYZ-9876');
   });
 
-  it('should delete equipment', () => {
-    const created = equipmentService.createEquipment({ name: 'DeleteTest' });
-    const deleted = equipmentService.deleteEquipment(created.id);
+  it('should delete equipment', async () => {
+    const created = await equipmentService.createEquipment({ name: 'DeleteTest' });
+    const deleted = await equipmentService.deleteEquipment(created.id);
     assert.ok(deleted);
-    const found = equipmentService.getEquipment(created.id);
+    const found = await equipmentService.getEquipment(created.id);
     assert.equal(found, null);
   });
 
-  it('should return false when deleting non-existent equipment', () => {
-    const deleted = equipmentService.deleteEquipment(99999);
+  it('should return false when deleting non-existent equipment', async () => {
+    const deleted = await equipmentService.deleteEquipment(99999);
     assert.equal(deleted, false);
   });
 });
 
 describe('Service Order Service', () => {
-  it('should create service order', () => {
-    const so = serviceOrderService.createServiceOrder({
+  it('should create service order', async () => {
+    const so = await serviceOrderService.createServiceOrder({
       title: 'Manutenção Preventiva',
       description: 'Troca de óleo',
       priority: 'high',
@@ -119,14 +118,14 @@ describe('Service Order Service', () => {
     assert.ok(so.id > 0);
   });
 
-  it('should create OS with empty title (no throw)', () => {
-    const so = serviceOrderService.createServiceOrder({ title: '' });
+  it('should create OS with empty title (no throw)', async () => {
+    const so = await serviceOrderService.createServiceOrder({ title: '' });
     assert.ok(so);
     assert.equal(so.title, '');
   });
 
-  it('should list service orders with pagination', () => {
-    const result = serviceOrderService.listServiceOrders({ page: 1, limit: 10 });
+  it('should list service orders with pagination', async () => {
+    const result = await serviceOrderService.listServiceOrders({ page: 1, limit: 10 });
     assert.ok(result.orders, 'Should have orders array');
     assert.ok(Array.isArray(result.orders));
     assert.ok(result.total >= 0);
@@ -134,43 +133,43 @@ describe('Service Order Service', () => {
     assert.equal(result.limit, 10);
   });
 
-  it('should filter service orders by status', () => {
-    serviceOrderService.createServiceOrder({ title: 'OSStatusTest', status: 'closed' });
-    const result = serviceOrderService.listServiceOrders({ status: 'closed' });
+  it('should filter service orders by status', async () => {
+    await serviceOrderService.createServiceOrder({ title: 'OSStatusTest', status: 'closed' });
+    const result = await serviceOrderService.listServiceOrders({ status: 'closed' });
     assert.ok(result.orders.length > 0);
     assert.equal(result.orders[0].status, 'closed');
   });
 
-  it('should filter service orders by priority', () => {
-    const result = serviceOrderService.listServiceOrders({ priority: 'high' });
+  it('should filter service orders by priority', async () => {
+    const result = await serviceOrderService.listServiceOrders({ priority: 'high' });
     assert.ok(result.orders.some(o => o.priority === 'high'));
   });
 
-  it('should update service order', () => {
-    const created = serviceOrderService.createServiceOrder({ title: 'OSUpdate' });
-    const updated = serviceOrderService.updateServiceOrder(created.id, { status: 'in_progress', value: 5000 });
+  it('should update service order', async () => {
+    const created = await serviceOrderService.createServiceOrder({ title: 'OSUpdate' });
+    const updated = await serviceOrderService.updateServiceOrder(created.id, { status: 'in_progress', value: 5000 });
     assert.ok(updated);
     assert.equal(updated.status, 'in_progress');
     assert.equal(updated.value, 5000);
   });
 
-  it('should delete service order', () => {
-    const created = serviceOrderService.createServiceOrder({ title: 'OSDelete' });
-    const deleted = serviceOrderService.deleteServiceOrder(created.id);
+  it('should delete service order', async () => {
+    const created = await serviceOrderService.createServiceOrder({ title: 'OSDelete' });
+    const deleted = await serviceOrderService.deleteServiceOrder(created.id);
     assert.ok(deleted);
-    const found = serviceOrderService.getServiceOrder(created.id);
+    const found = await serviceOrderService.getServiceOrder(created.id);
     assert.equal(found, null);
   });
 
-  it('should return null for non-existent service order', () => {
-    const found = serviceOrderService.getServiceOrder(99999);
+  it('should return null for non-existent service order', async () => {
+    const found = await serviceOrderService.getServiceOrder(99999);
     assert.equal(found, null);
   });
 });
 
 describe('Contract Service', () => {
-  it('should create contract', () => {
-    const ct = contractService.createContract({
+  it('should create contract', async () => {
+    const ct = await contractService.createContract({
       title: 'Locação Paver',
       type: 'rental',
       value: 45000,
@@ -184,14 +183,14 @@ describe('Contract Service', () => {
     assert.ok(ct.id > 0);
   });
 
-  it('should create contract with empty title (no throw)', () => {
-    const ct = contractService.createContract({ title: '' });
+  it('should create contract with empty title (no throw)', async () => {
+    const ct = await contractService.createContract({ title: '' });
     assert.ok(ct);
     assert.equal(ct.title, '');
   });
 
-  it('should list contracts with pagination', () => {
-    const result = contractService.listContracts({ page: 1, limit: 10 });
+  it('should list contracts with pagination', async () => {
+    const result = await contractService.listContracts({ page: 1, limit: 10 });
     assert.ok(result.contracts, 'Should have contracts array');
     assert.ok(Array.isArray(result.contracts));
     assert.ok(result.total >= 0);
@@ -199,36 +198,36 @@ describe('Contract Service', () => {
     assert.equal(result.limit, 10);
   });
 
-  it('should filter contracts by status', () => {
-    contractService.createContract({ title: 'ContractStatus', status: 'ended' });
-    const result = contractService.listContracts({ status: 'ended' });
+  it('should filter contracts by status', async () => {
+    await contractService.createContract({ title: 'ContractStatus', status: 'ended' });
+    const result = await contractService.listContracts({ status: 'ended' });
     assert.ok(result.contracts.length > 0);
     assert.equal(result.contracts[0].status, 'ended');
   });
 
-  it('should filter contracts by type', () => {
-    const result = contractService.listContracts({ type: 'rental' });
+  it('should filter contracts by type', async () => {
+    const result = await contractService.listContracts({ type: 'rental' });
     assert.ok(result.contracts.some(c => c.type === 'rental'));
   });
 
-  it('should update contract', () => {
-    const created = contractService.createContract({ title: 'ContractUpdate' });
-    const updated = contractService.updateContract(created.id, { value: 60000, notes: 'Updated notes' });
+  it('should update contract', async () => {
+    const created = await contractService.createContract({ title: 'ContractUpdate' });
+    const updated = await contractService.updateContract(created.id, { value: 60000, notes: 'Updated notes' });
     assert.ok(updated);
     assert.equal(updated.value, 60000);
     assert.equal(updated.notes, 'Updated notes');
   });
 
-  it('should delete contract', () => {
-    const created = contractService.createContract({ title: 'ContractDelete' });
-    const deleted = contractService.deleteContract(created.id);
+  it('should delete contract', async () => {
+    const created = await contractService.createContract({ title: 'ContractDelete' });
+    const deleted = await contractService.deleteContract(created.id);
     assert.ok(deleted);
-    const found = contractService.getContract(created.id);
+    const found = await contractService.getContract(created.id);
     assert.equal(found, null);
   });
 
-  it('should return null for non-existent contract', () => {
-    const found = contractService.getContract(99999);
+  it('should return null for non-existent contract', async () => {
+    const found = await contractService.getContract(99999);
     assert.equal(found, null);
   });
 });

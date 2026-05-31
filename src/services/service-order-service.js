@@ -1,80 +1,54 @@
-import { getDb } from '../db/schema.js';
+import db from '../db/adapter.js';
 
-export function listServiceOrders({ status, priority, equipment_id, client_id, page = 1, limit = 50 } = {}) {
-  const db = getDb();
+export async function listServiceOrders({ status, priority, equipment_id, client_id, page = 1, limit = 50 } = {}) {
   const conditions = [];
-  const params = [];
+  if (status) conditions.push({ field: 'so.status', op: 'eq', value: status });
+  if (priority) conditions.push({ field: 'so.priority', op: 'eq', value: priority });
+  if (equipment_id) conditions.push({ field: 'so.equipment_id', op: 'eq', value: equipment_id });
+  if (client_id) conditions.push({ field: 'so.client_id', op: 'eq', value: client_id });
 
-  if (status) { conditions.push('so.status = ?'); params.push(status); }
-  if (priority) { conditions.push('so.priority = ?'); params.push(priority); }
-  if (equipment_id) { conditions.push('so.equipment_id = ?'); params.push(equipment_id); }
-  if (client_id) { conditions.push('so.client_id = ?'); params.push(client_id); }
+  const result = await db.paginate('service_orders so', {
+    columns: 'so.*, e.name as equipment_name, c.name as client_name',
+    conditions: conditions.length > 0 ? conditions : null,
+    joins: [
+      { table: 'equipment e', foreignKey: 'so.equipment_id', columns: 'name as equipment_name' },
+      { table: 'companies c', foreignKey: 'so.client_id', columns: 'name as client_name' },
+    ],
+    page, limit,
+    orderBy: ['so.created_at', 'desc'],
+  });
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-  const offset = (page - 1) * limit;
-
-  const countRow = db.prepare(`SELECT COUNT(*) as total FROM service_orders so ${where}`).get(...params);
-  const total = countRow.total;
-
-  const rows = db.prepare(`
-    SELECT so.*, e.name as equipment_name, c.name as client_name
-    FROM service_orders so
-    LEFT JOIN equipment e ON so.equipment_id = e.id
-    LEFT JOIN companies c ON so.client_id = c.id
-    ${where} ORDER BY so.created_at DESC LIMIT ? OFFSET ?
-  `).all(...params, limit, offset);
-
-  return { orders: rows, total, page, limit, totalPages: Math.ceil(total / limit) };
+  return { orders: result.data, total: result.total, page: result.page, limit: result.limit, totalPages: result.totalPages };
 }
 
-export function getServiceOrder(id) {
-  const db = getDb();
-  return db.prepare(`
-    SELECT so.*, e.name as equipment_name, c.name as client_name
-    FROM service_orders so
-    LEFT JOIN equipment e ON so.equipment_id = e.id
-    LEFT JOIN companies c ON so.client_id = c.id
-    WHERE so.id = ?
-  `).get(id);
+export async function getServiceOrder(id) {
+  return db.get('service_orders', id);
 }
 
-export function createServiceOrder(data) {
-  const db = getDb();
-  const result = db.prepare(
-    `INSERT INTO service_orders (title, description, equipment_id, client_id, status, priority, value, notes)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(data.title, data.description || null, data.equipment_id || null, data.client_id || null,
-         data.status || 'open', data.priority || 'medium', data.value || 0, data.notes || null);
-  return getServiceOrder(result.lastInsertRowid);
+export async function createServiceOrder(data) {
+  return db.create('service_orders', {
+    title: data.title, description: data.description || null,
+    equipment_id: data.equipment_id || null, client_id: data.client_id || null,
+    status: data.status || 'open', priority: data.priority || 'medium',
+    value: data.value || 0, notes: data.notes || null,
+  });
 }
 
-export function updateServiceOrder(id, data) {
-  const db = getDb();
-  const existing = getServiceOrder(id);
+export async function updateServiceOrder(id, data) {
+  const existing = await db.get('service_orders', id);
   if (!existing) return null;
 
-  const fields = [];
-  const params = [];
-  for (const [key, value] of Object.entries(data)) {
-    if (key === 'id') continue;
-    fields.push(`${key} = ?`);
-    params.push(value);
-  }
-  if (fields.length === 0) return existing;
   // Auto-set closed_at when status changes to closed
   if (data.status === 'closed' && existing.status !== 'closed') {
-    fields.push('closed_at = datetime(\'now\')');
+    const now = new Date();
+    data.closed_at = now.toISOString();
   }
-  params.push(id);
 
-  db.prepare(`UPDATE service_orders SET ${fields.join(', ')} WHERE id = ?`).run(...params);
-  return getServiceOrder(id);
+  return db.update('service_orders', id, data);
 }
 
-export function deleteServiceOrder(id) {
-  const db = getDb();
-  const existing = getServiceOrder(id);
+export async function deleteServiceOrder(id) {
+  const existing = await db.get('service_orders', id);
   if (!existing) return false;
-  db.prepare('DELETE FROM service_orders WHERE id = ?').run(id);
-  return true;
+  return db.delete('service_orders', id);
 }

@@ -1,67 +1,53 @@
-import { getDb } from '../db/schema.js';
+import db from '../db/adapter.js';
 
-export function listEquipment({ status, type, search, page = 1, limit = 50 } = {}) {
-  const db = getDb();
+export async function listEquipment({ status, type, search, page = 1, limit = 50 } = {}) {
   const conditions = [];
-  const params = [];
+  if (status) conditions.push({ field: 'status', op: 'eq', value: status });
+  if (type) conditions.push({ field: 'type', op: 'eq', value: type });
 
-  if (status) { conditions.push('status = ?'); params.push(status); }
-  if (type) { conditions.push('type = ?'); params.push(type); }
+  const result = await db.paginate('equipment', {
+    conditions: conditions.length > 0 ? conditions : null,
+    page, limit,
+    orderBy: ['created_at', 'desc'],
+  });
+
+  // Apply OR search in-memory (multi-field LIKE not supported by simple adapter)
   if (search) {
-    conditions.push('(name LIKE ? OR brand LIKE ? OR model LIKE ? OR plate LIKE ?)');
-    const q = `%${search}%`;
-    params.push(q, q, q, q);
+    const q = search.toLowerCase();
+    result.data = result.data.filter(e =>
+      (e.name || '').toLowerCase().includes(q) ||
+      (e.brand || '').toLowerCase().includes(q) ||
+      (e.model || '').toLowerCase().includes(q) ||
+      (e.plate || '').toLowerCase().includes(q)
+    );
+    result.total = result.data.length;
+    result.totalPages = Math.ceil(result.total / limit);
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-  const offset = (page - 1) * limit;
-
-  const countRow = db.prepare(`SELECT COUNT(*) as total FROM equipment ${where}`).get(...params);
-  const total = countRow.total;
-  const rows = db.prepare(`SELECT * FROM equipment ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(...params, limit, offset);
-
-  return { equipment: rows, total, page, limit, totalPages: Math.ceil(total / limit) };
+  return { equipment: result.data, total: result.total, page: result.page, limit: result.limit, totalPages: result.totalPages };
 }
 
-export function getEquipment(id) {
-  const db = getDb();
-  return db.prepare('SELECT * FROM equipment WHERE id = ?').get(id);
+export async function getEquipment(id) {
+  return db.get('equipment', id);
 }
 
-export function createEquipment(data) {
-  const db = getDb();
-  const result = db.prepare(
-    `INSERT INTO equipment (name, type, brand, model, plate, year, status, daily_rate, photo, notes)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(data.name, data.type || null, data.brand || null, data.model || null, data.plate || null,
-         data.year || null, data.status || 'available', data.daily_rate || 0, data.photo || null, data.notes || null);
-  return getEquipment(result.lastInsertRowid);
+export async function createEquipment(data) {
+  return db.create('equipment', {
+    name: data.name, type: data.type || null, brand: data.brand || null,
+    model: data.model || null, plate: data.plate || null, year: data.year || null,
+    status: data.status || 'available', daily_rate: data.daily_rate || 0,
+    photo: data.photo || null, notes: data.notes || null,
+  });
 }
 
-export function updateEquipment(id, data) {
-  const db = getDb();
-  const existing = getEquipment(id);
+export async function updateEquipment(id, data) {
+  const existing = await db.get('equipment', id);
   if (!existing) return null;
-
-  const fields = [];
-  const params = [];
-  for (const [key, value] of Object.entries(data)) {
-    if (key === 'id') continue;
-    fields.push(`${key} = ?`);
-    params.push(value);
-  }
-  if (fields.length === 0) return existing;
-  fields.push('updated_at = datetime(\'now\')');
-  params.push(id);
-
-  db.prepare(`UPDATE equipment SET ${fields.join(', ')} WHERE id = ?`).run(...params);
-  return getEquipment(id);
+  return db.update('equipment', id, data);
 }
 
-export function deleteEquipment(id) {
-  const db = getDb();
-  const existing = getEquipment(id);
+export async function deleteEquipment(id) {
+  const existing = await db.get('equipment', id);
   if (!existing) return false;
-  db.prepare('DELETE FROM equipment WHERE id = ?').run(id);
-  return true;
+  return db.delete('equipment', id);
 }

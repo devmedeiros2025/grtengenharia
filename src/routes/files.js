@@ -17,7 +17,7 @@ export async function fileRoutes(app) {
     const dealId = parseInt(fields.deal_id?.value || request.query.deal_id) || null;
     const contractId = parseInt(fields.contract_id?.value || request.query.contract_id) || null;
 
-    const file = fileService.saveFile(buffer, data.filename, data.mimetype, {
+      const file = await fileService.saveFile(buffer, data.filename, data.mimetype, {
       leadId, companyId, dealId, contractId,
     });
 
@@ -40,7 +40,7 @@ export async function fileRoutes(app) {
   app.get('/api/files/:id/download', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const file = fileService.getFile(Number(request.params.id));
+    const file = await fileService.getFile(Number(request.params.id));
     if (!file) return reply.code(404).send({ error: 'Arquivo não encontrado' });
 
     const buffer = fileService.getFileBuffer(file.filename);
@@ -55,7 +55,7 @@ export async function fileRoutes(app) {
   app.delete('/api/files/:id', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const ok = fileService.deleteFile(Number(request.params.id));
+    const ok = await fileService.deleteFile(Number(request.params.id));
     if (!ok) return reply.code(404).send({ error: 'Arquivo não encontrado' });
     return { ok: true };
   });

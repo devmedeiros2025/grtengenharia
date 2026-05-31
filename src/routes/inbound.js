@@ -17,7 +17,7 @@ export async function inboundRoutes(app) {
     const { token } = request.params;
 
     // Valida token
-    const hook = wh.getInboundWebhookByToken(token);
+    const hook = await wh.getInboundWebhookByToken(token);
     if (!hook) {
       wh.logInboundWebhook(null, 'unknown', JSON.stringify(request.body), 401, 'Token inválido');
       return reply.code(401).send({ error: 'Token inválido ou webhook inativo' });
@@ -43,7 +43,7 @@ export async function inboundRoutes(app) {
     }
 
     try {
-      const created = leadService.createLead(lead);
+      const created = await leadService.createLead(lead);
 
       wh.logInboundWebhook(hook.id, hook.name || hook.source, JSON.stringify(payload), 201, 'OK');
 

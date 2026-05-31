@@ -31,7 +31,7 @@ export async function taskRoutes(app) {
   app.get('/api/tasks/:id', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const task = svc.getTask(Number(request.params.id));
+    const task = await svc.getTask(Number(request.params.id));
     if (!task) return reply.code(404).send({ error: 'Tarefa não encontrada' });
     return task;
   });
@@ -42,7 +42,7 @@ export async function taskRoutes(app) {
   }, async (request, reply) => {
     try {
       const data = createTaskSchema.parse(request.body);
-      const task = svc.createTask(data);
+      const task = await svc.createTask(data);
       return reply.code(201).send(task);
     } catch (err) {
       return handleValidationError(err, reply);
@@ -55,7 +55,7 @@ export async function taskRoutes(app) {
   }, async (request, reply) => {
     try {
       const data = updateTaskSchema.parse(request.body);
-      const task = svc.updateTask(Number(request.params.id), data);
+      const task = await svc.updateTask(Number(request.params.id), data);
       if (!task) return reply.code(404).send({ error: 'Tarefa não encontrada' });
       return task;
     } catch (err) {
@@ -67,7 +67,7 @@ export async function taskRoutes(app) {
   app.delete('/api/tasks/:id', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const ok = svc.deleteTask(Number(request.params.id));
+    const ok = await svc.deleteTask(Number(request.params.id));
     if (!ok) return reply.code(404).send({ error: 'Tarefa não encontrada' });
     return { ok: true };
   });

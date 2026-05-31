@@ -38,7 +38,7 @@ export async function dealRoutes(app) {
   app.get('/api/deals/:id', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const deal = svc.getDeal(Number(request.params.id));
+    const deal = await svc.getDeal(Number(request.params.id));
     if (!deal) return reply.code(404).send({ error: 'Negócio não encontrado' });
     return deal;
   });
@@ -49,7 +49,7 @@ export async function dealRoutes(app) {
   }, async (request, reply) => {
     try {
       const data = createDealSchema.parse(request.body);
-      const deal = svc.createDeal(data);
+      const deal = await svc.createDeal(data);
       return reply.code(201).send(deal);
     } catch (err) {
       return handleValidationError(err, reply);
@@ -62,7 +62,7 @@ export async function dealRoutes(app) {
   }, async (request, reply) => {
     try {
       const data = updateDealSchema.parse(request.body);
-      const deal = svc.updateDeal(Number(request.params.id), data);
+      const deal = await svc.updateDeal(Number(request.params.id), data);
       if (!deal) return reply.code(404).send({ error: 'Negócio não encontrado' });
       return deal;
     } catch (err) {
@@ -74,7 +74,7 @@ export async function dealRoutes(app) {
   app.delete('/api/deals/:id', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const ok = svc.deleteDeal(Number(request.params.id));
+    const ok = await svc.deleteDeal(Number(request.params.id));
     if (!ok) return reply.code(404).send({ error: 'Negócio não encontrado' });
     return { ok: true };
   });

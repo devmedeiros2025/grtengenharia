@@ -39,7 +39,7 @@ export async function webhookRoutes(app) {
   app.delete('/api/settings/webhooks/inbound/:id', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const ok = wh.deleteInboundWebhook(Number(request.params.id));
+    const ok = await wh.deleteInboundWebhook(Number(request.params.id));
     if (!ok) return reply.code(404).send({ error: 'Webhook não encontrado' });
     return { ok: true };
   });
@@ -49,8 +49,8 @@ export async function webhookRoutes(app) {
   app.get('/api/settings/webhooks', {
     preHandler: [app.requireAuth],
   }, async () => {
-    const inbound = wh.listInboundWebhooks();
-    const outbound = wh.listOutboundWebhooks().map(h => ({ ...h, events: (h.event || '').split(',').filter(Boolean) }));
+    const inbound = await wh.listInboundWebhooks();
+    const outbound = (await wh.listOutboundWebhooks()).map(h => ({ ...h, events: (h.event || '').split(',').filter(Boolean) }));
     return { inbound, outbound };
   });
 
@@ -69,7 +69,7 @@ export async function webhookRoutes(app) {
   }, async (request, reply) => {
     try {
       const data = createOutboundSchema.parse(request.body);
-      const hook = wh.createOutboundWebhook({ name: data.name, url: data.url, token: data.token, events: data.events });
+      const hook = await wh.createOutboundWebhook({ name: data.name, url: data.url, token: data.token, events: data.events });
       return reply.code(201).send(hook);
     } catch (err) {
       return handleValidationError(err, reply);
@@ -82,7 +82,7 @@ export async function webhookRoutes(app) {
   }, async (request, reply) => {
     try {
       const data = updateOutboundSchema.parse(request.body);
-      const hook = wh.updateOutboundWebhook(Number(request.params.id), data);
+      const hook = await wh.updateOutboundWebhook(Number(request.params.id), data);
       if (!hook) return reply.code(404).send({ error: 'Webhook não encontrado' });
       return hook;
     } catch (err) {
@@ -94,7 +94,7 @@ export async function webhookRoutes(app) {
   app.delete('/api/settings/webhooks/outbound/:id', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const ok = wh.deleteOutboundWebhook(Number(request.params.id));
+    const ok = await wh.deleteOutboundWebhook(Number(request.params.id));
     if (!ok) return reply.code(404).send({ error: 'Webhook não encontrado' });
     return { ok: true };
   });
@@ -128,7 +128,7 @@ export async function webhookRoutes(app) {
   app.delete('/api/settings/api-keys/:id', {
     preHandler: [app.requireAuth],
   }, async (request, reply) => {
-    const ok = wh.deleteApiKey(Number(request.params.id));
+    const ok = await wh.deleteApiKey(Number(request.params.id));
     if (!ok) return reply.code(404).send({ error: 'API Key não encontrada' });
     return { ok: true };
   });

@@ -1,86 +1,65 @@
-import { getDb } from '../db/schema.js';
+import db from '../db/adapter.js';
 
-export function listCompanies(filters = {}) {
-  const db = getDb();
+export async function listCompanies(filters = {}) {
   const conditions = [];
-  const params = [];
-
   if (filters.search) {
-    conditions.push('(name LIKE ? OR email LIKE ? OR cnpj LIKE ?)');
-    const s = `%${filters.search}%`;
-    params.push(s, s, s);
+    conditions.push({ field: 'name', op: 'like', value: filters.search });
   }
   if (filters.status) {
-    conditions.push('status = ?');
-    params.push(filters.status);
+    conditions.push({ field: 'status', op: 'eq', value: filters.status });
   }
-
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
   const page = Number(filters.page) || 1;
   const limit = Number(filters.limit) || 50;
-  const offset = (page - 1) * limit;
 
-  const countRow = db.prepare(`SELECT COUNT(*) as total FROM companies ${where}`).get(...params);
-  const total = countRow.total;
+  const result = await db.paginate('companies', {
+    conditions: conditions.length > 0 ? conditions : null,
+    page, limit,
+    orderBy: ['created_at', 'desc'],
+  });
 
-  const rows = db.prepare(
-    `SELECT * FROM companies ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`
-  ).all(...params, limit, offset);
-
-  return {
-    companies: rows,
-    total,
-    page,
-    limit,
-    totalPages: Math.ceil(total / limit),
-  };
-}
-
-export function getCompany(id) {
-  const db = getDb();
-  return db.prepare('SELECT * FROM companies WHERE id = ?').get(id) || null;
-}
-
-export function createCompany(data) {
-  const db = getDb();
-  const result = db.prepare(`
-    INSERT INTO companies (name, email, phone, website, cnpj, address, city, state, zip, segment, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    data.name, data.email || null, data.phone || null,
-    data.website || null, data.cnpj || null, data.address || null,
-    data.city || null, data.state || null, data.zip || null,
-    data.segment || null, data.notes || null
-  );
-  return getCompany(Number(result.lastInsertRowid));
-}
-
-export function updateCompany(id, data) {
-  const db = getDb();
-  const fields = ['name', 'email', 'phone', 'website', 'cnpj', 'address', 'city', 'state', 'zip', 'segment', 'notes', 'status'];
-  const sets = [];
-  const params = [];
-  for (const f of fields) {
-    if (data[f] !== undefined) {
-      sets.push(`${f} = ?`);
-      params.push(data[f]);
-    }
+  // Apply OR search for email and cnpj since adapter only handles single-field conditions
+  if (filters.search) {
+    const q = filters.search.toLowerCase();
+    result.data = result.data.filter(c =>
+      (c.name || '').toLowerCase().includes(q) ||
+      (c.email || '').toLowerCase().includes(q) ||
+      (c.cnpj || '').toLowerCase().includes(q)
+    );
+    result.total = result.data.length;
+    result.totalPages = Math.ceil(result.total / limit);
   }
-  if (sets.length === 0) return null;
-  sets.push("updated_at = datetime('now')");
-  db.prepare(`UPDATE companies SET ${sets.join(', ')} WHERE id = ?`).run(...params, id);
-  return getCompany(id);
+
+  return { companies: result.data, total: result.total, page: result.page, limit: result.limit, totalPages: result.totalPages };
 }
 
-export function deleteCompany(id) {
-  const db = getDb();
-  const result = db.prepare('DELETE FROM companies WHERE id = ?').run(id);
-  return result.changes > 0;
+export async function getCompany(id) {
+  return db.get('companies', id);
 }
 
-export function getCompanyStats() {
-  const db = getDb();
-  const total = db.prepare('SELECT COUNT(*) as c FROM companies').get();
-  const active = db.prepare("SELECT COUNT(*) as c FROM companies WHERE status = 'active'").get();
-  return { total: total.c, active: active.c };
+export async function createCompany(data) {
+  return db.create('companies', {
+    name: data.name, email: data.email || null, phone: data.phone || null,
+    website: data.website || null, cnpj: data.cnpj || null, address: data.address || null,
+    city: data.city || null, state: data.state || null, zip: data.zip || null,
+    segment: data.segment || null, notes: data.notes || null,
+    status: data.status || 'active',
+  });
+}
+
+export async function updateCompany(id, data) {
+  const existing = await db.get('companies', id);
+  if (!existing) return null;
+  return db.update('companies', id, data);
+}
+
+export async function deleteCompany(id) {
+  return db.delete('companies', id);
+}
+
+export async function getCompanyStats() {
+  const [total, active] = await Promise.all([
+    db.count('companies'),
+    db.count('companies', [{ field: 'status', op: 'eq', value: 'active' }]),
+  ]);
+  return { total, active };
 }

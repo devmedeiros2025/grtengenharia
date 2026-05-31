@@ -1,46 +1,45 @@
-import { getDb } from '../db/schema.js';
+import db from '../db/adapter.js';
 
-export function getAllAvailability({ equipment_id, start_date, end_date } = {}) {
-  const db = getDb();
+export async function getAllAvailability({ equipment_id, start_date, end_date } = {}) {
   let sql = 'SELECT ra.*, e.name as equipment_name FROM rental_availability ra LEFT JOIN equipment e ON e.id = ra.equipment_id WHERE 1=1';
   const params = [];
   if (equipment_id) { sql += ' AND ra.equipment_id = ?'; params.push(Number(equipment_id)); }
   if (start_date) { sql += ' AND ra.end_date >= ?'; params.push(start_date); }
   if (end_date) { sql += ' AND ra.start_date <= ?'; params.push(end_date); }
   sql += ' ORDER BY ra.start_date ASC';
-  return db.prepare(sql).all(...params);
+  return db.raw(sql, params);
 }
 
-export function blockDates(equipment_id, start_date, end_date, status = 'reserved', contract_id, notes) {
-  const db = getDb();
-  const result = db.prepare(`
-    INSERT INTO rental_availability (equipment_id, start_date, end_date, status, contract_id, notes)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `).run(equipment_id, start_date, end_date, status, contract_id || null, notes || null);
-  return db.prepare('SELECT * FROM rental_availability WHERE id = ?').get(Number(result.lastInsertRowid));
+export async function blockDates(equipment_id, start_date, end_date, status = 'reserved', contract_id, notes) {
+  return db.create('rental_availability', {
+    equipment_id, start_date, end_date, status,
+    contract_id: contract_id || null, notes: notes || null,
+  });
 }
 
-export function removeBlock(id) {
-  const db = getDb();
-  return db.prepare('DELETE FROM rental_availability WHERE id = ?').run(id).changes > 0;
+export async function removeBlock(id) {
+  return db.delete('rental_availability', id);
 }
 
-export function getFleetUtilization() {
-  const db = getDb();
-  const total = db.prepare('SELECT COUNT(*) as c FROM equipment').get().c || 1;
-  const inUse = db.prepare("SELECT COUNT(*) as c FROM equipment WHERE status = 'in_use'").get().c || 0;
-  const available = db.prepare("SELECT COUNT(*) as c FROM equipment WHERE status = 'available'").get().c || 0;
-  const maintenance = db.prepare("SELECT COUNT(*) as c FROM equipment WHERE status = 'maintenance'").get().c || 0;
+export async function getFleetUtilization() {
+  const [totalRow, inUseRow, availableRow, maintenanceRow] = await Promise.all([
+    db.row('SELECT COUNT(*) as c FROM equipment'),
+    db.row("SELECT COUNT(*) as c FROM equipment WHERE status = 'in_use'"),
+    db.row("SELECT COUNT(*) as c FROM equipment WHERE status = 'available'"),
+    db.row("SELECT COUNT(*) as c FROM equipment WHERE status = 'maintenance'"),
+  ]);
+  const total = totalRow?.c || 1;
+  const inUse = inUseRow?.c || 0;
+  const available = availableRow?.c || 0;
+  const maintenance = maintenanceRow?.c || 0;
   return { total, inUse, available, maintenance, utilization: parseFloat(((inUse / total) * 100).toFixed(1)) };
 }
 
-export function getAvailableEquipment(start_date, end_date) {
-  const db = getDb();
+export async function getAvailableEquipment(start_date, end_date) {
   if (!start_date || !end_date) {
-    return db.prepare("SELECT * FROM equipment WHERE status = 'available' ORDER BY name ASC").all();
+    return db.select('equipment', { conditions: [{ field: 'status', op: 'eq', value: 'available' }], orderBy: ['name', 'asc'] });
   }
-  // Equipment that has no conflicting availability blocks in the date range AND is not in maintenance
-  return db.prepare(`
+  return db.raw(`
     SELECT e.* FROM equipment e
     WHERE e.status != 'maintenance'
     AND e.id NOT IN (
@@ -48,12 +47,11 @@ export function getAvailableEquipment(start_date, end_date) {
       WHERE ra.start_date <= ? AND ra.end_date >= ?
     )
     ORDER BY e.name ASC
-  `).all(end_date, start_date);
+  `, [end_date, start_date]);
 }
 
-export function getContractsEndingSoon(days = 15) {
-  const db = getDb();
-  return db.prepare(`
+export async function getContractsEndingSoon(days = 15) {
+  return db.raw(`
     SELECT c.*, e.name as equipment_name, co.name as company_name
     FROM contracts c
     LEFT JOIN equipment e ON e.id = c.equipment_id
@@ -62,5 +60,5 @@ export function getContractsEndingSoon(days = 15) {
     AND c.end_date IS NOT NULL
     AND c.end_date BETWEEN date('now') AND date('now', '+' || ? || ' days')
     ORDER BY c.end_date ASC
-  `).all(days);
+  `, [days]);
 }

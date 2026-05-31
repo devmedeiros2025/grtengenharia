@@ -1,121 +1,83 @@
-import { getDb } from '../db/schema.js';
+import db from '../db/adapter.js';
 
-export function listDeals(filters = {}) {
-  const db = getDb();
+export async function listDeals(filters = {}) {
   const conditions = [];
-  const params = [];
-
-  if (filters.stage) {
-    conditions.push('d.stage = ?');
-    params.push(filters.stage);
-  }
-  if (filters.search) {
-    conditions.push('d.title LIKE ?');
-    params.push(`%${filters.search}%`);
-  }
-
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  if (filters.stage) conditions.push({ field: 'd.stage', op: 'eq', value: filters.stage });
+  if (filters.search) conditions.push({ field: 'd.title', op: 'like', value: filters.search });
 
   const page = Number(filters.page) || 1;
   const limit = Number(filters.limit) || 50;
-  const offset = (page - 1) * limit;
 
-  const baseFrom = 'FROM deals d LEFT JOIN companies c ON d.company_id = c.id';
-  const countRow = db.prepare(`SELECT COUNT(*) as total ${baseFrom} ${where}`).get(...params);
-  const total = countRow.total;
+  const result = await db.paginate('deals d', {
+    columns: 'd.*, c.name as company_name',
+    conditions: conditions.length > 0 ? conditions : null,
+    joins: [
+      { table: 'companies c', foreignKey: 'd.company_id', columns: 'name as company_name' },
+    ],
+    page, limit,
+    orderBy: ['d.updated_at', 'desc'],
+  });
 
-  const rows = db.prepare(
-    `SELECT d.*, c.name as company_name ${baseFrom} ${where} ORDER BY d.updated_at DESC LIMIT ? OFFSET ?`
-  ).all(...params, limit, offset);
-
-  return {
-    deals: rows,
-    total,
-    page,
-    limit,
-    totalPages: Math.ceil(total / limit),
-  };
+  return { deals: result.data, total: result.total, page: result.page, limit: result.limit, totalPages: result.totalPages };
 }
 
-export function getDeal(id) {
-  const db = getDb();
-  return db.prepare(`
-    SELECT d.*, c.name as company_name
-    FROM deals d LEFT JOIN companies c ON d.company_id = c.id
-    WHERE d.id = ?
-  `).get(id) || null;
+export async function getDeal(id) {
+  return db.get('deals', id);
 }
 
-export function createDeal(data) {
-  const db = getDb();
+export async function createDeal(data) {
   const stage = data.stage || 'prospecting';
-  const stageConfig = db.prepare('SELECT probability FROM pipeline_stages WHERE stage_key = ?').get(stage);
-  const probability = stageConfig ? stageConfig.probability : 10;
+  const stageRow = await db.row('SELECT probability FROM pipeline_stages WHERE stage_key = ?', [stage]);
+  const probability = stageRow ? stageRow.probability : 10;
 
-  const result = db.prepare(`
-    INSERT INTO deals (title, value, currency, stage, probability, company_id, contact_name, contact_email, contact_phone, source, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    data.title, data.value || 0, data.currency || 'BRL',
-    stage, probability, data.company_id || null,
-    data.contact_name || null, data.contact_email || null,
-    data.contact_phone || null, data.source || null, data.notes || null
-  );
-  return getDeal(Number(result.lastInsertRowid));
+  return db.create('deals', {
+    title: data.title, value: data.value || 0, currency: data.currency || 'BRL',
+    stage, probability, company_id: data.company_id || null,
+    contact_name: data.contact_name || null, contact_email: data.contact_email || null,
+    contact_phone: data.contact_phone || null, source: data.source || null, notes: data.notes || null,
+  });
 }
 
-export function updateDeal(id, data) {
-  const db = getDb();
-  const fields = ['title', 'value', 'currency', 'stage', 'probability', 'company_id', 'contact_name', 'contact_email', 'contact_phone', 'source', 'notes'];
-  const sets = [];
-  const params = [];
+export async function updateDeal(id, data) {
+  const existing = await db.get('deals', id);
+  if (!existing) return null;
 
   // If stage is changing, update probability from pipeline config
   if (data.stage) {
-    const stageConfig = db.prepare('SELECT probability FROM pipeline_stages WHERE stage_key = ?').get(data.stage);
-    if (stageConfig) data.probability = stageConfig.probability;
+    const stageRow = await db.row('SELECT probability FROM pipeline_stages WHERE stage_key = ?', [data.stage]);
+    if (stageRow) data.probability = stageRow.probability;
   }
 
   // If closing (won/lost), set closed_at
   if (data.stage === 'won' || data.stage === 'lost') {
-    sets.push("closed_at = datetime('now')");
+    data.closed_at = new Date().toISOString();
   }
 
-  for (const f of fields) {
-    if (data[f] !== undefined) {
-      sets.push(`${f} = ?`);
-      params.push(data[f]);
-    }
-  }
-  if (sets.length === 0 && !data.closed_at) return null;
-  sets.push("updated_at = datetime('now')");
-  db.prepare(`UPDATE deals SET ${sets.join(', ')} WHERE id = ?`).run(...params, id);
-  return getDeal(id);
+  return db.update('deals', id, data);
 }
 
-export function deleteDeal(id) {
-  const db = getDb();
-  const result = db.prepare('DELETE FROM deals WHERE id = ?').run(id);
-  return result.changes > 0;
+export async function deleteDeal(id) {
+  return db.delete('deals', id);
 }
 
-export function getDealStats() {
-  const db = getDb();
-  const total = db.prepare('SELECT COUNT(*) as c FROM deals').get();
-  const won = db.prepare("SELECT COUNT(*) as c, COALESCE(SUM(value),0) as v FROM deals WHERE stage = 'won'").get();
-  const open = db.prepare("SELECT COUNT(*) as c, COALESCE(SUM(value),0) as v FROM deals WHERE stage NOT IN ('won','lost')").get();
-  const pipeline = db.prepare('SELECT stage, COUNT(*) as c, COALESCE(SUM(value),0) as v FROM deals GROUP BY stage ORDER BY stage').all();
+export async function getDealStats() {
+  const [total, won, open, pipeline] = await Promise.all([
+    db.row('SELECT COUNT(*) as c FROM deals'),
+    db.row("SELECT COUNT(*) as c, COALESCE(SUM(value),0) as v FROM deals WHERE stage = 'won'"),
+    db.row("SELECT COUNT(*) as c, COALESCE(SUM(value),0) as v FROM deals WHERE stage NOT IN ('won','lost')"),
+    db.raw("SELECT stage, COUNT(*) as c, COALESCE(SUM(value),0) as v FROM deals GROUP BY stage ORDER BY stage"),
+  ]);
+
   return {
-    total: total.c,
-    won: { count: won.c, value: won.v },
-    open: { count: open.c, value: open.v },
-    pipeline,
+    total: total?.c || 0,
+    won: { count: won?.c || 0, value: won?.v || 0 },
+    open: { count: open?.c || 0, value: open?.v || 0 },
+    pipeline: pipeline || [],
   };
 }
 
 // ── Pipeline Stages ─────────────────────────────────────────────────────────
 
-export function listPipelineStages() {
-  const db = getDb();
-  return db.prepare('SELECT * FROM pipeline_stages ORDER BY order_index').all();
+export async function listPipelineStages() {
+  return db.select('pipeline_stages', { orderBy: ['order_index', 'asc'] });
 }
