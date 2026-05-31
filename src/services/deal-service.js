@@ -1,24 +1,26 @@
 import db from '../db/adapter.js';
 
 export async function listDeals(filters = {}) {
-  const conditions = [];
-  if (filters.stage) conditions.push({ field: 'd.stage', op: 'eq', value: filters.stage });
-  if (filters.search) conditions.push({ field: 'd.title', op: 'like', value: filters.search });
-
   const page = Number(filters.page) || 1;
   const limit = Number(filters.limit) || 50;
 
-  const result = await db.paginate('deals d', {
-    columns: 'd.*, c.name as company_name',
-    conditions: conditions.length > 0 ? conditions : null,
-    joins: [
-      { table: 'companies c', foreignKey: 'd.company_id', columns: 'name as company_name' },
-    ],
-    page, limit,
-    orderBy: ['d.updated_at', 'desc'],
-  });
+  // Use raw SQL to avoid Supabase table alias incompatibility
+  const params = [];
+  const where = [];
+  if (filters.stage) { where.push('d.stage = ?'); params.push(filters.stage); }
+  if (filters.search) { where.push('d.title ILIKE ?'); params.push(`%${filters.search}%`); }
+  const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
 
-  return { deals: result.data, total: result.total, page: result.page, limit: result.limit, totalPages: result.totalPages };
+  const countRow = await db.row(`SELECT COUNT(*) as total FROM deals d ${whereClause}`, params);
+  const total = countRow?.total || 0;
+
+  const offset = (page - 1) * limit;
+  const rows = await db.raw(
+    `SELECT d.*, c.name as company_name FROM deals d LEFT JOIN companies c ON d.company_id = c.id ${whereClause} ORDER BY d.updated_at DESC LIMIT ? OFFSET ?`,
+    [...params, limit, offset]
+  );
+
+  return { deals: rows || [], total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 export async function getDeal(id) {
