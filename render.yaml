@@ -1,10 +1,12 @@
 services:
   - type: web
-    name: crm-grt-api
+    name: crm-grt
     env: node
+    repo: https://github.com/aldeiaup/grtengenharia
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
+    autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
@@ -15,7 +17,7 @@ services:
       - key: DB_PATH
         value: /data/crm.db
       - key: CORS_ORIGIN
-        value: https://crm-grt.vercel.app
+        value: "*"
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
