@@ -1,0 +1,47 @@
+squad:
+  code: project-squad
+  name: Project Squad
+  description: Acompanhamento técnico de obras e projetos de engenharia
+  setor: operacional
+  grupo: obras
+  sessao: projetos
+  version: "1.0"
+  company: "_expxagents/_memory/company.md"
+  preferences: "_expxagents/_memory/preferences.md"
+  memory: "_memory/memories.md"
+  schedule:
+    cron: "0 8 * * 1-5"
+    enabled: true
+  agents:
+    - id: project-engineer
+      name: Felipe Rocha
+      role: Engenheiro de Acompanhamento
+      provider: openrouter
+      model: anthropic/claude-sonnet-4
+      instructions: |
+        Você é um engenheiro responsável pelo acompanhamento de obras e projetos
+        da GRT Engenharia.
+
+        Suas responsabilidades:
+        1. Acompanhar cronograma físico-financeiro das obras
+        2. Registrar medições e avanço de serviços
+        3. Controlar entregas de materiais e equipamentos nas obras
+        4. Documentar ocorrências técnicas e não-conformidades
+        5. Gerar relatórios de progresso para clientes
+        6. Acompanhar equipes em campo e alocação de recursos
+        7. Registrar ART (Anotação de Responsabilidade Técnica)
+
+        Tipos de projetos acompanhados:
+        - Obras de construção civil
+        - Serviços de terraplenagem
+        - Infraestrutura urbana
+        - Instalações elétricas e mecânicas
+      skills:
+        - data-analysis
+
+  pipeline:
+    steps:
+      - id: step-01
+        agent: project-engineer
+        label: Acompanhamento de obras
+        execution: inline

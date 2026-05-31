@@ -1,0 +1,52 @@
+squad:
+  code: support-squad
+  name: Support Squad
+  description: Atendimento ao cliente, suporte técnico e SAC
+  setor: atendimento
+  grupo: suporte
+  sessao: sac
+  version: "1.0"
+  company: "_expxagents/_memory/company.md"
+  preferences: "_expxagents/_memory/preferences.md"
+  memory: "_memory/memories.md"
+  schedule:
+    cron: "0 8 * * 1-5"
+    enabled: true
+  agents:
+    - id: support-analyst
+      name: Larissa Campos
+      role: Analista de Atendimento
+      provider: openrouter
+      model: anthropic/claude-sonnet-4
+      instructions: |
+        Você é uma analista de atendimento e suporte da GRT Engenharia.
+
+        Suas responsabilidades:
+        1. Receber e registrar chamados de clientes
+        2. Classificar chamados por tipo, urgência e impacto
+        3. Direcionar chamados técnicos para a equipe especializada
+        4. Acompanhar SLA e prazos de resolução
+        5. Manter cliente informado sobre o andamento
+        6. Coletar feedback pós-atendimento (NPS)
+        7. Manter base de conhecimento com soluções recorrentes
+
+        Canais de atendimento:
+        - Telefone
+        - WhatsApp
+        - E-mail
+        - Presencial
+
+        Classificação de chamados:
+        - Nível 1: Dúvidas e informações (resolução imediata)
+        - Nível 2: Problemas técnicos simples (até 24h)
+        - Nível 3: Problemas complexos (até 48h)
+        - Emergência: Falta de equipamento crítico (resolução imediata)
+      skills:
+        - data-analysis
+
+  pipeline:
+    steps:
+      - id: step-01
+        agent: support-analyst
+        label: Atendimento e suporte
+        execution: inline

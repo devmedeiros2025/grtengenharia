@@ -1,0 +1,926 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - button "Toggle sidebar" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - link "ExpxAgents" [ref=e8] [cursor=pointer]:
+      - /url: /
+      - img [ref=e10]
+      - generic [ref=e12]: ExpxAgents
+    - generic [ref=e13]: /
+    - generic [ref=e14]: Documentação
+    - generic [ref=e15]:
+      - button "PT" [ref=e16] [cursor=pointer]
+      - button "EN" [ref=e17] [cursor=pointer]
+    - link "Voltar" [ref=e18] [cursor=pointer]:
+      - /url: /
+  - generic [ref=e21]:
+    - heading "ExpxAgents" [level=1] [ref=e22]
+    - paragraph [ref=e23]:
+      - strong [ref=e24]: ExpxAgents
+      - text: é uma plataforma de orquestração de múltiplos agentes de IA. Permite criar squads de agentes especializados que executam pipelines, se comunicam entre si, agendam tarefas e geram resultados de forma autônoma — tudo gerenciado via uma interface web e CLI.
+    - list [ref=e25]:
+      - listitem [ref=e26]:
+        - generic [ref=e27]: ▸
+        - generic [ref=e28]: Squads de agentes em YAML — configuração simples, execução poderosa
+      - listitem [ref=e29]:
+        - generic [ref=e30]: ▸
+        - generic [ref=e31]: Hierarquia Setor → Grupo → Sessão → Squad para organização empresarial
+      - listitem [ref=e32]:
+        - generic [ref=e33]: ▸
+        - generic [ref=e34]: Pipeline com checkpoints, kanban automático e rastreamento de steps
+      - listitem [ref=e35]:
+        - generic [ref=e36]: ▸
+        - generic [ref=e37]: Scheduler integrado com cron jobs por squad
+      - listitem [ref=e38]:
+        - generic [ref=e39]: ▸
+        - generic [ref=e40]: Dashboard de operações em tempo real (KPIs, gráficos, agentes)
+      - listitem [ref=e41]:
+        - generic [ref=e42]: ▸
+        - generic [ref=e43]: Webhooks para integração com sistemas externos
+      - listitem [ref=e44]:
+        - generic [ref=e45]: ▸
+        - generic [ref=e46]: Engine de Email (SES) com campanhas e rastreamento
+      - listitem [ref=e47]:
+        - generic [ref=e48]: ▸
+        - generic [ref=e49]: Suporte a Claude (Anthropic), OpenAI e providers customizados
+    - heading "Quick Start" [level=1] [ref=e50]
+    - heading "Instalação" [level=2] [ref=e51]
+    - paragraph [ref=e52]: "Requisito: Node.js ≥ 20 e Python ≥ 3.10."
+    - generic [ref=e53]:
+      - generic [ref=e54]: bash
+      - code [ref=e55]: npm install -g expxagents
+    - paragraph [ref=e56]: "Verifique a instalação:"
+    - generic [ref=e57]:
+      - generic [ref=e58]: bash
+      - code [ref=e59]: expxagents --version expxagents doctor
+    - heading "Primeiro projeto" [level=2] [ref=e60]
+    - generic [ref=e61]:
+      - generic [ref=e62]: bash
+      - code [ref=e63]: "# Criar novo projeto ExpxAgents expxagents init meu-projeto cd meu-projeto # Criar sua primeira squad expxagents create minha-squad # Instalar a skill de onboarding expxagents install"
+    - heading "Rodando o servidor" [level=2] [ref=e64]
+    - generic [ref=e65]:
+      - generic [ref=e66]: bash
+      - code [ref=e67]: "# Modo desenvolvimento (server + dashboard) npm run dev # Modo produção npm start # Com tunnel para acesso remoto expxagents server --tunnel # Acesse: http://localhost:3001"
+    - paragraph [ref=e68]:
+      - text: Se a porta 3001 estiver em uso, o servidor detecta automaticamente e usa a próxima porta livre. O arquivo
+      - code [ref=e69]: .server-port
+      - text: é criado com a porta em uso.
+    - heading "Arquitetura" [level=1] [ref=e70]
+    - paragraph [ref=e71]: "ExpxAgents é um monorepo com 7 pacotes independentes:"
+    - generic [ref=e72]:
+      - generic [ref=e73]: text
+      - code [ref=e74]: "expxagents/ ├── server/ # API REST + WebSocket (Fastify 5, SQLite) ├── dashboard/ # SPA React (React 19, Vite, Zustand, Pixi.js) ├── core/ # Engine TypeScript (squad-loader, state-manager) ├── cli/ # CLI Commander.js (expxagents command) ├── knowledge/ # GraphRAG Knowledge System ├── packages/ │ ├── registry-client/ # SDK para global squad registry │ └── agent-cli/ # AI coding agent com tool use (@expxagents/agent) └── squads/ # Configurações de squads (YAML)"
+    - list [ref=e75]:
+      - listitem [ref=e76]:
+        - generic [ref=e77]: ▸
+        - generic [ref=e78]:
+          - strong [ref=e79]: server
+          - text: — Fastify 5 com SQLite. Gerencia autenticação JWT, WebSocket, file-watcher, scheduler, engine de email e bridge com Claude Code.
+      - listitem [ref=e80]:
+        - generic [ref=e81]: ▸
+        - generic [ref=e82]:
+          - strong [ref=e83]: dashboard
+          - text: — SPA React 19 com Zustand 5, Pixi.js 8 para Office View e comunicação via WebSocket.
+      - listitem [ref=e84]:
+        - generic [ref=e85]: ▸
+        - generic [ref=e86]:
+          - strong [ref=e87]: core
+          - text: — Biblioteca pura TypeScript. Parse de squad.yaml, gerenciamento de estado do pipeline e carregamento de skills.
+      - listitem [ref=e88]:
+        - generic [ref=e89]: ▸
+        - generic [ref=e90]:
+          - strong [ref=e91]: cli
+          - text: — Pacote npm (
+          - code [ref=e92]: expxagents
+          - text: ). Contém todos os comandos do usuário final.
+    - heading "CLI Reference" [level=1] [ref=e93]
+    - paragraph [ref=e94]:
+      - text: Todos os comandos do CLI
+      - code [ref=e95]: expxagents
+      - text: ":"
+    - heading "init" [level=2] [ref=e96]
+    - paragraph [ref=e97]: Inicializa um novo projeto ExpxAgents no diretório atual.
+    - generic [ref=e98]:
+      - generic [ref=e99]: bash
+      - code [ref=e100]: expxagents init [nome-do-projeto]
+    - heading "create" [level=2] [ref=e101]
+    - paragraph [ref=e102]: Cria uma nova squad dentro do projeto.
+    - generic [ref=e103]:
+      - generic [ref=e104]: bash
+      - code [ref=e105]: "expxagents create <nome-da-squad> # Com hierarquia expxagents create comercial/vendas/prospeccao/hunter-squad"
+    - heading "run / stop" [level=2] [ref=e106]
+    - generic [ref=e107]:
+      - generic [ref=e108]: bash
+      - code [ref=e109]: "# Executar uma squad expxagents run <nome-da-squad> # Parar uma squad em execução expxagents stop <nome-da-squad> # Suporta busca recursiva expxagents run hunter-squad"
+    - heading "list" [level=2] [ref=e110]
+    - paragraph [ref=e111]: Lista todas as squads do projeto, agrupadas pela hierarquia.
+    - generic [ref=e112]:
+      - generic [ref=e113]: bash
+      - code [ref=e114]: expxagents list
+    - heading "server" [level=2] [ref=e115]
+    - generic [ref=e116]:
+      - generic [ref=e117]: bash
+      - code [ref=e118]: expxagents server expxagents server --tunnel PORT=4000 expxagents server
+    - heading "reorganize" [level=2] [ref=e119]
+    - paragraph [ref=e120]: Migra squads existentes para a estrutura de hierarquia usando a API da Anthropic.
+    - generic [ref=e121]:
+      - generic [ref=e122]: bash
+      - code [ref=e123]: expxagents reorganize
+    - heading "Outros comandos" [level=2] [ref=e124]
+    - table [ref=e126]:
+      - rowgroup [ref=e127]:
+        - row "Comando Descrição" [ref=e128]:
+          - columnheader "Comando" [ref=e129]
+          - columnheader "Descrição" [ref=e130]
+      - rowgroup [ref=e131]:
+        - row "expxagents install Instala skills e configura o ambiente" [ref=e132]:
+          - cell "expxagents install" [ref=e133]
+          - cell "Instala skills e configura o ambiente" [ref=e134]
+        - row "expxagents uninstall Remove a instalação do ExpxAgents" [ref=e135]:
+          - cell "expxagents uninstall" [ref=e136]
+          - cell "Remove a instalação do ExpxAgents" [ref=e137]
+        - row "expxagents doctor Verifica pré-requisitos (Node, Claude Code, etc.)" [ref=e138]:
+          - cell "expxagents doctor" [ref=e139]
+          - cell "Verifica pré-requisitos (Node, Claude Code, etc.)" [ref=e140]
+        - row "expxagents onboarding Fluxo guiado de configuração inicial" [ref=e141]:
+          - cell "expxagents onboarding" [ref=e142]
+          - cell "Fluxo guiado de configuração inicial" [ref=e143]
+        - row "expxagents cli [prompt] AI coding agent interativo via OpenRouter" [ref=e144]:
+          - cell "expxagents cli [prompt]" [ref=e145]
+          - cell "AI coding agent interativo via OpenRouter" [ref=e146]
+        - row "expxagents outdated Verifica atualizações" [ref=e147]:
+          - cell "expxagents outdated" [ref=e148]
+          - cell "Verifica atualizações" [ref=e149]
+        - row "expxagents update Atualiza para última versão" [ref=e150]:
+          - cell "expxagents update" [ref=e151]
+          - cell "Atualiza para última versão" [ref=e152]
+        - row "expxagents knowledge <action> Consulta a base de conhecimento" [ref=e153]:
+          - cell "expxagents knowledge <action>" [ref=e154]
+          - cell "Consulta a base de conhecimento" [ref=e155]
+        - row "expxagents ingest <path> Ingere documentos no knowledge base" [ref=e156]:
+          - cell "expxagents ingest <path>" [ref=e157]
+          - cell "Ingere documentos no knowledge base" [ref=e158]
+    - heading "Integrações MCP" [level=1] [ref=e159]
+    - paragraph [ref=e160]: O ExpxAgents conecta seus squads às ferramentas que seu time já usa via integrações MCP (Model Context Protocol). Cada integração expõe capacidades de ferramentas que os agentes podem invocar durante a execução do pipeline — lendo issues, enviando mensagens, consultando bancos de dados, disparando deploys e muito mais.
+    - heading "Integrações Suportadas" [level=2] [ref=e161]
+    - table [ref=e163]:
+      - rowgroup [ref=e164]:
+        - row "MCP Categoria Capacidades Detecção" [ref=e165]:
+          - columnheader "MCP" [ref=e166]
+          - columnheader "Categoria" [ref=e167]
+          - columnheader "Capacidades" [ref=e168]
+          - columnheader "Detecção" [ref=e169]
+      - rowgroup [ref=e170]:
+        - row "GitHub Desenvolvimento PRs, issues, code review, releases gh CLI + npm" [ref=e171]:
+          - cell "GitHub" [ref=e172]
+          - cell "Desenvolvimento" [ref=e173]
+          - cell "PRs, issues, code review, releases" [ref=e174]
+          - cell "gh CLI + npm" [ref=e175]
+        - row "Slack Comunicação Mensagens e notificações para o time npm" [ref=e176]:
+          - cell "Slack" [ref=e177]
+          - cell "Comunicação" [ref=e178]
+          - cell "Mensagens e notificações para o time" [ref=e179]
+          - cell "npm" [ref=e180]
+        - row "Linear Gestão de Projetos Rastreamento de issues, gerenciamento de projetos npm" [ref=e181]:
+          - cell "Linear" [ref=e182]
+          - cell "Gestão de Projetos" [ref=e183]
+          - cell "Rastreamento de issues, gerenciamento de projetos" [ref=e184]
+          - cell "npm" [ref=e185]
+        - row "Sentry Monitoramento Rastreamento de erros, análise de crashes npm" [ref=e186]:
+          - cell "Sentry" [ref=e187]
+          - cell "Monitoramento" [ref=e188]
+          - cell "Rastreamento de erros, análise de crashes" [ref=e189]
+          - cell "npm" [ref=e190]
+        - row "Notion Conhecimento Base de conhecimento, documentação npm" [ref=e191]:
+          - cell "Notion" [ref=e192]
+          - cell "Conhecimento" [ref=e193]
+          - cell "Base de conhecimento, documentação" [ref=e194]
+          - cell "npm" [ref=e195]
+        - row "PostgreSQL Desenvolvimento Consultas ao banco, inspeção de schema psql CLI + npm" [ref=e196]:
+          - cell "PostgreSQL" [ref=e197]
+          - cell "Desenvolvimento" [ref=e198]
+          - cell "Consultas ao banco, inspeção de schema" [ref=e199]
+          - cell "psql CLI + npm" [ref=e200]
+        - row "Figma Design Arquivos de design, componentes, estilos npm" [ref=e201]:
+          - cell "Figma" [ref=e202]
+          - cell "Design" [ref=e203]
+          - cell "Arquivos de design, componentes, estilos" [ref=e204]
+          - cell "npm" [ref=e205]
+        - row "Vercel Infraestrutura Deploys, projetos, domínios vercel CLI + npm" [ref=e206]:
+          - cell "Vercel" [ref=e207]
+          - cell "Infraestrutura" [ref=e208]
+          - cell "Deploys, projetos, domínios" [ref=e209]
+          - cell "vercel CLI + npm" [ref=e210]
+        - row "Pencil Design Templates visuais, guias de marca VSCode extension" [ref=e211]:
+          - cell "Pencil" [ref=e212]
+          - cell "Design" [ref=e213]
+          - cell "Templates visuais, guias de marca" [ref=e214]
+          - cell "VSCode extension" [ref=e215]
+    - heading "Comandos CLI" [level=2] [ref=e216]
+    - generic [ref=e217]:
+      - generic [ref=e218]: bash
+      - code [ref=e219]: "# Listar MCPs disponíveis e seu status de detecção expxagents mcp list # Configurar uma integração MCP expxagents mcp setup github expxagents mcp setup slack expxagents mcp setup linear # Remover uma integração MCP expxagents mcp remove github # Verificar todas as conexões ativas expxagents mcp check"
+    - heading "Vinculação com Squads" [level=2] [ref=e220]
+    - paragraph [ref=e221]: "Referencie as ferramentas MCP na configuração do squad para que os agentes tenham acesso durante a execução:"
+    - generic [ref=e222]:
+      - generic [ref=e223]: yaml
+      - code [ref=e224]: "name: Dev Ops Squad description: Monitora deploys e faz triagem de erros agents: - id: monitor name: Carlos Souza role: DevOps Engineer instructions: | Monitore o Sentry para novos erros críticos. Cruze com os deploys recentes no Vercel. Crie issues no Linear para achados críticos. skills: - sentry - vercel - linear"
+    - heading "Configuração de Squads" [level=1] [ref=e225]
+    - heading "squad.yaml" [level=2] [ref=e226]
+    - paragraph [ref=e227]:
+      - text: Cada squad é definida por um arquivo
+      - code [ref=e228]: squad.yaml
+      - text: ":"
+    - generic [ref=e229]:
+      - generic [ref=e230]: yaml
+      - code [ref=e231]: "name: Hunter Squad description: Prospecta leads qualificados version: \"1.0\" schedule: cron: \"0 9 * * 1-5\" enabled: true agents: - id: researcher name: Ana Costa role: Pesquisadora de Mercado model: claude-sonnet-4-6 instructions: | Você é uma especialista em pesquisa de mercado. skills: - web-search - data-analysis"
+    - heading "Agentes" [level=2] [ref=e232]
+    - table [ref=e234]:
+      - rowgroup [ref=e235]:
+        - row "Campo Tipo Descrição" [ref=e236]:
+          - columnheader "Campo" [ref=e237]
+          - columnheader "Tipo" [ref=e238]
+          - columnheader "Descrição" [ref=e239]
+      - rowgroup [ref=e240]:
+        - row "id string Identificador único do agente" [ref=e241]:
+          - cell "id" [ref=e242]
+          - cell "string" [ref=e243]
+          - cell "Identificador único do agente" [ref=e244]
+        - row "name string Nome humano do agente" [ref=e245]:
+          - cell "name" [ref=e246]
+          - cell "string" [ref=e247]
+          - cell "Nome humano do agente" [ref=e248]
+        - row "role string Função/cargo do agente" [ref=e249]:
+          - cell "role" [ref=e250]
+          - cell "string" [ref=e251]
+          - cell "Função/cargo do agente" [ref=e252]
+        - row "model string Modelo de IA (sobrescreve o da squad)" [ref=e253]:
+          - cell "model" [ref=e254]
+          - cell "string" [ref=e255]
+          - cell "Modelo de IA (sobrescreve o da squad)" [ref=e256]
+        - row "provider string Provider de IA (anthropic | openai | openrouter | gemini | codex)" [ref=e257]:
+          - cell "provider" [ref=e258]
+          - cell "string" [ref=e259]
+          - cell "Provider de IA (anthropic | openai | openrouter | gemini | codex)" [ref=e260]
+        - row "instructions string System prompt do agente" [ref=e261]:
+          - cell "instructions" [ref=e262]
+          - cell "string" [ref=e263]
+          - cell "System prompt do agente" [ref=e264]
+        - row "skills string[] Lista de skills disponíveis" [ref=e265]:
+          - cell "skills" [ref=e266]
+          - cell "string[]" [ref=e267]
+          - cell "Lista de skills disponíveis" [ref=e268]
+    - heading "Providers de IA" [level=2] [ref=e269]
+    - paragraph [ref=e270]: ExpxAgents suporta múltiplos providers por squad ou por agente.
+    - generic [ref=e271]:
+      - generic [ref=e272]: yaml
+      - code [ref=e273]: "provider: anthropic model: claude-opus-4-6 # Ou OpenAI provider: openai model: gpt-4o # OpenRouter (qualquer modelo com tool use) provider: openrouter model: anthropic/claude-sonnet-4 # Gemini provider: gemini model: gemini-2.5-flash # Codex provider: codex model: o4-mini"
+    - heading "Hierarquia de Squads" [level=1] [ref=e274]
+    - paragraph [ref=e275]: "Squads são organizadas em 4 níveis: Setor → Grupo → Sessão → Squad."
+    - generic [ref=e276]:
+      - generic [ref=e277]: text
+      - code [ref=e278]: "squads/ └── comercial/ # Setor └── vendas/ # Grupo └── prospeccao/ # Sessão └── hunter-squad/ # Squad"
+    - heading "Skills (SKILL.md)" [level=1] [ref=e279]
+    - paragraph [ref=e280]:
+      - text: Skills são capacidades instaláveis nos agentes via arquivo
+      - code [ref=e281]: SKILL.md
+      - text: com frontmatter YAML.
+    - generic [ref=e282]:
+      - generic [ref=e283]: markdown
+      - code [ref=e284]: "--- name: web-search description: Buscar informações na web version: \"1.0\" --- # Web Search Skill Você tem acesso à busca na web via WebSearch."
+    - heading "Pipeline & Kanban" [level=1] [ref=e285]
+    - paragraph [ref=e286]: "O sistema cria tarefas no Kanban automaticamente para cada step do pipeline:"
+    - table [ref=e288]:
+      - rowgroup [ref=e289]:
+        - row "Status Descrição" [ref=e290]:
+          - columnheader "Status" [ref=e291]
+          - columnheader "Descrição" [ref=e292]
+      - rowgroup [ref=e293]:
+        - row "planned Tarefa aguardando execução" [ref=e294]:
+          - cell "planned" [ref=e295]
+          - cell "Tarefa aguardando execução" [ref=e296]
+        - row "executing Agente está trabalhando nesta tarefa" [ref=e297]:
+          - cell "executing" [ref=e298]
+          - cell "Agente está trabalhando nesta tarefa" [ref=e299]
+        - row "done Tarefa concluída com sucesso" [ref=e300]:
+          - cell "done" [ref=e301]
+          - cell "Tarefa concluída com sucesso" [ref=e302]
+        - row "failed Tarefa falhou ou foi interrompida" [ref=e303]:
+          - cell "failed" [ref=e304]
+          - cell "Tarefa falhou ou foi interrompida" [ref=e305]
+    - heading "Scheduler" [level=1] [ref=e306]
+    - paragraph [ref=e307]: Cada squad pode ter agendamento via cron. O scheduler sobrevive a restarts.
+    - generic [ref=e308]:
+      - generic [ref=e309]: yaml
+      - code [ref=e310]: "schedule: cron: \"0 9 * * 1-5\" enabled: true max_retries: 2"
+    - table [ref=e312]:
+      - rowgroup [ref=e313]:
+        - row "Cron Descrição" [ref=e314]:
+          - columnheader "Cron" [ref=e315]
+          - columnheader "Descrição" [ref=e316]
+      - rowgroup [ref=e317]:
+        - row "0 9 * * 1-5 Seg-Sex às 9h" [ref=e318]:
+          - cell "0 9 * * 1-5" [ref=e319]
+          - cell "Seg-Sex às 9h" [ref=e320]
+        - row "0 */2 * * * A cada 2 horas" [ref=e321]:
+          - cell "0 */2 * * *" [ref=e322]
+          - cell "A cada 2 horas" [ref=e323]
+        - row "30 8 * * 1 Toda segunda às 8h30" [ref=e324]:
+          - cell "30 8 * * 1" [ref=e325]
+          - cell "Toda segunda às 8h30" [ref=e326]
+    - heading "Webhooks" [level=1] [ref=e327]
+    - paragraph [ref=e328]: "Squads podem ser acionadas por sistemas externos via POST:"
+    - generic [ref=e329]:
+      - generic [ref=e330]: bash
+      - code [ref=e331]: "curl -X POST https://seu-servidor.com/api/webhooks/nome-da-squad \\ -H \"Content-Type: application/json\" \\ -d '{ \"secret\": \"meu-secret\", \"prompt\": \"Executar tarefa\" }'"
+    - heading "A2UI — UI via Agentes" [level=1] [ref=e332]
+    - paragraph [ref=e333]:
+      - text: Agentes podem atualizar a interface do dashboard escrevendo
+      - code [ref=e334]: ui.json
+      - text: .
+    - generic [ref=e335]:
+      - generic [ref=e336]: json
+      - code [ref=e337]: "[ { \"type\": \"stat\", \"label\": \"Leads\", \"value\": \"47\", \"color\": \"#4ade80\" }, { \"type\": \"progress\", \"label\": \"Análise\", \"value\": 73, \"max\": 100 } ]"
+    - heading "Email Engine" [level=1] [ref=e338]
+    - paragraph [ref=e339]: Engine de email integrado com AWS SES para campanhas automatizadas.
+    - list [ref=e340]:
+      - listitem [ref=e341]:
+        - generic [ref=e342]: ▸
+        - generic [ref=e343]: Leads — cadastro e gerenciamento de contatos
+      - listitem [ref=e344]:
+        - generic [ref=e345]: ▸
+        - generic [ref=e346]: Campanhas — sequências de email com tracking
+      - listitem [ref=e347]:
+        - generic [ref=e348]: ▸
+        - generic [ref=e349]: Fila de envio — worker com rate limiting
+      - listitem [ref=e350]:
+        - generic [ref=e351]: ▸
+        - generic [ref=e352]: SNS Webhook — notificações de bounce e entrega
+    - heading "AI Coding Agent Novo" [level=1] [ref=e353]:
+      - text: AI Coding Agent
+      - generic [ref=e354]: Novo
+    - paragraph [ref=e355]: O ExpxAgents inclui um AI coding agent interativo que funciona como o Claude Code — com 14 tools para manipulação de arquivos, execução de comandos, busca na web e mais. Funciona via OpenRouter, permitindo usar qualquer modelo de IA.
+    - heading "Uso" [level=2] [ref=e356]
+    - generic [ref=e357]:
+      - generic [ref=e358]: bash
+      - code [ref=e359]: "# Modo interativo (REPL) expxagents cli # Modo single-prompt expxagents cli \"leia o package.json e me diga a versão\" # Escolher modelo expxagents cli -m openai/gpt-4o # Listar modelos disponíveis # Dentro do CLI, use /models ou /models claude"
+    - heading "Tools Disponíveis" [level=2] [ref=e360]
+    - table [ref=e362]:
+      - rowgroup [ref=e363]:
+        - row "Tool Descrição" [ref=e364]:
+          - columnheader "Tool" [ref=e365]
+          - columnheader "Descrição" [ref=e366]
+      - rowgroup [ref=e367]:
+        - row "read_file Lê arquivos com offset/limit" [ref=e368]:
+          - cell "read_file" [ref=e369]
+          - cell "Lê arquivos com offset/limit" [ref=e370]
+        - row "write_file Escreve arquivos (cria diretórios automaticamente)" [ref=e371]:
+          - cell "write_file" [ref=e372]
+          - cell "Escreve arquivos (cria diretórios automaticamente)" [ref=e373]
+        - row "edit_file Substituição cirúrgica em arquivos" [ref=e374]:
+          - cell "edit_file" [ref=e375]
+          - cell "Substituição cirúrgica em arquivos" [ref=e376]
+        - row "apply_patch Aplica diffs unificados" [ref=e377]:
+          - cell "apply_patch" [ref=e378]
+          - cell "Aplica diffs unificados" [ref=e379]
+        - row "delete_file Remove arquivos" [ref=e380]:
+          - cell "delete_file" [ref=e381]
+          - cell "Remove arquivos" [ref=e382]
+        - row "move_file Move/renomeia arquivos" [ref=e383]:
+          - cell "move_file" [ref=e384]
+          - cell "Move/renomeia arquivos" [ref=e385]
+        - row "glob Busca arquivos por padrão" [ref=e386]:
+          - cell "glob" [ref=e387]
+          - cell "Busca arquivos por padrão" [ref=e388]
+        - row "grep Busca conteúdo em arquivos com regex" [ref=e389]:
+          - cell "grep" [ref=e390]
+          - cell "Busca conteúdo em arquivos com regex" [ref=e391]
+        - row "list_directory Lista diretórios com tipo/tamanho" [ref=e392]:
+          - cell "list_directory" [ref=e393]
+          - cell "Lista diretórios com tipo/tamanho" [ref=e394]
+        - row "bash Executa comandos shell (timeout 30s, bloqueios de segurança)" [ref=e395]:
+          - cell "bash" [ref=e396]
+          - cell "Executa comandos shell (timeout 30s, bloqueios de segurança)" [ref=e397]
+        - row "web_search Busca na web via DuckDuckGo" [ref=e398]:
+          - cell "web_search" [ref=e399]
+          - cell "Busca na web via DuckDuckGo" [ref=e400]
+        - row "web_fetch Fetch de URLs com strip de HTML" [ref=e401]:
+          - cell "web_fetch" [ref=e402]
+          - cell "Fetch de URLs com strip de HTML" [ref=e403]
+        - row "find_replace Substituição em massa em arquivos" [ref=e404]:
+          - cell "find_replace" [ref=e405]
+          - cell "Substituição em massa em arquivos" [ref=e406]
+        - row "ask_user Pergunta interativa ao usuário" [ref=e407]:
+          - cell "ask_user" [ref=e408]
+          - cell "Pergunta interativa ao usuário" [ref=e409]
+    - heading "Modelos" [level=2] [ref=e410]
+    - paragraph [ref=e411]:
+      - text: O agent aceita qualquer modelo do OpenRouter. Use
+      - code [ref=e412]: /models
+      - text: "dentro do CLI para ver a lista completa. Modelos populares:"
+    - table [ref=e414]:
+      - rowgroup [ref=e415]:
+        - row "Modelo Nome Contexto" [ref=e416]:
+          - columnheader "Modelo" [ref=e417]
+          - columnheader "Nome" [ref=e418]
+          - columnheader "Contexto" [ref=e419]
+      - rowgroup [ref=e420]:
+        - row "anthropic/claude-sonnet-4 Claude Sonnet 4 200K" [ref=e421]:
+          - cell "anthropic/claude-sonnet-4" [ref=e422]
+          - cell "Claude Sonnet 4" [ref=e423]
+          - cell "200K" [ref=e424]
+        - row "openai/gpt-4o GPT-4o 128K" [ref=e425]:
+          - cell "openai/gpt-4o" [ref=e426]
+          - cell "GPT-4o" [ref=e427]
+          - cell "128K" [ref=e428]
+        - row "google/gemini-2.5-flash Gemini 2.5 Flash 1M" [ref=e429]:
+          - cell "google/gemini-2.5-flash" [ref=e430]
+          - cell "Gemini 2.5 Flash" [ref=e431]
+          - cell "1M" [ref=e432]
+        - row "deepseek/deepseek-chat DeepSeek V3 64K" [ref=e433]:
+          - cell "deepseek/deepseek-chat" [ref=e434]
+          - cell "DeepSeek V3" [ref=e435]
+          - cell "64K" [ref=e436]
+        - row "meta-llama/llama-4-maverick Llama 4 Maverick 128K" [ref=e437]:
+          - cell "meta-llama/llama-4-maverick" [ref=e438]
+          - cell "Llama 4 Maverick" [ref=e439]
+          - cell "128K" [ref=e440]
+    - heading "Resiliência" [level=2] [ref=e441]
+    - paragraph [ref=e442]: "O agent tem sistema automático de retry e fallback:"
+    - list [ref=e443]:
+      - listitem [ref=e444]:
+        - generic [ref=e445]: ▸
+        - generic [ref=e446]:
+          - strong [ref=e447]: Retry automático
+          - text: — erros transientes (rate limit, timeout, 5xx) são retentados até 3x com backoff
+      - listitem [ref=e448]:
+        - generic [ref=e449]: ▸
+        - generic [ref=e450]:
+          - strong [ref=e451]: Fallback de modelo
+          - text: — se o modelo primário falha, tenta automaticamente com modelos alternativos
+      - listitem [ref=e452]:
+        - generic [ref=e453]: ▸
+        - generic [ref=e454]:
+          - strong [ref=e455]: Mensagens claras
+          - text: — erros traduzidos para mensagens acionáveis (créditos insuficientes, contexto excedido, etc.)
+    - heading "Contexto do Projeto" [level=2] [ref=e456]
+    - paragraph [ref=e457]: "O agent carrega automaticamente o contexto do projeto:"
+    - list [ref=e458]:
+      - listitem [ref=e459]:
+        - generic [ref=e460]: ▸
+        - generic [ref=e461]:
+          - code [ref=e462]: CLAUDE.md
+          - text: — instruções e convenções do projeto
+      - listitem [ref=e463]:
+        - generic [ref=e464]: ▸
+        - generic [ref=e465]:
+          - code [ref=e466]: .claude/rules/*.md
+          - text: — regras de código
+      - listitem [ref=e467]:
+        - generic [ref=e468]: ▸
+        - generic [ref=e469]:
+          - code [ref=e470]: .claude/skills/*/SKILL.md
+          - text: — skills disponíveis como slash commands
+    - paragraph [ref=e471]:
+      - text: Skills funcionam como slash commands. Por exemplo,
+      - code [ref=e472]: /expxagents
+      - text: dentro do CLI executa a skill ExpxAgents com menu interativo.
+    - heading "OpenCode Integration" [level=1] [ref=e473]
+    - paragraph [ref=e474]:
+      - text: ExpxAgents integra nativamente com
+      - strong [ref=e475]: OpenCode
+      - text: como MCP Server ou via agentes customizados.
+    - generic [ref=e476]: Novo
+    - heading "Visão Geral" [level=2] [ref=e477]
+    - generic [ref=e478]:
+      - generic [ref=e479]: text
+      - code [ref=e480]: OpenCode (cliente MCP) ├── MCP Protocol ──► ExpxAgents MCP Server │ └── Fastify Server (porta 3001) └── Direct squads via @squad-designer, @squad-operator
+    - heading "MCP Server" [level=2] [ref=e481]
+    - table [ref=e483]:
+      - rowgroup [ref=e484]:
+        - row "Tool Descrição" [ref=e485]:
+          - columnheader "Tool" [ref=e486]
+          - columnheader "Descrição" [ref=e487]
+      - rowgroup [ref=e488]:
+        - row "list_squads Lista todas as squads" [ref=e489]:
+          - cell "list_squads" [ref=e490]
+          - cell "Lista todas as squads" [ref=e491]
+        - row "run_squad Executa uma squad" [ref=e492]:
+          - cell "run_squad" [ref=e493]
+          - cell "Executa uma squad" [ref=e494]
+        - row "stop_squad Interrompe uma squad" [ref=e495]:
+          - cell "stop_squad" [ref=e496]
+          - cell "Interrompe uma squad" [ref=e497]
+        - row "get_squad_info Detalhes de uma squad" [ref=e498]:
+          - cell "get_squad_info" [ref=e499]
+          - cell "Detalhes de uma squad" [ref=e500]
+        - row "list_squad_agents Lista agentes de uma squad" [ref=e501]:
+          - cell "list_squad_agents" [ref=e502]
+          - cell "Lista agentes de uma squad" [ref=e503]
+    - heading "OpenCode Agents" [level=2] [ref=e504]
+    - table [ref=e506]:
+      - rowgroup [ref=e507]:
+        - row "Agent Modo Descrição" [ref=e508]:
+          - columnheader "Agent" [ref=e509]
+          - columnheader "Modo" [ref=e510]
+          - columnheader "Descrição" [ref=e511]
+      - rowgroup [ref=e512]:
+        - row "squad-designer subagent Desenha squads otimizados" [ref=e513]:
+          - cell "squad-designer" [ref=e514]
+          - cell "subagent" [ref=e515]
+          - cell "Desenha squads otimizados" [ref=e516]
+        - row "squad-operator subagent Executa e monitora pipelines" [ref=e517]:
+          - cell "squad-operator" [ref=e518]
+          - cell "subagent" [ref=e519]
+          - cell "Executa e monitora pipelines" [ref=e520]
+        - row "skills-engine subagent Gerencia skills" [ref=e521]:
+          - cell "skills-engine" [ref=e522]
+          - cell "subagent" [ref=e523]
+          - cell "Gerencia skills" [ref=e524]
+    - heading "Engines & Providers" [level=2] [ref=e525]
+    - table [ref=e527]:
+      - rowgroup [ref=e528]:
+        - row "Valor Comportamento" [ref=e529]:
+          - columnheader "Valor" [ref=e530]
+          - columnheader "Comportamento" [ref=e531]
+      - rowgroup [ref=e532]:
+        - row "auto Detecta automaticamente o melhor engine disponível" [ref=e533]:
+          - cell "auto" [ref=e534]
+          - cell "Detecta automaticamente o melhor engine disponível" [ref=e535]
+        - row "claude-code Claude Code CLI (requer 'claude' instalado)" [ref=e536]:
+          - cell "claude-code" [ref=e537]
+          - cell "Claude Code CLI (requer 'claude' instalado)" [ref=e538]
+        - row "opencode OpenCode CLI via HTTP SDK" [ref=e539]:
+          - cell "opencode" [ref=e540]
+          - cell "OpenCode CLI via HTTP SDK" [ref=e541]
+        - row "gemini Gemini CLI (requer 'gemini' instalado)" [ref=e542]:
+          - cell "gemini" [ref=e543]
+          - cell "Gemini CLI (requer 'gemini' instalado)" [ref=e544]
+        - row "openrouter OpenRouter API com tool use via @expxagents/agent" [ref=e545]:
+          - cell "openrouter" [ref=e546]
+          - cell "OpenRouter API com tool use via @expxagents/agent" [ref=e547]
+        - row "codex OpenAI Codex CLI (requer 'codex' e OPENAI_API_KEY)" [ref=e548]:
+          - cell "codex" [ref=e549]
+          - cell "OpenAI Codex CLI (requer 'codex' e OPENAI_API_KEY)" [ref=e550]
+    - heading "Squad Marketplace" [level=1] [ref=e551]
+    - paragraph [ref=e552]: Registro centralizado para publicar e instalar squads da comunidade.
+    - generic [ref=e553]: API
+    - generic [ref=e554]: UI
+    - heading "Visão Geral" [level=2] [ref=e555]
+    - table [ref=e557]:
+      - rowgroup [ref=e558]:
+        - row "Slug Nome" [ref=e559]:
+          - columnheader "Slug" [ref=e560]
+          - columnheader "Nome" [ref=e561]
+      - rowgroup [ref=e562]:
+        - row "marketing Marketing & Growth" [ref=e563]:
+          - cell "marketing" [ref=e564]
+          - cell "Marketing & Growth" [ref=e565]
+        - row "sales Vendas & Prospecção" [ref=e566]:
+          - cell "sales" [ref=e567]
+          - cell "Vendas & Prospecção" [ref=e568]
+        - row "development Desenvolvimento" [ref=e569]:
+          - cell "development" [ref=e570]
+          - cell "Desenvolvimento" [ref=e571]
+        - row "support Atendimento & Suporte" [ref=e572]:
+          - cell "support" [ref=e573]
+          - cell "Atendimento & Suporte" [ref=e574]
+        - row "operations Operações & Admin" [ref=e575]:
+          - cell "operations" [ref=e576]
+          - cell "Operações & Admin" [ref=e577]
+        - row "analytics Analytics & BI" [ref=e578]:
+          - cell "analytics" [ref=e579]
+          - cell "Analytics & BI" [ref=e580]
+        - row "hr RH & Recrutamento" [ref=e581]:
+          - cell "hr" [ref=e582]
+          - cell "RH & Recrutamento" [ref=e583]
+        - row "other Outros" [ref=e584]:
+          - cell "other" [ref=e585]
+          - cell "Outros" [ref=e586]
+    - heading "Publicar Squad" [level=2] [ref=e587]
+    - generic [ref=e588]:
+      - generic [ref=e589]: bash
+      - code [ref=e590]: "curl -X POST http://localhost:3001/api/registry/squads/publish \\ -H \"Authorization: Bearer <token>\" \\ -d '{ \"squadPath\": \"./squads/marketing/content-team\", \"category\": \"marketing\" }'"
+    - heading "Instalar Squad" [level=2] [ref=e591]
+    - generic [ref=e592]:
+      - generic [ref=e593]: bash
+      - code [ref=e594]: "curl -X POST http://localhost:3001/api/registry/squads/<id>/install \\ -H \"Authorization: Bearer <token>\""
+    - heading "API do Registry" [level=2] [ref=e595]
+    - table [ref=e597]:
+      - rowgroup [ref=e598]:
+        - row "Método Rota Descrição" [ref=e599]:
+          - columnheader "Método" [ref=e600]
+          - columnheader "Rota" [ref=e601]
+          - columnheader "Descrição" [ref=e602]
+      - rowgroup [ref=e603]:
+        - row "GET /api/registry/categories Lista categorias" [ref=e604]:
+          - cell "GET" [ref=e605]
+          - cell "/api/registry/categories" [ref=e606]
+          - cell "Lista categorias" [ref=e607]
+        - row "GET /api/registry/squads Busca squads" [ref=e608]:
+          - cell "GET" [ref=e609]
+          - cell "/api/registry/squads" [ref=e610]
+          - cell "Busca squads" [ref=e611]
+        - row "POST /api/registry/squads/publish Publicar squad" [ref=e612]:
+          - cell "POST" [ref=e613]
+          - cell "/api/registry/squads/publish" [ref=e614]
+          - cell "Publicar squad" [ref=e615]
+        - row "POST /api/registry/squads/:id/install Instalar squad" [ref=e616]:
+          - cell "POST" [ref=e617]
+          - cell "/api/registry/squads/:id/install" [ref=e618]
+          - cell "Instalar squad" [ref=e619]
+        - row "POST /api/registry/squads/:id/rate Avaliar squad (1-5)" [ref=e620]:
+          - cell "POST" [ref=e621]
+          - cell "/api/registry/squads/:id/rate" [ref=e622]
+          - cell "Avaliar squad (1-5)" [ref=e623]
+    - heading "Painel de Operações" [level=1] [ref=e624]
+    - heading "KPIs" [level=2] [ref=e625]
+    - table [ref=e627]:
+      - rowgroup [ref=e628]:
+        - row "KPI Descrição" [ref=e629]:
+          - columnheader "KPI" [ref=e630]
+          - columnheader "Descrição" [ref=e631]
+      - rowgroup [ref=e632]:
+        - row "Em Aberto Tarefas com status \"planned\"" [ref=e633]:
+          - cell "Em Aberto" [ref=e634]
+          - cell "Tarefas com status \"planned\"" [ref=e635]
+        - row "Falhas Tarefas com status \"failed\"" [ref=e636]:
+          - cell "Falhas" [ref=e637]
+          - cell "Tarefas com status \"failed\"" [ref=e638]
+        - row "Concluídas Hoje Tarefas finalizadas no dia" [ref=e639]:
+          - cell "Concluídas Hoje" [ref=e640]
+          - cell "Tarefas finalizadas no dia" [ref=e641]
+        - row "Squads Rodando Squads com pipeline ativo" [ref=e642]:
+          - cell "Squads Rodando" [ref=e643]
+          - cell "Squads com pipeline ativo" [ref=e644]
+        - row "Pipelines Ativos Instâncias em execução" [ref=e645]:
+          - cell "Pipelines Ativos" [ref=e646]
+          - cell "Instâncias em execução" [ref=e647]
+    - heading "Pipelines Ativos" [level=2] [ref=e648]
+    - list [ref=e649]:
+      - listitem [ref=e650]:
+        - generic [ref=e651]: ▸
+        - generic [ref=e652]: Âmbar — trabalhando
+      - listitem [ref=e653]:
+        - generic [ref=e654]: ▸
+        - generic [ref=e655]: Verde — concluído
+      - listitem [ref=e656]:
+        - generic [ref=e657]: ▸
+        - generic [ref=e658]: Vermelho — falha
+      - listitem [ref=e659]:
+        - generic [ref=e660]: ▸
+        - generic [ref=e661]: Cinza — aguardando
+    - heading "Modo Foco" [level=2] [ref=e662]
+    - paragraph [ref=e663]:
+      - text: Clique em
+      - code [ref=e664]: ⛶ Foco
+      - text: para tela cheia. Ideal para monitores de operações.
+    - heading "Variáveis de Ambiente" [level=1] [ref=e665]
+    - generic [ref=e666]:
+      - generic [ref=e667]: env
+      - code [ref=e668]: PORT=3001 NODE_ENV=production JWT_SECRET=seu-hex-string AGENT_ENGINE=auto OPENCODE_BASE_URL=http://127.0.0.1:4096 BRIDGE_TIMEOUT_MS=300000 SCHEDULER_TIMEOUT_MS=1800000 EXPX_SERVER_URL=http://127.0.0.1:3001 OPENROUTER_API_KEY=sk-or-... OPENROUTER_DEFAULT_MODEL=anthropic/claude-sonnet-4
+    - heading "API Reference" [level=1] [ref=e669]
+    - paragraph [ref=e670]:
+      - text: Todas as rotas (exceto
+      - code [ref=e671]: /health
+      - text: e webhooks) requerem JWT via cookie.
+    - heading "Autenticação" [level=2] [ref=e672]
+    - table [ref=e674]:
+      - rowgroup [ref=e675]:
+        - row "Método Rota Descrição" [ref=e676]:
+          - columnheader "Método" [ref=e677]
+          - columnheader "Rota" [ref=e678]
+          - columnheader "Descrição" [ref=e679]
+      - rowgroup [ref=e680]:
+        - row "POST /api/auth/login Login — JWT no cookie" [ref=e681]:
+          - cell "POST" [ref=e682]
+          - cell "/api/auth/login" [ref=e683]
+          - cell "Login — JWT no cookie" [ref=e684]
+        - row "POST /api/auth/logout Logout" [ref=e685]:
+          - cell "POST" [ref=e686]
+          - cell "/api/auth/logout" [ref=e687]
+          - cell "Logout" [ref=e688]
+        - row "GET /api/auth/me Dados do usuário" [ref=e689]:
+          - cell "GET" [ref=e690]
+          - cell "/api/auth/me" [ref=e691]
+          - cell "Dados do usuário" [ref=e692]
+    - heading "Sistema" [level=2] [ref=e693]
+    - table [ref=e695]:
+      - rowgroup [ref=e696]:
+        - row "Método Rota Descrição" [ref=e697]:
+          - columnheader "Método" [ref=e698]
+          - columnheader "Rota" [ref=e699]
+          - columnheader "Descrição" [ref=e700]
+      - rowgroup [ref=e701]:
+        - row "GET /api/system/info Info do servidor" [ref=e702]:
+          - cell "GET" [ref=e703]
+          - cell "/api/system/info" [ref=e704]
+          - cell "Info do servidor" [ref=e705]
+        - row "GET /api/system/models Lista modelos" [ref=e706]:
+          - cell "GET" [ref=e707]
+          - cell "/api/system/models" [ref=e708]
+          - cell "Lista modelos" [ref=e709]
+        - row "PATCH /api/system/engine Troca engine" [ref=e710]:
+          - cell "PATCH" [ref=e711]
+          - cell "/api/system/engine" [ref=e712]
+          - cell "Troca engine" [ref=e713]
+    - heading "Squads" [level=2] [ref=e714]
+    - table [ref=e716]:
+      - rowgroup [ref=e717]:
+        - row "Método Rota Descrição" [ref=e718]:
+          - columnheader "Método" [ref=e719]
+          - columnheader "Rota" [ref=e720]
+          - columnheader "Descrição" [ref=e721]
+      - rowgroup [ref=e722]:
+        - row "GET /api/squads Lista squads" [ref=e723]:
+          - cell "GET" [ref=e724]
+          - cell "/api/squads" [ref=e725]
+          - cell "Lista squads" [ref=e726]
+        - row "GET /api/squads/:code Detalhes" [ref=e727]:
+          - cell "GET" [ref=e728]
+          - cell "/api/squads/:code" [ref=e729]
+          - cell "Detalhes" [ref=e730]
+        - row "GET /api/squads/:code/state Estado do pipeline" [ref=e731]:
+          - cell "GET" [ref=e732]
+          - cell "/api/squads/:code/state" [ref=e733]
+          - cell "Estado do pipeline" [ref=e734]
+    - heading "Kanban" [level=2] [ref=e735]
+    - table [ref=e737]:
+      - rowgroup [ref=e738]:
+        - row "Método Rota Descrição" [ref=e739]:
+          - columnheader "Método" [ref=e740]
+          - columnheader "Rota" [ref=e741]
+          - columnheader "Descrição" [ref=e742]
+      - rowgroup [ref=e743]:
+        - row "GET /api/kanban/tasks Todas as tarefas" [ref=e744]:
+          - cell "GET" [ref=e745]
+          - cell "/api/kanban/tasks" [ref=e746]
+          - cell "Todas as tarefas" [ref=e747]
+        - row "POST /api/kanban/:squad/tasks Criar tarefa" [ref=e748]:
+          - cell "POST" [ref=e749]
+          - cell "/api/kanban/:squad/tasks" [ref=e750]
+          - cell "Criar tarefa" [ref=e751]
+        - row "PATCH /api/kanban/:squad/tasks/:id Atualizar status" [ref=e752]:
+          - cell "PATCH" [ref=e753]
+          - cell "/api/kanban/:squad/tasks/:id" [ref=e754]
+          - cell "Atualizar status" [ref=e755]
+    - heading "Scheduler" [level=2] [ref=e756]
+    - table [ref=e758]:
+      - rowgroup [ref=e759]:
+        - row "Método Rota Descrição" [ref=e760]:
+          - columnheader "Método" [ref=e761]
+          - columnheader "Rota" [ref=e762]
+          - columnheader "Descrição" [ref=e763]
+      - rowgroup [ref=e764]:
+        - row "GET /api/scheduler/jobs Lista jobs" [ref=e765]:
+          - cell "GET" [ref=e766]
+          - cell "/api/scheduler/jobs" [ref=e767]
+          - cell "Lista jobs" [ref=e768]
+        - row "POST /api/scheduler/jobs/:squad/enable Ativar" [ref=e769]:
+          - cell "POST" [ref=e770]
+          - cell "/api/scheduler/jobs/:squad/enable" [ref=e771]
+          - cell "Ativar" [ref=e772]
+        - row "POST /api/scheduler/jobs/:squad/disable Desativar" [ref=e773]:
+          - cell "POST" [ref=e774]
+          - cell "/api/scheduler/jobs/:squad/disable" [ref=e775]
+          - cell "Desativar" [ref=e776]
+        - row "POST /api/scheduler/jobs/:squad/run Executar manualmente" [ref=e777]:
+          - cell "POST" [ref=e778]
+          - cell "/api/scheduler/jobs/:squad/run" [ref=e779]
+          - cell "Executar manualmente" [ref=e780]
+    - heading "Releases" [level=1] [ref=e781]
+    - generic [ref=e782]:
+      - generic [ref=e783]:
+        - generic [ref=e784]: v0.30.0
+        - generic [ref=e785]: Feature
+        - generic [ref=e786]: 2026-03-31
+      - list [ref=e787]:
+        - listitem [ref=e788]:
+          - generic [ref=e789]: ·
+          - generic [ref=e790]: "AI Coding Agent: expxagents cli com 14 tools via OpenRouter"
+        - listitem [ref=e791]:
+          - generic [ref=e792]: ·
+          - generic [ref=e793]: OpenAI Codex CLI como engine (codex bridge)
+        - listitem [ref=e794]:
+          - generic [ref=e795]: ·
+          - generic [ref=e796]: Fallback automático de modelos com retry
+        - listitem [ref=e797]:
+          - generic [ref=e798]: ·
+          - generic [ref=e799]: Carregamento de contexto do projeto (CLAUDE.md, rules, skills)
+        - listitem [ref=e800]:
+          - generic [ref=e801]: ·
+          - generic [ref=e802]: fullStream para feedback em tempo real de tool calls
+    - generic [ref=e803]:
+      - generic [ref=e804]:
+        - generic [ref=e805]: v0.29.0
+        - generic [ref=e806]: Feature
+        - generic [ref=e807]: 2026-03-31
+      - list [ref=e808]:
+        - listitem [ref=e809]:
+          - generic [ref=e810]: ·
+          - generic [ref=e811]: Comando expxagents cli — REPL interativo com tool use
+        - listitem [ref=e812]:
+          - generic [ref=e813]: ·
+          - generic [ref=e814]: Banner visual com identidade do projeto
+        - listitem [ref=e815]:
+          - generic [ref=e816]: ·
+          - generic [ref=e817]: Suporte a qualquer modelo do OpenRouter (lista dinâmica)
+        - listitem [ref=e818]:
+          - generic [ref=e819]: ·
+          - generic [ref=e820]: Skills como slash commands no agent CLI
+    - generic [ref=e821]:
+      - generic [ref=e822]:
+        - generic [ref=e823]: v0.28.0
+        - generic [ref=e824]: Feature
+        - generic [ref=e825]: 2026-03-31
+      - list [ref=e826]:
+        - listitem [ref=e827]:
+          - generic [ref=e828]: ·
+          - generic [ref=e829]: Pacote @expxagents/agent com 14 tools e session manager
+        - listitem [ref=e830]:
+          - generic [ref=e831]: ·
+          - generic [ref=e832]: Integração como server bridge e CLI runner
+        - listitem [ref=e833]:
+          - generic [ref=e834]: ·
+          - generic [ref=e835]: 950+ testes passando
+    - generic [ref=e836]:
+      - generic [ref=e837]:
+        - generic [ref=e838]: v0.27.0
+        - generic [ref=e839]: Feature
+        - generic [ref=e840]: 2026-03-31
+      - list [ref=e841]:
+        - listitem [ref=e842]:
+          - generic [ref=e843]: ·
+          - generic [ref=e844]: OpenRouter como provider e engine
+        - listitem [ref=e845]:
+          - generic [ref=e846]: ·
+          - generic [ref=e847]: "Token optimization: produces_format, handoff summarization"
+        - listitem [ref=e848]:
+          - generic [ref=e849]: ·
+          - generic [ref=e850]: Gemini engine support
+    - generic [ref=e851]:
+      - generic [ref=e852]:
+        - generic [ref=e853]: v0.18.0
+        - generic [ref=e854]: Feature
+        - generic [ref=e855]: 2026-03-19
+      - list [ref=e856]:
+        - listitem [ref=e857]:
+          - generic [ref=e858]: ·
+          - generic [ref=e859]: "OpenCode Integration: MCP Server, OpenCode Agents e engine abstrato"
+        - listitem [ref=e860]:
+          - generic [ref=e861]: ·
+          - generic [ref=e862]: "Factory de engines: seleção automática via AGENT_ENGINE"
+        - listitem [ref=e863]:
+          - generic [ref=e864]: ·
+          - generic [ref=e865]: MCP Server standalone com 5 tools
+        - listitem [ref=e866]:
+          - generic [ref=e867]: ·
+          - generic [ref=e868]: "3 OpenCode Agents: squad-designer, squad-operator, skills-engine"
+    - generic [ref=e869]:
+      - generic [ref=e870]:
+        - generic [ref=e871]: v0.17.0
+        - generic [ref=e872]: Feature
+        - generic [ref=e873]: 2026-03-17
+      - list [ref=e874]:
+        - listitem [ref=e875]:
+          - generic [ref=e876]: ·
+          - generic [ref=e877]: "Hierarquia de squads: Setor → Grupo → Sessão → Squad"
+        - listitem [ref=e878]:
+          - generic [ref=e879]: ·
+          - generic [ref=e880]: Comando reorganize para migrar squads
+    - generic [ref=e881]:
+      - generic [ref=e882]:
+        - generic [ref=e883]: v0.16.0
+        - generic [ref=e884]: Feature
+        - generic [ref=e885]: 2026-03-12
+      - list [ref=e886]:
+        - listitem [ref=e887]:
+          - generic [ref=e888]: ·
+          - generic [ref=e889]: "Pipeline → kanban: tasks automáticas por step"
+        - listitem [ref=e890]:
+          - generic [ref=e891]: ·
+          - generic [ref=e892]: Webhook deduplicação e spend control
+    - generic [ref=e893]:
+      - generic [ref=e894]:
+        - generic [ref=e895]: v0.15.0
+        - generic [ref=e896]: Feature
+        - generic [ref=e897]: 2026-03-05
+      - list [ref=e898]:
+        - listitem [ref=e899]:
+          - generic [ref=e900]: ·
+          - generic [ref=e901]: "A2UI: agentes atualizam dashboard via ui.json"
+        - listitem [ref=e902]:
+          - generic [ref=e903]: ·
+          - generic [ref=e904]: "Multi-provider: Anthropic, OpenAI e factory"
+    - generic [ref=e905]:
+      - generic [ref=e906]:
+        - generic [ref=e907]: v0.14.0
+        - generic [ref=e908]: Feature
+        - generic [ref=e909]: 2026-02-28
+      - list [ref=e910]:
+        - listitem [ref=e911]:
+          - generic [ref=e912]: ·
+          - generic [ref=e913]: Scheduler integrado com node-cron
+        - listitem [ref=e914]:
+          - generic [ref=e915]: ·
+          - generic [ref=e916]: Email engine com AWS SES

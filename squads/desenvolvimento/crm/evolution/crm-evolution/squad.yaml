@@ -1,0 +1,180 @@
+squad:
+  code: crm-evolution
+  setor: desenvolvimento
+  grupo: crm
+  sessao: evolution
+  name: CRM Evolution Squad
+  description: Implementa melhorias completas no CRM GRT Engenharia — infraestrutura, novos módulos de negócio (equipamentos, OS, contratos) e melhorias de UX. Pipeline em 4 fases com checkpoints.
+  icon: rocket
+  version: "1.0.0"
+
+  company: "_expxagents/_memory/company.md"
+  preferences: "_expxagents/_memory/preferences.md"
+  memory: "_memory/memories.md"
+
+  target_audience: Equipe GRT Engenharia (admin, comercial, operações)
+  platform: CRM Web (Fastify + Vanilla JS SPA)
+  format: fullstack-feature
+
+  schedule:
+    enabled: false
+
+  skills:
+    - web_search
+    - web_fetch
+
+  data: []
+
+  agents:
+    - id: tech-lead
+      name: "Marcos Oliveira"
+      icon: brain
+      avatar: "https://api.dicebear.com/9.x/adventurer/svg?seed=Marcos"
+      prompt: agents/tech-lead.md
+
+    - id: backend-dev
+      name: "Fernando Costa"
+      icon: code
+      avatar: "https://api.dicebear.com/9.x/adventurer/svg?seed=Fernando"
+      prompt: agents/backend-dev.md
+
+    - id: frontend-dev
+      name: "Juliana Martins"
+      icon: palette
+      avatar: "https://api.dicebear.com/9.x/adventurer/svg?seed=Juliana"
+      prompt: agents/frontend-dev.md
+
+    - id: qa-engineer
+      name: "Roberto Almeida"
+      icon: shield
+      avatar: "https://api.dicebear.com/9.x/adventurer/svg?seed=Roberto"
+      prompt: agents/qa-engineer.md
+
+  pipeline:
+    steps:
+      # ── FASE 1: FUNDAÇÃO (Infraestrutura e Qualidade) ──────────────────────
+      - id: phase-1-plan
+        agent: tech-lead
+        label: "Fase 1: Planejamento — Infraestrutura"
+        execution: inline
+        produces_format: false
+
+      - id: phase-1-backend
+        agent: backend-dev
+        label: "Fase 1: Backend — Zod validation, paginação, testes"
+        deliverFrom: tech-lead
+        execution: inline
+
+      - id: phase-1-frontend
+        agent: frontend-dev
+        label: "Fase 1: Frontend — Loading states, paginação, dark mode"
+        deliverFrom: backend-dev
+        execution: inline
+
+      - id: phase-1-qa
+        agent: qa-engineer
+        label: "Fase 1: QA — Validar e revisar entregas"
+        deliverFrom: frontend-dev
+        execution: inline
+
+      - id: phase-1-checkpoint
+        type: checkpoint
+        label: "✅ Fase 1 concluída? Aprovar para Fase 2?"
+        options:
+          - approve
+          - reject
+        on_reject: phase-1-plan
+
+      # ── FASE 2: CRM IMPROVEMENTS ─────────────────────────────────────────
+      - id: phase-2-plan
+        agent: tech-lead
+        label: "Fase 2: Planejamento — Melhorias CRM"
+        execution: inline
+
+      - id: phase-2-backend
+        agent: backend-dev
+        label: "Fase 2: Backend — Upload, notificações, export CSV"
+        deliverFrom: tech-lead
+        execution: inline
+
+      - id: phase-2-frontend
+        agent: frontend-dev
+        label: "Fase 2: Frontend — Kanban, gráficos, upload UI"
+        deliverFrom: backend-dev
+        execution: inline
+
+      - id: phase-2-qa
+        agent: qa-engineer
+        label: "Fase 2: QA — Validar melhorias CRM"
+        deliverFrom: frontend-dev
+        execution: inline
+
+      - id: phase-2-checkpoint
+        type: checkpoint
+        label: "✅ Fase 2 concluída? Aprovar para Fase 3?"
+        options:
+          - approve
+          - reject
+        on_reject: phase-2-plan
+
+      # ── FASE 3: MÓDULOS DE NEGÓCIO GRT ───────────────────────────────────
+      - id: phase-3-plan
+        agent: tech-lead
+        label: "Fase 3: Planejamento — Módulos GRT"
+        execution: inline
+
+      - id: phase-3-backend
+        agent: backend-dev
+        label: "Fase 3: Backend — Equipamentos, OS, Contratos"
+        deliverFrom: tech-lead
+        execution: inline
+
+      - id: phase-3-frontend
+        agent: frontend-dev
+        label: "Fase 3: Frontend — Módulos equipamento, OS, contratos"
+        deliverFrom: backend-dev
+        execution: inline
+
+      - id: phase-3-qa
+        agent: qa-engineer
+        label: "Fase 3: QA — Validar módulos de negócio"
+        deliverFrom: frontend-dev
+        execution: inline
+
+      - id: phase-3-checkpoint
+        type: checkpoint
+        label: "✅ Fase 3 concluída? Aprovar para Fase 4?"
+        options:
+          - approve
+          - reject
+        on_reject: phase-3-plan
+
+      # ── FASE 4: ENTREGA E POLISH ─────────────────────────────────────────
+      - id: phase-4-plan
+        agent: tech-lead
+        label: "Fase 4: Planejamento — Finalização"
+        execution: inline
+
+      - id: phase-4-backend
+        agent: backend-dev
+        label: "Fase 4: Backend — CI/CD, Swagger, retry webhooks"
+        deliverFrom: tech-lead
+        execution: inline
+
+      - id: phase-4-frontend
+        agent: frontend-dev
+        label: "Fase 4: Frontend — Pesquisa global, calendário"
+        deliverFrom: backend-dev
+        execution: inline
+
+      - id: phase-4-qa
+        agent: qa-engineer
+        label: "Fase 4: QA — Validação final completa"
+        deliverFrom: frontend-dev
+        execution: inline
+
+      - id: phase-4-review
+        agent: tech-lead
+        label: "Review final e documentação"
+        deliverFrom: qa-engineer
+        execution: inline

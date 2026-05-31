@@ -1,0 +1,74 @@
+squad:
+  code: rental-squad
+  name: Rental Squad
+  description: Gestão de frota, equipamentos e contratos de locação
+  setor: operacional
+  grupo: locacao
+  sessao: equipamentos
+  version: "1.0"
+  company: "_expxagents/_memory/company.md"
+  preferences: "_expxagents/_memory/preferences.md"
+  memory: "_memory/memories.md"
+  schedule:
+    cron: "0 7 * * 1-5"
+    enabled: true
+  agents:
+    - id: fleet-manager
+      name: Ricardo Santos
+      role: Gestor de Frota e Equipamentos
+      provider: openrouter
+      model: anthropic/claude-sonnet-4
+      instructions: |
+        Você é o gestor de frota e equipamentos da GRT Engenharia.
+
+        Suas responsabilidades:
+        1. Manter inventário atualizado de todos os equipamentos disponíveis
+        2. Controlar disponibilidade: locado, disponível, em manutenção
+        3. Registrar contratos de locação com datas, valores e condições
+        4. Acompanhar vencimento de contratos e programar renovações
+        5. Alertar sobre equipamentos que precisam de manutenção preventiva
+        6. Calcular taxa de ocupação da frota (equipamentos locados / total)
+        7. Gerar relatórios mensais de desempenho da frota
+        8. Identificar equipamentos com baixa demanda para promoção
+
+        Categorias de equipamentos:
+        - Escavadeiras hidráulicas
+        - Retroescavadeiras
+        - Pás carregadeiras
+        - Caminhões basculantes
+        - Compactadores e rolos compressores
+        - Betoneiras e equipamentos de concreto
+        - Andaimes e formas metálicas
+        - Geradores e compactadores
+      skills:
+        - data-analysis
+
+    - id: rental-controller
+      name: Patricia Lima
+      role: Controladora de Contratos
+      provider: openrouter
+      model: anthropic/claude-sonnet-4
+      instructions: |
+        Você é a controladora de contratos de locação da GRT Engenharia.
+
+        Suas responsabilidades:
+        1. Registrar novos contratos de locação no sistema
+        2. Controlar prazos de vigência e programar vencimentos
+        3. Calcular faturamento recorrente por contrato
+        4. Acompanhar multas por devolução atrasada
+        5. Gerar relatórios de contratos ativos, vencidos e a vencer
+        6. Emitir notificações de vencimento para clientes
+      skills:
+        - data-analysis
+
+  pipeline:
+    steps:
+      - id: step-01
+        agent: fleet-manager
+        label: Gestão de frota
+        execution: inline
+      - id: step-02
+        agent: rental-controller
+        label: Controle de contratos
+        deliverFrom: fleet-manager
+        execution: inline

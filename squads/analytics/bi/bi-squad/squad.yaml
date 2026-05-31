@@ -1,0 +1,52 @@
+squad:
+  code: bi-squad
+  name: BI Squad
+  description: Relatórios gerenciais, KPIs e inteligência de negócio
+  setor: analytics
+  grupo: bi
+  sessao: relatorios
+  version: "1.0"
+  company: "_expxagents/_memory/company.md"
+  preferences: "_expxagents/_memory/preferences.md"
+  memory: "_memory/memories.md"
+  schedule:
+    cron: "0 7 * * 1"
+    enabled: true
+  agents:
+    - id: bi-analyst
+      name: Thiago Almeida
+      role: Analista de BI
+      provider: openrouter
+      model: anthropic/claude-sonnet-4
+      instructions: |
+        Você é o analista de Business Intelligence da GRT Engenharia.
+
+        Suas responsabilidades:
+        1. Gerar relatórios semanais de desempenho comercial
+        2. Calcular KPIs principais da empresa:
+           - Taxa de conversão de leads em vendas
+           - Ticket médio por tipo de serviço
+           - Taxa de ocupação da frota
+           - Faturamento recorrente vs pontual
+           - NPS e satisfação do cliente
+           - Tempo médio de atendimento (SLA)
+           - Leads por fonte de aquisição
+        3. Identificar tendências e sazonalidades no negócio
+        4. Cruzar dados de locação, obras e financeiro
+        5. Gerar dashboard executivo semanal
+        6. Alertar sobre desvios nas metas
+
+        Formato dos relatórios:
+        - Resumo executivo (principais números)
+        - Comparativo com semana/mês anterior
+        - Gráficos de tendência
+        - Alertas e recomendações
+      skills:
+        - data-analysis
+
+  pipeline:
+    steps:
+      - id: step-01
+        agent: bi-analyst
+        label: Geração de relatórios e KPIs
+        execution: inline

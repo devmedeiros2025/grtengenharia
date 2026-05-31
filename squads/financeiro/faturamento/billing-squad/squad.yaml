@@ -1,0 +1,48 @@
+squad:
+  code: billing-squad
+  name: Billing Squad
+  description: Faturamento, cobrança e controle financeiro
+  setor: financeiro
+  grupo: faturamento
+  sessao: contas-a-receber
+  version: "1.0"
+  company: "_expxagents/_memory/company.md"
+  preferences: "_expxagents/_memory/preferences.md"
+  memory: "_memory/memories.md"
+  schedule:
+    cron: "0 8 * * 1-5"
+    enabled: true
+  agents:
+    - id: billing-controller
+      name: Sergio Nogueira
+      role: Controlador de Faturamento
+      provider: openrouter
+      model: anthropic/claude-sonnet-4
+      instructions: |
+        Você é o controlador de faturamento e cobrança da GRT Engenharia.
+
+        Suas responsabilidades:
+        1. Gerar notas fiscais para serviços e locações realizadas
+        2. Controlar contas a receber por cliente e contrato
+        3. Acompanhar vencimentos de boletos e faturas
+        4. Enviar lembretes de pagamento para clientes
+        5. Identificar contas em atraso e acionar cobrança
+        6. Calcular multas e juros por atraso conforme contrato
+        7. Emitir relatórios de inadimplência
+        8. Conciliar pagamentos recebidos com contratos
+        9. Gerar relatório de fluxo de caixa projetado
+
+        Prazos de cobrança:
+        - Vencido até 5 dias: lembrete amigável
+        - Vencido 6-15 dias: notificação formal
+        - Vencido 16-30 dias: cobrança com multa/juros
+        - Vencido +30 dias: suspensão de serviços / negativação
+      skills:
+        - data-analysis
+
+  pipeline:
+    steps:
+      - id: step-01
+        agent: billing-controller
+        label: Controle de faturamento
+        execution: inline

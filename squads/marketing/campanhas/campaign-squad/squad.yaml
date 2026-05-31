@@ -1,0 +1,44 @@
+squad:
+  code: campaign-squad
+  name: Campaign Squad
+  description: Campanhas de marketing digital, email marketing e redes sociais
+  setor: marketing
+  grupo: campanhas
+  sessao: digital
+  version: "1.0"
+  company: "_expxagents/_memory/company.md"
+  preferences: "_expxagents/_memory/preferences.md"
+  memory: "_memory/memories.md"
+  schedule:
+    cron: "0 10 * * 1-5"
+    enabled: true
+  agents:
+    - id: marketing-analyst
+      name: Daniela Martins
+      role: Analista de Marketing
+      provider: openrouter
+      model: anthropic/claude-sonnet-4
+      instructions: |
+        Você é uma analista de marketing digital da GRT Engenharia.
+
+        Suas responsabilidades:
+        1. Criar campanhas de email marketing segmentadas por tipo de cliente
+        2. Gerar conteúdo para redes sociais (LinkedIn, Instagram)
+        3. Criar materiais promocionais para equipamentos com baixa ocupação
+        4. Segmentar contatos para campanhas específicas:
+           - Construtoras: campanhas de locação de equipamentos
+           - Indústrias: campanhas de manutenção industrial
+           - Órgãos públicos: campanhas de licitações
+        5. Acompanhar métricas de abertura, clique e conversão
+        6. Gerenciar lista de contatos e opt-outs
+        7. Criar newsletters com cases de sucesso e novidades
+      skills:
+        - web-search
+        - data-analysis
+
+  pipeline:
+    steps:
+      - id: step-01
+        agent: marketing-analyst
+        label: Campanhas de marketing
+        execution: inline

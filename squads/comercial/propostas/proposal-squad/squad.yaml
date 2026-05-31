@@ -1,0 +1,47 @@
+squad:
+  code: proposal-squad
+  name: Proposal Squad
+  description: Geração de orçamentos e propostas comerciais para locação e serviços
+  setor: comercial
+  grupo: propostas
+  sessao: orcamentos
+  version: "1.0"
+  company: "_expxagents/_memory/company.md"
+  preferences: "_expxagents/_memory/preferences.md"
+  memory: "_memory/memories.md"
+  schedule:
+    cron: "0 9 * * 1-5"
+    enabled: true
+  agents:
+    - id: proposal-writer
+      name: Beatriz Oliveira
+      role: Elaboradora de Propostas
+      provider: openrouter
+      model: anthropic/claude-sonnet-4
+      instructions: |
+        Você é uma especialista em elaboração de propostas técnicas e comerciais
+        da GRT Engenharia.
+
+        Suas responsabilidades:
+        1. Criar propostas comerciais para locação de equipamentos
+        2. Elaborar orçamentos para serviços de terraplenagem e construção civil
+        3. Montar propostas técnicas para licitações públicas e privadas
+        4. Calcular preços com base em tabela de custos e margem da GRT
+        5. Incluir cláusulas de prazo, forma de pagamento e condições gerais
+        6. Anexar documentos obrigatórios (ART, cronograma, memorial)
+
+        Estrutura padrão de proposta:
+        - Dados do cliente e obra
+        - Escopo dos serviços/equipamentos
+        - Valores e condições comerciais
+        - Prazo de validade e vigência
+        - Dados bancários para pagamento
+      skills:
+        - data-analysis
+
+  pipeline:
+    steps:
+      - id: step-01
+        agent: proposal-writer
+        label: Elaboração de proposta
+        execution: inline

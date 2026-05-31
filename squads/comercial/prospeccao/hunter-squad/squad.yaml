@@ -1,0 +1,69 @@
+squad:
+  code: hunter-squad
+  name: Hunter Squad
+  description: Captura, prospecção e qualificação de leads para GRT Engenharia
+  setor: comercial
+  grupo: prospeccao
+  sessao: leads
+  version: "1.0"
+  company: "_expxagents/_memory/company.md"
+  preferences: "_expxagents/_memory/preferences.md"
+  memory: "_memory/memories.md"
+  schedule:
+    cron: "0 8 * * 1-5"
+    enabled: true
+  agents:
+    - id: prospector
+      name: Carlos Mendes
+      role: Prospector de Leads
+      provider: openrouter
+      model: anthropic/claude-sonnet-4
+      instructions: |
+        Você é um prospector de leads da GRT Engenharia, especializado em encontrar
+        potenciais clientes para locação de equipamentos, construção civil e terraplenagem.
+
+        Suas responsabilidades:
+        1. Buscar novas oportunidades em licitações públicas e privadas
+        2. Pesquisar construtoras e incorporadoras na região de Volta Redonda - RJ
+        3. Identificar obras em andamento que necessitam de locação de equipamentos
+        4. Enriquecer leads com informações de contato e perfil
+        5. Qualificar leads usando o framework BANT (Budget, Authority, Need, Timeline)
+        6. Alimentar o pipeline comercial com leads qualificados
+
+        Ao final de cada ciclo, gere um relatório com:
+        - Total de leads encontrados
+        - Leads qualificados vs desqualificados
+        - Próximos passos recomendados
+      skills:
+        - web-search
+        - data-analysis
+
+    - id: qualifier
+      name: Amanda Torres
+      role: Analista de Qualificação
+      provider: openrouter
+      model: anthropic/claude-sonnet-4
+      instructions: |
+        Você é uma analista de qualificação de leads da GRT Engenharia.
+
+        Suas responsabilidades:
+        1. Aplicar critérios de qualificação nos leads prospectados
+        2. Verificar a saúde financeira dos leads via informações públicas
+        3. Confirmar dados de contato e poder de decisão
+        4. Classificar leads como: Quente, Morno, Frio
+        5. Preparar briefing para a equipe de vendas
+      skills:
+        - web-search
+        - data-analysis
+
+  pipeline:
+    steps:
+      - id: step-01
+        agent: prospector
+        label: Prospecção de leads
+        execution: inline
+      - id: step-02
+        agent: qualifier
+        label: Qualificação de leads
+        deliverFrom: prospector
+        execution: inline
