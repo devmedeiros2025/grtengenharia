@@ -1,47 +1,59 @@
-import db from '../db/adapter.js';
+import { getSupabase } from '../db/supabase.js';
 
 export async function dashboardRoutes(app) {
   // Charts data for dashboard
   app.get('/api/dashboard/charts', {
     preHandler: [app.requireAuth],
   }, async () => {
-    // Leads per month (last 6 months)
-    const leadsByMonth = await db.raw(`
-      SELECT TO_CHAR(created_at, 'YYYY-MM') as month, COUNT(*) as count
-      FROM leads
-      WHERE created_at >= CURRENT_DATE - INTERVAL '6 months'
-      GROUP BY month ORDER BY month
-    `);
+    const sb = getSupabase();
+
+    // Leads per month (last 6 months) — fetch all leads and aggregate in JS
+    const { data: allLeads } = await sb.from('leads').select('created_at, status');
+    const leads = allLeads || [];
+    const sixMonthsAgo = new Date(); sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const monthCounts = {};
+    for (const l of leads) {
+      const d = new Date(l.created_at);
+      if (d >= sixMonthsAgo) {
+        const m = d.toISOString().slice(0, 7);
+        monthCounts[m] = (monthCounts[m] || 0) + 1;
+      }
+    }
+    const leadsByMonth = Object.entries(monthCounts)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, count]) => ({ month, count }));
 
     // Deals by stage
-    const dealsByStage = await db.raw(`
-      SELECT COALESCE(stage, 'unknown') as stage, COUNT(*) as count, COALESCE(SUM(value), 0) as total_value
-      FROM deals
-      GROUP BY stage
-    `);
+    const { data: allDeals } = await sb.from('deals').select('stage, value');
+    const deals = allDeals || [];
+    const stageMap = {};
+    for (const d of deals) {
+      const s = d.stage || 'unknown';
+      if (!stageMap[s]) stageMap[s] = { stage: s, count: 0, total_value: 0 };
+      stageMap[s].count++;
+      stageMap[s].total_value += (Number(d.value) || 0);
+    }
+    const dealsByStage = Object.values(stageMap);
+    const wonDeals = deals.filter(d => d.stage === 'won').length;
 
     // Lead status distribution
-    const leadsByStatus = await db.raw(`
-      SELECT status, COUNT(*) as count FROM leads GROUP BY status
-    `);
+    const statusMap = {};
+    for (const l of leads) {
+      const s = l.status || 'unknown';
+      statusMap[s] = (statusMap[s] || 0) + 1;
+    }
+    const leadsByStatus = Object.entries(statusMap).map(([status, count]) => ({ status, count }));
+    const totalLeads = leads.length;
+    const convertedLeads = leads.filter(l => l.status === 'converted').length;
 
-    // Conversion funnel
-    const totalLeads = (await db.row('SELECT COUNT(*) as count FROM leads'))?.count || 0;
-    const convertedLeads = (await db.row("SELECT COUNT(*) as count FROM leads WHERE status = 'converted'"))?.count || 0;
-    const wonDeals = (await db.row("SELECT COUNT(*) as count FROM deals WHERE stage = 'won'"))?.count || 0;
-
-    // Total pipeline value
-    const pipelineValue = (await db.row('SELECT COALESCE(SUM(value), 0) as total FROM deals'))?.total || 0;
+    // Pipeline total
+    const pipelineValue = deals.reduce((s, d) => s + (Number(d.value) || 0), 0);
 
     return {
       leads_by_month: leadsByMonth,
       deals_by_stage: dealsByStage,
       leads_by_status: leadsByStatus,
-      funnel: {
-        total_leads: totalLeads,
-        converted_leads: convertedLeads,
-        won_deals: wonDeals,
-      },
+      funnel: { total_leads: totalLeads, converted_leads: convertedLeads, won_deals: wonDeals },
       pipeline_total: pipelineValue,
     };
   });

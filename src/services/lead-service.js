@@ -1,4 +1,5 @@
 import db from '../db/adapter.js';
+import { getSupabase } from '../db/supabase.js';
 export async function createLead(data) {
   const { name, email, phone, company, source = 'api', campaign = null, message = null, metadata = '{}' } = data;
 
@@ -106,20 +107,22 @@ export async function deleteLead(id) {
 }
 
 export async function getLeadsStats() {
-  const [rows, totalRow, todayRow] = await Promise.all([
-    db.raw('SELECT status, COUNT(*) as count FROM leads GROUP BY status'),
-    db.row('SELECT COUNT(*) as t FROM leads'),
-    db.row("SELECT COUNT(*) as t FROM leads WHERE created_at::date = CURRENT_DATE"),
-  ]);
+  const sb = getSupabase();
+  const { data: all } = await sb.from('leads').select('status, created_at');
 
-  const total = totalRow?.t || 0;
-  const today = todayRow?.t || 0;
+  const rows = all || [];
+  const total = rows.length;
 
-  const stats = { total, today, byStatus: {} };
-  for (const r of rows || []) {
-    stats.byStatus[r.status] = r.count;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const today = rows.filter(l => (l.created_at || '').slice(0, 10) === todayStr).length;
+
+  const byStatus = {};
+  for (const r of rows) {
+    const s = r.status || 'unknown';
+    byStatus[s] = (byStatus[s] || 0) + 1;
   }
-  return stats;
+
+  return { total, today, byStatus };
 }
 
 function formatLead(row) {
