@@ -67,40 +67,4 @@ export async function companyRoutes(app) {
     if (!ok) return reply.code(404).send({ error: 'Empresa não encontrada' });
     return { ok: true };
   });
-
-  // POST /api/companies
-  app.post('/api/companies', {
-    preHandler: [app.requireAuth],
-  }, async (request, reply) => {
-    try {
-      const data = createCompanySchema.parse(request.body);
-      const company = svc.createCompany(data);
-      return reply.code(201).send(company);
-    } catch (err) {
-      return handleValidationError(err, reply);
-    }
-  });
-
-  // PATCH /api/companies/:id
-  app.patch('/api/companies/:id', {
-    preHandler: [app.requireAuth],
-  }, async (request, reply) => {
-    try {
-      const data = updateCompanySchema.parse(request.body);
-      const company = svc.updateCompany(Number(request.params.id), data);
-      if (!company) return reply.code(404).send({ error: 'Empresa não encontrada' });
-      return company;
-    } catch (err) {
-      return handleValidationError(err, reply);
-    }
-  });
-
-  // DELETE /api/companies/:id
-  app.delete('/api/companies/:id', {
-    preHandler: [app.requireAuth],
-  }, async (request, reply) => {
-    const ok = svc.deleteCompany(Number(request.params.id));
-    if (!ok) return reply.code(404).send({ error: 'Empresa não encontrada' });
-    return { ok: true };
-  });
 }

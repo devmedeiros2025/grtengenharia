@@ -5,7 +5,6 @@ import fastifyStatic from '@fastify/static';
 import multipart from '@fastify/multipart';
 import { config } from './config.js';
 import { logger } from './lib/logger.js';
-import { getDb } from './db/schema.js';
 import { requireAuth } from './middleware/auth.js';
 import { authRoutes } from './routes/auth.js';
 import { leadRoutes } from './routes/leads.js';
@@ -151,9 +150,8 @@ async function buildApp() {
 }
 
 async function start() {
-  // Inicializa banco
-  getDb();
-  logger.info('Database initialized');
+  // Banco gerenciado pelo Supabase
+  logger.info('Supabase database ready');
 
   const app = await buildApp();
 
