@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>GRT CRM</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23f5a623'><path d='M12 2L2 7v3l10 5 10-5V7l-10-5zM2 17v3l10 5 10-5v-3L12 19l-10-5z'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/theme.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
 </head>
@@ -34,6 +37,7 @@
 <div id="page-app" class="app" style="display:none">
 
   <!-- Sidebar -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
   <aside class="sidebar">
     <div class="sidebar-brand">
       <h1><span class="grt-highlight">GRT</span> CRM</h1>
@@ -49,6 +53,7 @@
       <button class="nav-item" data-page="leads"><span class="icon">◎</span> Leads <span id="lead-count-badge" class="badge">0</span></button>
       <button class="nav-item" data-page="companies"><span class="icon">▣</span> Empresas</button>
       <button class="nav-item" data-page="tasks"><span class="icon">☐</span> Tarefas <span id="task-count-badge" class="badge">0</span></button>
+      <button class="nav-item" data-page="daily-routines"><span class="icon">📋</span> Rotinas Diárias <span id="routine-count-badge" class="badge">0</span></button>
       <button class="nav-item" data-page="equipment"><span class="icon">⚙</span> Equipamentos</button>
       <button class="nav-item" data-page="service-orders"><span class="icon">📋</span> OS</button>
       <button class="nav-item" data-page="contracts"><span class="icon">📄</span> Contratos</button>
@@ -77,8 +82,11 @@
   <!-- Main -->
   <div class="main">
     <header class="topbar">
-      <h2 id="page-title">Dashboard</h2>
-      <div class="topbar-right" style="display:flex;align-items:center;gap:12px">
+      <div class="topbar-left">
+        <button class="hamburger" id="btn-hamburger" aria-label="Menu">☰</button>
+        <h2 id="page-title">Dashboard</h2>
+      </div>
+      <div class="topbar-right">
         <div class="notification-bell" id="notification-bell" style="position:relative;cursor:pointer;font-size:18px">
           <span>🔔</span>
           <span id="notif-badge" class="badge" style="position:absolute;top:-6px;right:-8px;font-size:10px;min-width:16px;height:16px;display:none">0</span>
@@ -163,15 +171,32 @@
             <h3>Empresas</h3>
             <p>Gerencie clientes e empresas parceiras</p>
           </div>
-          <div style="display:flex;gap:8px">
+<div class="filters">
             <input type="text" id="company-search" placeholder="Buscar empresa..." style="width:200px">
             <select id="company-filter-status" style="width:auto">
               <option value="">Todos</option>
               <option value="active">Ativas</option>
               <option value="inactive">Inativas</option>
             </select>
-            <button class="btn btn-secondary" id="btn-refresh-companies">⟳</button>
-            <button class="btn btn-primary" id="btn-new-company">+ Nova Empresa</button>
+            <button class="btn btn-primary" id="btn-new-company">Nova Empresa</button>
+            <button class="btn btn-secondary" id="btn-refresh-companies">Atualizar</button>
+          </div>
+        </div>
+      </section>
+      
+      <section id="page-equipment" class="page">
+        <div class="page-header">
+          <div><h3>Equipamentos</h3><p>Gerencie máquinas e equipamentos</p></div>
+          <div class="filters">
+            <input type="text" id="equipment-search" placeholder="Buscar equipamento..." style="width:180px">
+            <select id="equipment-filter-status" style="width:auto">
+              <option value="">Todos</option>
+              <option value="available">Disponível</option>
+              <option value="in_use">Em Uso</option>
+              <option value="maintenance">Manutenção</option>
+            </select>
+            <button class="btn btn-primary" id="btn-new-equipment">Novo Equipamento</button>
+            <button class="btn btn-secondary" id="btn-refresh-equipment">Atualizar</button>
           </div>
         </div>
         <div class="table-wrap" style="margin-top:16px">
@@ -191,7 +216,7 @@
       <section id="page-equipment" class="page">
         <div class="page-header">
           <div><h3>Equipamentos</h3><p>Gerencie máquinas e equipamentos</p></div>
-          <div style="display:flex;gap:8px">
+          <div class="action-bar">
             <input type="text" id="equipment-search" placeholder="Buscar equipamento..." style="width:180px">
             <select id="equipment-filter-status" style="width:auto">
               <option value="">Todos</option>
@@ -217,7 +242,7 @@
       <section id="page-service-orders" class="page">
         <div class="page-header">
           <div><h3>Ordens de Serviço</h3><p>Gerencie OS de manutenção e serviços</p></div>
-          <div style="display:flex;gap:8px">
+          <div class="action-bar">
             <select id="so-filter-status" style="width:auto">
               <option value="">Todos Status</option>
               <option value="open">Aberta</option>
@@ -249,7 +274,7 @@
       <section id="page-contracts" class="page">
         <div class="page-header">
           <div><h3>Contratos</h3><p>Gerencie contratos de locação e serviços</p></div>
-          <div style="display:flex;gap:8px">
+          <div class="action-bar">
             <select id="contract-filter-status" style="width:auto">
               <option value="">Todos</option>
               <option value="active">Ativo</option>
@@ -277,7 +302,7 @@
             <h3>Calendário</h3>
             <p>OS, contratos e tarefas no mês</p>
           </div>
-          <div style="display:flex;gap:8px;align-items:center">
+          <div class="action-bar">
             <button class="btn btn-secondary" id="btn-cal-prev">◀</button>
             <span id="calendar-month-label" style="font-weight:600;min-width:160px;text-align:center">Maio 2026</span>
             <button class="btn btn-secondary" id="btn-cal-next">▶</button>
@@ -307,7 +332,7 @@
       <section id="page-leads" class="page">
         <div class="page-header">
           <div><h3>Leads</h3><p>Gerencie leads recebidos</p></div>
-          <div style="display:flex;gap:8px">
+          <div class="action-bar">
             <input type="text" id="lead-search" placeholder="Buscar lead..." style="width:200px">
             <select id="lead-filter-status" style="width:auto">
               <option value="">Todos</option>
@@ -334,7 +359,7 @@
       <section id="page-tasks" class="page">
         <div class="page-header">
           <div><h3>Tarefas</h3><p>Gerencie tarefas e atividades</p></div>
-          <div style="display:flex;gap:8px">
+          <div class="action-bar">
             <select id="task-filter-status" style="width:auto">
               <option value="">Todos Status</option>
               <option value="pending">Pendente</option>
@@ -360,13 +385,57 @@
         <div class="empty" id="tasks-empty" style="display:none"><div class="empty-icon">☐</div><p>Nenhuma tarefa encontrada.</p></div>
       </section>
 
+      <!-- ══ ROTINAS DIÁRIAS ══ -->
+      <section id="page-daily-routines" class="page">
+        <div class="page-header">
+          <div><h3>Rotinas Diárias</h3><p>Gerencie a distribuição de tarefas do dia a dia</p></div>
+          <div class="action-bar">
+            <select id="routine-filter-priority" style="width:auto">
+              <option value="">Todas Prioridades</option>
+              <option value="high">Alta</option>
+              <option value="medium">Média</option>
+              <option value="low">Baixa</option>
+            </select>
+            <select id="routine-filter-assigned" style="width:auto">
+              <option value="">Todos Responsáveis</option>
+            </select>
+            <button class="btn btn-secondary" id="btn-refresh-routines">⟳</button>
+            <button class="btn btn-primary" id="btn-new-routine">+ Nova Rotina</button>
+          </div>
+        </div>
+        <div class="kanban-board" id="kanban-board">
+          <div class="kanban-column" data-status="pending">
+            <div class="kanban-header pending-header">
+              <span class="kanban-header-title">📋 Pendentes</span>
+              <span class="kanban-count" id="count-pending">0</span>
+            </div>
+            <div class="kanban-body" id="kanban-pending"></div>
+          </div>
+          <div class="kanban-column" data-status="in_progress">
+            <div class="kanban-header progress-header">
+              <span class="kanban-header-title">⚡ Em Andamento</span>
+              <span class="kanban-count" id="count-in_progress">0</span>
+            </div>
+            <div class="kanban-body" id="kanban-in_progress"></div>
+          </div>
+          <div class="kanban-column" data-status="done">
+            <div class="kanban-header done-header">
+              <span class="kanban-header-title">✅ Concluídas</span>
+              <span class="kanban-count" id="count-done">0</span>
+            </div>
+            <div class="kanban-body" id="kanban-done"></div>
+          </div>
+        </div>
+        <div class="empty" id="routines-empty" style="display:none"><div class="empty-icon">📋</div><p>Nenhuma rotina encontrada. Clique em "+ Nova Rotina" para começar.</p></div>
+      </section>
+
       <!-- ══ WEBHOOKS ══ -->
       <section id="page-webhooks" class="page">
         <div class="page-header">
           <div><h3>Webhooks</h3><p>Gerencie webhooks inbound e outbound</p></div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-primary" id="btn-new-inbound">+ Inbound</button>
-            <button class="btn btn-primary" id="btn-new-outbound">+ Outbound</button>
+<div class="action-bar">
+            <button class="btn btn-primary" id="btn-new-lead">Novo Lead</button>
+            <button class="btn btn-secondary" id="btn-refresh-leads">Atualizar</button>
           </div>
         </div>
         <div style="margin-top:16px">
@@ -436,7 +505,7 @@
       <section id="page-invoices" class="page">
         <div class="page-header">
           <div><h3>Faturamento</h3><p>Notas fiscais e recebimentos</p></div>
-          <div style="display:flex;gap:8px">
+          <div class="action-bar">
             <select id="invoice-filter-status" style="width:auto">
               <option value="">Todos</option>
               <option value="pending">Pendente</option>
@@ -463,7 +532,7 @@
       <section id="page-proposals" class="page">
         <div class="page-header">
           <div><h3>Propostas</h3><p>Propostas comerciais e orçamentos</p></div>
-          <div style="display:flex;gap:8px">
+          <div class="action-bar">
             <select id="proposal-filter-status" style="width:auto">
               <option value="">Todas</option>
               <option value="draft">Rascunho</option>
@@ -484,7 +553,7 @@
       <section id="page-projects" class="page">
         <div class="page-header">
           <div><h3>Obras & Projetos</h3><p>Gerencie obras, projetos e fases</p></div>
-          <div style="display:flex;gap:8px">
+          <div class="action-bar">
             <select id="project-filter-status" style="width:auto">
               <option value="">Todos</option>
               <option value="planning">Planejamento</option>
@@ -505,7 +574,7 @@
       <section id="page-tickets" class="page">
         <div class="page-header">
           <div><h3>Chamados</h3><p>Suporte técnico e SLA</p></div>
-          <div style="display:flex;gap:8px">
+          <div class="action-bar">
             <select id="ticket-filter-status" style="width:auto">
               <option value="">Todos</option>
               <option value="open">Aberto</option>
@@ -533,7 +602,7 @@
       <section id="page-rental" class="page">
         <div class="page-header">
           <div><h3>Locação</h3><p>Disponibilidade de equipamentos e contratos</p></div>
-          <div style="display:flex;gap:8px">
+          <div class="action-bar">
             <button class="btn btn-secondary" id="btn-refresh-rental">⟳</button>
             <button class="btn btn-primary" id="btn-new-rental-block">+ Bloquear Datas</button>
           </div>
@@ -558,7 +627,7 @@
       <section id="page-campaigns" class="page">
         <div class="page-header">
           <div><h3>Campanhas</h3><p>Marketing e disparos</p></div>
-          <div style="display:flex;gap:8px">
+          <div class="action-bar">
             <select id="campaign-filter-status" style="width:auto">
               <option value="">Todas</option>
               <option value="draft">Rascunho</option>
@@ -579,7 +648,7 @@
       <section id="page-followups" class="page">
         <div class="page-header">
           <div><h3>Pós-Venda</h3><p>Acompanhamento de leads e clientes</p></div>
-          <div style="display:flex;gap:8px">
+          <div class="action-bar">
             <select id="followup-filter-status" style="width:auto">
               <option value="">Todos</option>
               <option value="pending">Pendente</option>
@@ -600,7 +669,7 @@
       <section id="page-hunter" class="page">
         <div class="page-header">
           <div><h3>Hunter</h3><p>Prospecção e enriquecimento de leads</p></div>
-          <div style="display:flex;gap:8px">
+          <div class="action-bar">
             <button class="btn btn-secondary" id="btn-refresh-hunter">⟳</button>
             <button class="btn btn-primary" id="btn-new-enrichment">+ Enriquecer Lead</button>
           </div>
@@ -623,7 +692,7 @@
     </div><!-- main -->
   </div><!-- /app -->
 
-<!-- ──── Toast container ──── -->
+<div id="toast-container" class="toast-container"></div>
 
 <!-- ──── Loader ──── -->
 <div id="app-loader" class="loader-overlay" style="display:none">
@@ -808,6 +877,38 @@
         </select>
       </div>
       <div class="form-group"><label>Data de vencimento</label><input type="date" id="task-due"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary close-modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ──── Rotina Diária Modal ──── -->
+<div class="modal-overlay" id="modal-routine">
+  <div class="modal">
+    <h3 id="modal-routine-title">Nova Rotina</h3>
+    <form id="modal-routine-form">
+      <input type="hidden" id="routine-id">
+      <div class="form-group"><label>Título *</label><input type="text" id="routine-title" required></div>
+      <div class="form-group"><label>Descrição</label><textarea id="routine-desc" rows="3"></textarea></div>
+      <div class="form-group"><label>Status</label>
+        <select id="routine-status">
+          <option value="pending">Pendente</option>
+          <option value="in_progress">Em andamento</option>
+          <option value="done">Concluída</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Prioridade</label>
+        <select id="routine-priority">
+          <option value="high">Alta</option>
+          <option value="medium" selected>Média</option>
+          <option value="low">Baixa</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Responsável</label><input type="text" id="routine-assigned" placeholder="Nome do responsável"></div>
+      <div class="form-group"><label>Data de vencimento</label><input type="date" id="routine-due"></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary close-modal">Cancelar</button>
         <button type="submit" class="btn btn-primary">Salvar</button>

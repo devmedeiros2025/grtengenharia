@@ -33,6 +33,7 @@ import rentalRoutes from './routes/rental.js';
 import campaignRoutes from './routes/campaigns.js';
 import followupRoutes from './routes/followups.js';
 import hunterRoutes from './routes/hunter.js';
+import { dailyRoutineRoutes } from './routes/daily-routines.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -133,6 +134,7 @@ async function buildApp() {
   await app.register(campaignRoutes);
   await app.register(followupRoutes);
   await app.register(hunterRoutes);
+  await app.register(dailyRoutineRoutes);
 
   // ── Error handler ────────────────────────────────────────────────────────
 
