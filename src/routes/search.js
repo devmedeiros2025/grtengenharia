@@ -1,4 +1,4 @@
-import { getDb } from '../db/schema.js';
+import db from '../db/adapter.js';
 
 export async function searchRoutes(app) {
   app.get('/api/search', { preHandler: [app.requireAuth] }, async (request) => {
@@ -6,37 +6,36 @@ export async function searchRoutes(app) {
     if (!q || q.length < 2) return { results: [] };
 
     const term = `%${q}%`;
-    const db = getDb();
 
-    const leads = db.prepare(`
+    const leads = await db.raw(`
       SELECT id, name as label, 'lead' as type, status, email
-      FROM leads WHERE name LIKE ? OR email LIKE ? OR company LIKE ?
+      FROM leads WHERE name ILIKE ? OR email ILIKE ? OR company ILIKE ?
       LIMIT 5
-    `).all(term, term, term);
+    `, [term, term, term]);
 
-    const companies = db.prepare(`
+    const companies = await db.raw(`
       SELECT id, name as label, 'company' as type, segment as extra
-      FROM companies WHERE name LIKE ? OR email LIKE ? OR cnpj LIKE ?
+      FROM companies WHERE name ILIKE ? OR email ILIKE ? OR cnpj ILIKE ?
       LIMIT 5
-    `).all(term, term, term);
+    `, [term, term, term]);
 
-    const equipment = db.prepare(`
+    const equipment = await db.raw(`
       SELECT id, name as label, 'equipment' as type, brand || ' ' || model as extra
-      FROM equipment WHERE name LIKE ? OR brand LIKE ? OR plate LIKE ?
+      FROM equipment WHERE name ILIKE ? OR brand ILIKE ? OR plate ILIKE ?
       LIMIT 5
-    `).all(term, term, term);
+    `, [term, term, term]);
 
-    const orders = db.prepare(`
+    const orders = await db.raw(`
       SELECT id, title as label, 'service_order' as type, status as extra
-      FROM service_orders WHERE title LIKE ? OR description LIKE ?
+      FROM service_orders WHERE title ILIKE ? OR description ILIKE ?
       LIMIT 5
-    `).all(term, term);
+    `, [term, term]);
 
-    const contracts = db.prepare(`
+    const contracts = await db.raw(`
       SELECT id, title as label, 'contract' as type, status as extra
-      FROM contracts WHERE title LIKE ? OR notes LIKE ?
+      FROM contracts WHERE title ILIKE ? OR notes ILIKE ?
       LIMIT 5
-    `).all(term, term);
+    `, [term, term]);
 
     return {
       results: [...leads, ...companies, ...equipment, ...orders, ...contracts],

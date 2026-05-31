@@ -67,19 +67,10 @@ export async function update(id, data) {
 
 export async function delete_(id) {
   return db.transaction(async (supabase) => {
-    if (supabase) {
-      await supabase.from('ticket_messages').delete().eq('ticket_id', id);
-      const { error } = await supabase.from('tickets').delete().eq('id', id);
-      if (error) throw new Error(error.message);
-      return true;
-    } else {
-      const dbSync = await import('../db/schema.js').then(m => m.getDb());
-      const tx = dbSync.transaction(() => {
-        dbSync.prepare('DELETE FROM ticket_messages WHERE ticket_id = ?').run(id);
-        return dbSync.prepare('DELETE FROM tickets WHERE id = ?').run(id).changes > 0;
-      });
-      return tx();
-    }
+    await supabase.from('ticket_messages').delete().eq('ticket_id', id);
+    const { error } = await supabase.from('tickets').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+    return true;
   });
 }
 
@@ -95,7 +86,7 @@ export async function addMessage(ticket_id, { author, message, is_internal }) {
 
 export async function getSlaStats() {
   const totalRow = await db.row("SELECT COUNT(*) as c FROM tickets WHERE status NOT IN ('closed', 'cancelled')");
-  const withinSlaRow = await db.row("SELECT COUNT(*) as c FROM tickets WHERE status NOT IN ('closed', 'cancelled') AND sla_deadline > datetime('now')");
+  const withinSlaRow = await db.row("SELECT COUNT(*) as c FROM tickets WHERE status NOT IN ('closed', 'cancelled') AND sla_deadline > NOW()");
   const total = totalRow?.c || 1;
   const withinSla = withinSlaRow?.c || 0;
   return {

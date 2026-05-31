@@ -42,20 +42,10 @@ export async function update(id, data) {
 
 export async function delete_(id) {
   return db.transaction(async (supabase) => {
-    if (supabase) {
-      await supabase.from('campaign_targets').delete().eq('campaign_id', id);
-      const { error } = await supabase.from('campaigns').delete().eq('id', id);
-      if (error) throw new Error(error.message);
-      return true;
-    } else {
-      const { default: schema } = await import('../db/schema.js');
-      const syncDb = schema.getDb();
-      const tx = syncDb.transaction(() => {
-        syncDb.prepare('DELETE FROM campaign_targets WHERE campaign_id = ?').run(id);
-        return syncDb.prepare('DELETE FROM campaigns WHERE id = ?').run(id).changes > 0;
-      });
-      return tx();
-    }
+    await supabase.from('campaign_targets').delete().eq('campaign_id', id);
+    const { error } = await supabase.from('campaigns').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+    return true;
   });
 }
 

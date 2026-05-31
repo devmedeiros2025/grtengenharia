@@ -89,8 +89,8 @@ export async function delete_(id) {
 export async function getSummary() {
   const [pending, overdue, paidThisMonth] = await Promise.all([
     db.row("SELECT COALESCE(SUM(value),0) as v FROM invoices WHERE status = 'pending'"),
-    db.row("SELECT COALESCE(SUM(value),0) as v FROM invoices WHERE status = 'pending' AND due_date < date('now')"),
-    db.row("SELECT COALESCE(SUM(value),0) as v FROM invoices WHERE status = 'paid' AND strftime('%Y-%m', payment_date) = strftime('%Y-%m', 'now')"),
+    db.row("SELECT COALESCE(SUM(value),0) as v FROM invoices WHERE status = 'pending' AND due_date < CURRENT_DATE"),
+    db.row("SELECT COALESCE(SUM(value),0) as v FROM invoices WHERE status = 'paid' AND TO_CHAR(payment_date, 'YYYY-MM') = TO_CHAR(CURRENT_DATE, 'YYYY-MM')"),
   ]);
 
   return {
@@ -102,7 +102,7 @@ export async function getSummary() {
 
 export async function getOverdue() {
   const rows = await db.raw(
-    "SELECT i.*, c.name as company_name FROM invoices i LEFT JOIN companies c ON c.id = i.company_id WHERE i.status = 'pending' AND i.due_date < date('now') ORDER BY i.due_date ASC"
+    "SELECT i.*, c.name as company_name FROM invoices i LEFT JOIN companies c ON c.id = i.company_id WHERE i.status = 'pending' AND i.due_date < CURRENT_DATE ORDER BY i.due_date ASC"
   );
   return rows.map(normalize);
 }

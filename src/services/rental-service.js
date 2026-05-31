@@ -58,7 +58,7 @@ export async function getContractsEndingSoon(days = 15) {
     LEFT JOIN companies co ON co.id = c.company_id
     WHERE c.status = 'active'
     AND c.end_date IS NOT NULL
-    AND c.end_date BETWEEN date('now') AND date('now', '+' || ? || ' days')
+    AND c.end_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '1 day' * ?
     ORDER BY c.end_date ASC
   `, [days]);
 }

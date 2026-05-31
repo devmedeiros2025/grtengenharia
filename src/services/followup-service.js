@@ -49,7 +49,7 @@ export async function getOverdue() {
     SELECT f.*, l.name as lead_name
     FROM followups f
     LEFT JOIN leads l ON l.id = f.lead_id
-    WHERE f.status = 'pending' AND f.due_date <= date('now')
+    WHERE f.status = 'pending' AND f.due_date <= CURRENT_DATE
     ORDER BY f.due_date ASC
   `);
 }

@@ -1,7 +1,4 @@
 import db from '../db/adapter.js';
-import { logger } from '../lib/logger.js';
-import { dispatchOutboundWebhooks } from './webhook-service.js';
-
 export async function createLead(data) {
   const { name, email, phone, company, source = 'api', campaign = null, message = null, metadata = '{}' } = data;
 
@@ -17,11 +14,6 @@ export async function createLead(data) {
   });
 
   const lead = await getLeadById(result?.id);
-  if (lead) {
-    dispatchOutboundWebhooks('lead.created', lead).catch(err =>
-      logger.error('Error dispatching outbound webhook:', err.message)
-    );
-  }
   return lead;
 }
 
@@ -104,10 +96,6 @@ export async function updateLead(id, data) {
   await db.update('leads', id, updateData);
   const updated = await getLeadById(id);
 
-  dispatchOutboundWebhooks('lead.updated', updated).catch(err =>
-    logger.error('Error dispatching outbound webhook:', err.message)
-  );
-
   return updated;
 }
 
@@ -121,7 +109,7 @@ export async function getLeadsStats() {
   const [rows, totalRow, todayRow] = await Promise.all([
     db.raw('SELECT status, COUNT(*) as count FROM leads GROUP BY status'),
     db.row('SELECT COUNT(*) as t FROM leads'),
-    db.row("SELECT COUNT(*) as t FROM leads WHERE date(created_at) = date('now')"),
+    db.row("SELECT COUNT(*) as t FROM leads WHERE created_at::date = CURRENT_DATE"),
   ]);
 
   const total = totalRow?.t || 0;

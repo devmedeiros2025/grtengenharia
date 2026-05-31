@@ -1,39 +1,37 @@
-import { getDb } from '../db/schema.js';
+import db from '../db/adapter.js';
 
 export async function dashboardRoutes(app) {
   // Charts data for dashboard
   app.get('/api/dashboard/charts', {
     preHandler: [app.requireAuth],
   }, async () => {
-    const db = getDb();
-
     // Leads per month (last 6 months)
-    const leadsByMonth = db.prepare(`
-      SELECT strftime('%Y-%m', created_at) as month, COUNT(*) as count
+    const leadsByMonth = await db.raw(`
+      SELECT TO_CHAR(created_at, 'YYYY-MM') as month, COUNT(*) as count
       FROM leads
-      WHERE created_at >= date('now', '-6 months')
+      WHERE created_at >= CURRENT_DATE - INTERVAL '6 months'
       GROUP BY month ORDER BY month
-    `).all();
+    `);
 
     // Deals by stage
-    const dealsByStage = db.prepare(`
+    const dealsByStage = await db.raw(`
       SELECT COALESCE(stage, 'unknown') as stage, COUNT(*) as count, COALESCE(SUM(value), 0) as total_value
       FROM deals
       GROUP BY stage
-    `).all();
+    `);
 
     // Lead status distribution
-    const leadsByStatus = db.prepare(`
+    const leadsByStatus = await db.raw(`
       SELECT status, COUNT(*) as count FROM leads GROUP BY status
-    `).all();
+    `);
 
     // Conversion funnel
-    const totalLeads = db.prepare('SELECT COUNT(*) as count FROM leads').get().count;
-    const convertedLeads = db.prepare("SELECT COUNT(*) as count FROM leads WHERE status = 'converted'").get().count;
-    const wonDeals = db.prepare("SELECT COUNT(*) as count FROM deals WHERE stage = 'won'").get().count;
+    const totalLeads = (await db.row('SELECT COUNT(*) as count FROM leads'))?.count || 0;
+    const convertedLeads = (await db.row("SELECT COUNT(*) as count FROM leads WHERE status = 'converted'"))?.count || 0;
+    const wonDeals = (await db.row("SELECT COUNT(*) as count FROM deals WHERE stage = 'won'"))?.count || 0;
 
     // Total pipeline value
-    const pipelineValue = db.prepare('SELECT COALESCE(SUM(value), 0) as total FROM deals').get().total;
+    const pipelineValue = (await db.row('SELECT COALESCE(SUM(value), 0) as total FROM deals'))?.total || 0;
 
     return {
       leads_by_month: leadsByMonth,

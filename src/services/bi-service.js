@@ -38,7 +38,7 @@ export async function getLeadsBySource() {
 
 export async function getDealsByMonth() {
   return db.raw(`
-    SELECT strftime('%Y-%m', created_at) as month,
+    SELECT TO_CHAR(created_at, 'YYYY-MM') as month,
            COUNT(*) as count,
            SUM(value) as total_value
     FROM deals
