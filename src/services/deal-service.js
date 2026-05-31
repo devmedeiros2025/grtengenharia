@@ -1,26 +1,29 @@
 import db from '../db/adapter.js';
 
 export async function listDeals(filters = {}) {
+  const conditions = [];
+  if (filters.stage) conditions.push({ field: 'stage', op: 'eq', value: filters.stage });
+  if (filters.search) conditions.push({ field: 'title', op: 'like', value: filters.search });
+
   const page = Number(filters.page) || 1;
   const limit = Number(filters.limit) || 50;
 
-  // Use raw SQL to avoid Supabase table alias incompatibility
-  const params = [];
-  const where = [];
-  if (filters.stage) { where.push('d.stage = ?'); params.push(filters.stage); }
-  if (filters.search) { where.push('d.title ILIKE ?'); params.push(`%${filters.search}%`); }
-  const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+  // Supabase v2 join syntax: select all deal columns + company name via FK
+  const result = await db.paginate('deals', {
+    columns: '*, companies(name)',
+    conditions: conditions.length > 0 ? conditions : null,
+    page, limit,
+    orderBy: ['updated_at', 'desc'],
+  });
 
-  const countRow = await db.row(`SELECT COUNT(*) as total FROM deals d ${whereClause}`, params);
-  const total = countRow?.total || 0;
+  // Map Supabase nested response to flat structure
+  const deals = (result.data || []).map(d => ({
+    ...d,
+    company_name: d.companies?.name || null,
+    companies: undefined,
+  }));
 
-  const offset = (page - 1) * limit;
-  const rows = await db.raw(
-    `SELECT d.*, c.name as company_name FROM deals d LEFT JOIN companies c ON d.company_id = c.id ${whereClause} ORDER BY d.updated_at DESC LIMIT ? OFFSET ?`,
-    [...params, limit, offset]
-  );
-
-  return { deals: rows || [], total, page, limit, totalPages: Math.ceil(total / limit) };
+  return { deals, total: result.total, page: result.page, limit: result.limit, totalPages: result.totalPages };
 }
 
 export async function getDeal(id) {

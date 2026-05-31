@@ -1,16 +1,17 @@
 import db from '../db/adapter.js';
 
 export async function listTasks(filters = {}) {
-  // Use raw SQL to avoid Supabase table alias incompatibility
-  const params = [];
-  const where = [];
-  if (filters.status) { where.push('status = ?'); params.push(filters.status); }
-  if (filters.deal_id) { where.push('deal_id = ?'); params.push(filters.deal_id); }
-  if (filters.company_id) { where.push('company_id = ?'); params.push(filters.company_id); }
-  if (filters.priority) { where.push('priority = ?'); params.push(filters.priority); }
-  const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+  const conditions = [];
+  if (filters.status) conditions.push({ field: 'status', op: 'eq', value: filters.status });
+  if (filters.deal_id) conditions.push({ field: 'deal_id', op: 'eq', value: filters.deal_id });
+  if (filters.company_id) conditions.push({ field: 'company_id', op: 'eq', value: filters.company_id });
+  if (filters.priority) conditions.push({ field: 'priority', op: 'eq', value: filters.priority });
 
-  return db.raw(`SELECT * FROM tasks ${whereClause} ORDER BY due_date ASC`, params);
+  return db.select('tasks', {
+    columns: '*',
+    conditions: conditions.length > 0 ? conditions : null,
+    orderBy: ['due_date', 'asc'],
+  });
 }
 
 export async function getTask(id) {
