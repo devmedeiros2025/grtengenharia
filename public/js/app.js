@@ -4,6 +4,12 @@
 
 const API = '/api';
 
+/* ── Safe DOM helpers ────────────────────────────────────────────────────── */
+function on(id, event, fn) {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener(event, fn);
+}
+
 let state = {
   token: localStorage.getItem('grt_token') || null,
   user: null,
@@ -261,9 +267,9 @@ async function deleteLead(id) {
   } catch (e) { toast(e.message, 'error'); }
 }
 
-document.getElementById('btn-new-lead').addEventListener('click', () => openLeadModal(null));
+on('btn-new-lead', 'click', () => openLeadModal(null));
 
-document.getElementById('modal-lead-form').addEventListener('submit', async (e) => {
+on('modal-lead-form', 'submit', async (e) => {
   e.preventDefault();
   const id = document.getElementById('lead-id').value;
   const body = {
@@ -289,9 +295,9 @@ document.getElementById('modal-lead-form').addEventListener('submit', async (e) 
   } catch (e) { toast(e.message, 'error'); }
 });
 
-document.getElementById('lead-search').addEventListener('input', renderLeads);
-document.getElementById('lead-filter-status').addEventListener('change', renderLeads);
-document.getElementById('btn-refresh-leads').addEventListener('click', loadLeads);
+on('lead-search', 'input', renderLeads);
+on('lead-filter-status', 'change', renderLeads);
+on('btn-refresh-leads', 'click', loadLeads);
 
 /* ── COMPANIES ───────────────────────────────────────────────────────────── */
 
@@ -451,9 +457,9 @@ async function deleteCompany(id) {
   } catch (e) { toast(e.message, 'error'); }
 }
 
-document.getElementById('btn-new-company').addEventListener('click', () => openCompanyModal(null));
+on('btn-new-company', 'click', () => openCompanyModal(null));
 
-document.getElementById('modal-company-form').addEventListener('submit', async (e) => {
+on('modal-company-form', 'submit', async (e) => {
   e.preventDefault();
   const id = document.getElementById('company-id').value;
   const body = {
@@ -482,9 +488,9 @@ document.getElementById('modal-company-form').addEventListener('submit', async (
   } catch (e) { toast(e.message, 'error'); }
 });
 
-document.getElementById('company-search').addEventListener('input', renderCompanies);
-document.getElementById('company-filter-status').addEventListener('change', renderCompanies);
-document.getElementById('btn-refresh-companies').addEventListener('click', loadCompanies);
+on('company-search', 'input', renderCompanies);
+on('company-filter-status', 'change', renderCompanies);
+on('btn-refresh-companies', 'click', loadCompanies);
 
 /* ── DEALS ────────────────────────────────────────────────────────────────── */
 
@@ -653,7 +659,7 @@ async function deleteDeal(id) {
   } catch (e) { toast(e.message, 'error'); }
 }
 
-document.getElementById('btn-new-deal').addEventListener('click', async () => {
+on('btn-new-deal', 'click', async () => {
   // Ensure companies are loaded for the dropdown
   if (!state.companies || !Array.isArray(state.companies)) {
     try { const coRes = await api('GET', '/companies'); state.companies = coRes.companies || coRes.data || []; } catch {}
@@ -661,7 +667,7 @@ document.getElementById('btn-new-deal').addEventListener('click', async () => {
   openDealModal(null);
 });
 
-document.getElementById('modal-deal-form').addEventListener('submit', async (e) => {
+on('modal-deal-form', 'submit', async (e) => {
   e.preventDefault();
   const id = document.getElementById('deal-id').value;
   const body = {
@@ -785,9 +791,9 @@ async function deleteTask(id) {
   } catch (e) { toast(e.message, 'error'); }
 }
 
-document.getElementById('btn-new-task').addEventListener('click', () => openTaskModal(null));
+on('btn-new-task', 'click', () => openTaskModal(null));
 
-document.getElementById('modal-task-form').addEventListener('submit', async (e) => {
+on('modal-task-form', 'submit', async (e) => {
   e.preventDefault();
   const id = document.getElementById('task-id').value;
   const body = {
@@ -811,9 +817,9 @@ document.getElementById('modal-task-form').addEventListener('submit', async (e) 
   } catch (e) { toast(e.message, 'error'); }
 });
 
-document.getElementById('task-filter-status').addEventListener('change', renderTasks);
-document.getElementById('task-filter-priority').addEventListener('change', renderTasks);
-document.getElementById('btn-refresh-tasks').addEventListener('click', loadTasks);
+on('task-filter-status', 'change', renderTasks);
+on('task-filter-priority', 'change', renderTasks);
+on('btn-refresh-tasks', 'click', loadTasks);
 
 /* ── ROTINAS DIÁRIAS / KANBAN ────────────────────────────────────────────── */
 
@@ -1016,13 +1022,13 @@ async function deleteRoutine(id) {
   } catch (e) { toast(e.message, 'error'); }
 }
 
-document.getElementById('btn-new-routine').addEventListener('click', () => openRoutineModal(null));
-document.getElementById('btn-refresh-routines').addEventListener('click', loadDailyRoutines);
+on('btn-new-routine', 'click', () => openRoutineModal(null));
+on('btn-refresh-routines', 'click', loadDailyRoutines);
 
-document.getElementById('routine-filter-priority').addEventListener('change', renderKanban);
-document.getElementById('routine-filter-assigned').addEventListener('change', renderKanban);
+on('routine-filter-priority', 'change', renderKanban);
+on('routine-filter-assigned', 'change', renderKanban);
 
-document.getElementById('modal-routine-form').addEventListener('submit', async (e) => {
+on('modal-routine-form', 'submit', async (e) => {
   e.preventDefault();
   const id = document.getElementById('routine-id').value;
   const body = {
@@ -1129,14 +1135,14 @@ async function deleteOutbound(id) {
   } catch (e) { toast(e.message, 'error'); }
 }
 
-document.getElementById('btn-new-inbound').addEventListener('click', () => {
+on('btn-new-inbound', 'click', () => {
   document.getElementById('inbound-id').value = '';
   document.getElementById('inbound-name').value = '';
   document.getElementById('inbound-desc').value = '';
   openModal('modal-inbound');
 });
 
-document.getElementById('modal-inbound-form').addEventListener('submit', async (e) => {
+on('modal-inbound-form', 'submit', async (e) => {
   e.preventDefault();
   const body = {
     name: document.getElementById('inbound-name').value,
@@ -1150,7 +1156,7 @@ document.getElementById('modal-inbound-form').addEventListener('submit', async (
   } catch (e) { toast(e.message, 'error'); }
 });
 
-document.getElementById('btn-new-outbound').addEventListener('click', () => {
+on('btn-new-outbound', 'click', () => {
   document.getElementById('outbound-id').value = '';
   document.getElementById('outbound-name').value = '';
   document.getElementById('outbound-url').value = '';
@@ -1158,7 +1164,7 @@ document.getElementById('btn-new-outbound').addEventListener('click', () => {
   openModal('modal-outbound');
 });
 
-document.getElementById('modal-outbound-form').addEventListener('submit', async (e) => {
+on('modal-outbound-form', 'submit', async (e) => {
   e.preventDefault();
   const events = Array.from(document.querySelectorAll('#modal-outbound-form input[type="checkbox"]:checked')).map(c => c.value);
   const body = {
@@ -1235,12 +1241,12 @@ async function deleteApiKey(id) {
   } catch (e) { toast(e.message, 'error'); }
 }
 
-document.getElementById('btn-new-apikey').addEventListener('click', () => {
+on('btn-new-apikey', 'click', () => {
   document.getElementById('apikey-name').value = '';
   openModal('modal-apikey');
 });
 
-document.getElementById('modal-apikey-form').addEventListener('submit', async (e) => {
+on('modal-apikey-form', 'submit', async (e) => {
   e.preventDefault();
   const name = document.getElementById('apikey-name').value;
   try {
@@ -1252,7 +1258,7 @@ document.getElementById('modal-apikey-form').addEventListener('submit', async (e
   } catch (e) { toast(e.message, 'error'); }
 });
 
-document.getElementById('btn-copy-key').addEventListener('click', () => {
+on('btn-copy-key', 'click', () => {
   const key = document.getElementById('showkey-value').textContent;
   navigator.clipboard.writeText(key).then(() => {
     toast('Chave copiada!', 'success');
@@ -1314,7 +1320,7 @@ function renderLogs() {
   }).join('');
 }
 
-document.getElementById('btn-refresh-logs').addEventListener('click', loadLogs);
+on('btn-refresh-logs', 'click', loadLogs);
 
 /* ── FASE 3 — EQUIPMENT ──────────────────────────────────────────────── */
 
@@ -2836,9 +2842,9 @@ document.querySelectorAll('.nav-item[data-page]').forEach(item => {
   });
 });
 
-document.getElementById('btn-logout').addEventListener('click', logout);
+on('btn-logout', 'click', logout);
 
-document.getElementById('login-form').addEventListener('submit', async (e) => {
+on('login-form', 'submit', async (e) => {
   e.preventDefault();
   const err = document.getElementById('login-error');
   err.style.display = 'none';
