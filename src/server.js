@@ -28,12 +28,9 @@ import biRoutes from './routes/bi.js';
 import invoiceRoutes from './routes/invoices.js';
 import proposalRoutes from './routes/proposals.js';
 import projectRoutes from './routes/projects.js';
-import ticketRoutes from './routes/tickets.js';
 import rentalRoutes from './routes/rental.js';
 import campaignRoutes from './routes/campaigns.js';
-import followupRoutes from './routes/followups.js';
 import hunterRoutes from './routes/hunter.js';
-import { dailyRoutineRoutes } from './routes/daily-routines.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -70,10 +67,44 @@ async function buildApp() {
     openapi: {
       info: {
         title: 'GRT CRM API',
-        description: 'API do CRM GRT Engenharia & Locações',
+        description: 'API do CRM GRT Engenharia & Locações\n\nGerenciamento de leads, clientes, equipamentos, ordens de serviço, contratos, BI Analytics e muito mais.',
         version: '1.0.0',
+        contact: { name: 'GRT Engenharia', email: 'contato@grtengenharia.com.br' },
       },
       servers: [{ url: `http://localhost:${config.port}` }],
+      tags: [
+        { name: 'Auth', description: 'Autenticação' },
+        { name: 'Leads', description: 'Gestão de leads' },
+        { name: 'Companies', description: 'Empresas' },
+        { name: 'Deals', description: 'Pipeline de negócios' },
+        { name: 'Tasks', description: 'Tarefas' },
+        { name: 'Equipment', description: 'Equipamentos e frota' },
+        { name: 'Service Orders', description: 'Ordens de serviço' },
+        { name: 'Contracts', description: 'Contratos' },
+        { name: 'Calendar', description: 'Calendário' },
+        { name: 'Search', description: 'Busca global' },
+        { name: 'Webhooks', description: 'Webhooks in/outbound' },
+        { name: 'BI', description: 'BI Analytics' },
+        { name: 'Dashboard', description: 'Dashboard KPIs' },
+        { name: 'Files', description: 'Upload/download de arquivos' },
+        { name: 'Hunter', description: 'Hunter de leads' },
+        { name: 'Proposals', description: 'Propostas comerciais' },
+        { name: 'Projects', description: 'Obras e projetos' },
+        { name: 'Invoices', description: 'Faturamento' },
+        { name: 'Rental', description: 'Locação de equipamentos' },
+        { name: 'Campaigns', description: 'Campanhas de marketing' },
+        { name: 'Notifications', description: 'Notificações' },
+      ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+            description: 'Token JWT obtido via POST /api/auth/login',
+          },
+        },
+      },
     },
   });
 
@@ -129,12 +160,9 @@ async function buildApp() {
   await app.register(invoiceRoutes);
   await app.register(proposalRoutes);
   await app.register(projectRoutes);
-  await app.register(ticketRoutes);
   await app.register(rentalRoutes);
   await app.register(campaignRoutes);
-  await app.register(followupRoutes);
   await app.register(hunterRoutes);
-  await app.register(dailyRoutineRoutes);
 
   // ── Error handler ────────────────────────────────────────────────────────
 
@@ -152,8 +180,16 @@ async function buildApp() {
 }
 
 async function start() {
-  // Banco gerenciado pelo Supabase
-  logger.info('Supabase database ready');
+  const { hasSupabase } = await import('./db/supabase.js');
+
+  if (hasSupabase()) {
+    logger.info('Supabase database ready');
+  } else {
+    // Inicializa SQLite local como fallback
+    const { getDb } = await import('./db/schema.js');
+    getDb();
+    logger.info('SQLite local database ready (Supabase não configurado)');
+  }
 
   const app = await buildApp();
 

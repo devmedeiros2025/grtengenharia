@@ -49,8 +49,21 @@ function toast(msg, type = 'info') {
   div.className = `toast ${type}`;
   div.textContent = msg;
   container.appendChild(div);
-  requestAnimationFrame(() => div.classList.add('show'));
-  setTimeout(() => { div.classList.remove('show'); setTimeout(() => div.remove(), 300); }, 3500);
+
+  // Use GSAP for smooth animation if available
+  if (typeof gsap !== 'undefined') {
+    gsap.fromTo(div,
+      { opacity: 0, x: 30, scale: 0.95 },
+      { opacity: 1, x: 0, scale: 1, duration: 0.35, ease: 'back.out(1.4)' }
+    );
+    gsap.to(div, {
+      opacity: 0, x: 30, duration: 0.25, ease: 'power2.in',
+      delay: 3.2, onComplete: () => div.remove()
+    });
+  } else {
+    requestAnimationFrame(() => div.classList.add('show'));
+    setTimeout(() => { div.classList.remove('show'); setTimeout(() => div.remove(), 300); }, 3500);
+  }
 }
 
 /* ── Auth ────────────────────────────────────────────────────────────────── */
@@ -73,21 +86,41 @@ function logout() {
 /* ── Navigation ──────────────────────────────────────────────────────────── */
 
 function navigate(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  // Animate current page out
+  const currentPage = document.querySelector('.page.active');
+  if (currentPage && typeof gsap !== 'undefined') {
+    gsap.to(currentPage, { opacity: 0, y: -8, duration: 0.15, ease: 'power2.out', onComplete: () => {
+      currentPage.classList.remove('active');
+      currentPage.style.opacity = '';
+      currentPage.style.transform = '';
+      showNewPage(page);
+    }});
+  } else {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    showNewPage(page);
+  }
+
   document.querySelectorAll('.nav-item[data-page]').forEach(n => n.classList.remove('active'));
-  const pg = document.getElementById(`page-${page}`);
-  if (pg) pg.classList.add('active');
   const nav = document.querySelector(`.nav-item[data-page="${page}"]`);
   if (nav) nav.classList.add('active');
-  const titles = { dashboard: 'Dashboard', deals: 'Pipeline', leads: 'Leads', companies: 'Empresas', tasks: 'Tarefas', 'daily-routines': 'Rotinas Diárias', equipment: 'Equipamentos', 'service-orders': 'Ordens de Serviço', contracts: 'Contratos', calendar: 'Calendário', webhooks: 'Webhooks', apikeys: 'API Keys', logs: 'Logs', bi: 'BI Analytics', invoices: 'Faturamento', proposals: 'Propostas', projects: 'Obras & Projetos', tickets: 'Chamados', rental: 'Locação', campaigns: 'Campanhas', followups: 'Pós-Venda', hunter: 'Hunter' };
+}
+
+function showNewPage(page) {
+  const pg = document.getElementById(`page-${page}`);
+  if (!pg) return;
+  pg.classList.add('active');
+  if (typeof gsap !== 'undefined') {
+    gsap.fromTo(pg, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' });
+  }
+  const titles = { dashboard: 'Dashboard', deals: 'Pipeline', kanban: 'Kanban Comercial', leads: 'Leads', companies: 'Empresas', tasks: 'Tarefas', equipment: 'Equipamentos', 'service-orders': 'Ordens de Serviço', contracts: 'Contratos', calendar: 'Calendário', webhooks: 'Webhooks', apikeys: 'API Keys', logs: 'Logs', bi: 'BI Analytics', invoices: 'Faturamento', proposals: 'Propostas', projects: 'Obras & Projetos', rental: 'Locação', campaigns: 'Campanhas', hunter: 'Hunter' };
   document.getElementById('page-title').textContent = titles[page] || page;
   // load data
   if (page === 'dashboard') loadDashboard();
   if (page === 'leads') loadLeads();
+  if (page === 'kanban') loadKanban();
   if (page === 'deals') { if (!state.companies || state.companies.length === 0) loadCompanies(); loadDeals(); }
   if (page === 'companies') loadCompanies();
   if (page === 'tasks') loadTasks();
-  if (page === 'daily-routines') loadDailyRoutines();
   if (page === 'webhooks') loadWebhooks();
   if (page === 'apikeys') loadApiKeys();
   if (page === 'logs') loadLogs();
@@ -103,22 +136,67 @@ function showLogin() {
 function showApp() {
   document.getElementById('page-login').style.display = 'none';
   document.getElementById('page-app').style.display = 'flex';
-  document.getElementById('user-display').textContent = state.user?.username || 'admin';
-  navigate('dashboard');
+  document.getElementById('user-display').textContent = state.user?.name || state.user?.username || 'admin';
+  // Avatar with initials
+  const avatar = document.getElementById('user-avatar');
+  if (avatar) {
+    const name = state.user?.name || state.user?.username || 'A';
+    avatar.textContent = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    avatar.title = state.user?.name || state.user?.username || 'Admin';
+  }
+  // Aplica role-based visibility na sidebar
+  applyRoleFilter();
+  // Navega para página inicial conforme role
+  const role = state.user?.role || '';
+  navigate(role === 'comercial' ? 'kanban' : 'dashboard');
+}
+
+function applyRoleFilter() {
+  const role = state.user?.role || '';
+  
+  // CEO e Developer vêem TUDO — sem filtro
+  if (!role || role === 'ceo' || role === 'developer') {
+    document.querySelectorAll('[data-role]').forEach(el => el.style.display = '');
+    return;
+  }
+  
+  // Demais roles só veem itens com data-role contendo a role
+  document.querySelectorAll('[data-role]').forEach(el => {
+    const roles = (el.dataset.role || '').split(',').map(r => r.trim());
+    el.style.display = roles.includes(role) ? '' : 'none';
+  });
 }
 
 /* ── Modal helpers ───────────────────────────────────────────────────────── */
 
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('open');
+  const modal = el.querySelector('.modal');
+  if (modal && typeof gsap !== 'undefined') {
+    gsap.fromTo(modal, { opacity: 0, scale: 0.92, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: 0.35, ease: 'back.out(1.4)' });
+  }
+}
+
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const modal = el.querySelector('.modal');
+  if (modal && typeof gsap !== 'undefined') {
+    gsap.to(modal, { opacity: 0, scale: 0.95, y: 10, duration: 0.2, ease: 'power2.in', onComplete: () => el.classList.remove('open') });
+  } else {
+    el.classList.remove('open');
+  }
+}
 
 document.querySelectorAll('.close-modal').forEach(b => {
   b.addEventListener('click', () => {
-    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
   });
 });
 document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('open'); });
+  m.addEventListener('click', (e) => { if (e.target === m) closeModal(m.id); });
 });
 
 /* ── LEADS ───────────────────────────────────────────────────────────────── */
@@ -341,7 +419,7 @@ function initTheme() {
   const saved = localStorage.getItem('grt_theme');
   if (saved === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
-    document.getElementById('theme-icon').textContent = '☀';
+    document.getElementById('theme-icon').innerHTML = '<i class="fa-solid fa-sun"></i>';
     document.getElementById('theme-label').textContent = 'Modo Claro';
   }
 }
@@ -349,15 +427,16 @@ function initTheme() {
 function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.getAttribute('data-theme') === 'dark';
+  const icon = document.getElementById('theme-icon');
   if (isDark) {
     html.removeAttribute('data-theme');
     localStorage.setItem('grt_theme', 'light');
-    document.getElementById('theme-icon').textContent = '☾';
+    icon.innerHTML = '<i class="fa-solid fa-moon"></i>';
     document.getElementById('theme-label').textContent = 'Modo Escuro';
   } else {
     html.setAttribute('data-theme', 'dark');
     localStorage.setItem('grt_theme', 'dark');
-    document.getElementById('theme-icon').textContent = '☀';
+    icon.innerHTML = '<i class="fa-solid fa-sun"></i>';
     document.getElementById('theme-label').textContent = 'Modo Claro';
   }
 }
@@ -847,211 +926,6 @@ function isOverdue(d) {
   return due < today;
 }
 
-async function loadDailyRoutines() {
-  try {
-    state.routines = await api('GET', '/daily-routines');
-    renderKanban();
-    populateAssigneeFilter();
-  } catch (e) { toast(e.message, 'error'); }
-}
-
-function populateAssigneeFilter() {
-  const sel = document.getElementById('routine-filter-assigned');
-  const current = sel.value;
-  const assignees = [...new Set(state.routines.map(r => r.assigned_to).filter(Boolean))];
-  sel.innerHTML = '<option value="">Todos Responsáveis</option>' +
-    assignees.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
-  sel.value = current;
-}
-
-function filteredRoutines() {
-  const priorityFilter = document.getElementById('routine-filter-priority').value;
-  const assignedFilter = document.getElementById('routine-filter-assigned').value;
-  return state.routines.filter(r => {
-    if (priorityFilter && r.priority !== priorityFilter) return false;
-    if (assignedFilter && r.assigned_to !== assignedFilter) return false;
-    return true;
-  });
-}
-
-function renderKanban() {
-  const filtered = filteredRoutines();
-  const empty = document.getElementById('routines-empty');
-  const board = document.getElementById('kanban-board');
-
-  const hasItems = filtered.length > 0;
-  board.style.display = hasItems ? 'grid' : 'none';
-  empty.style.display = hasItems ? 'none' : 'block';
-
-  const columns = { pending: [], in_progress: [], done: [] };
-  for (const r of filtered) {
-    if (columns[r.status]) columns[r.status].push(r);
-  }
-
-  for (const [status, items] of Object.entries(columns)) {
-    const body = document.getElementById(`kanban-${status}`);
-    const countEl = document.getElementById(`count-${status}`);
-    countEl.textContent = items.length;
-
-    if (items.length === 0) {
-      body.innerHTML = `<div class="kanban-column-empty"><div class="empty-icon">📋</div><span>Nenhuma rotina</span></div>`;
-      continue;
-    }
-
-    body.innerHTML = items.map(r => `
-      <div class="kanban-card" draggable="true" data-id="${r.id}" data-status="${r.status}">
-        <div class="kanban-card-title">${esc(r.title)}</div>
-        ${r.description ? `<div class="kanban-card-desc">${esc(r.description.substring(0, 100))}${r.description.length > 100 ? '...' : ''}</div>` : ''}
-        <div style="margin-bottom:6px">
-          <span class="badge badge-${r.priority || 'medium'}">${routinePriorityLabel(r.priority)}</span>
-        </div>
-        <div class="kanban-card-meta">
-          <div class="kanban-card-assignee">👤 ${esc(r.assigned_to || 'Não atribuído')}</div>
-          ${r.due_date ? `<div class="kanban-card-due ${isOverdue(r.due_date) && status !== 'done' ? 'overdue' : ''}">📅 ${formatDateKanban(r.due_date)}</div>` : ''}
-          <div class="kanban-card-actions">
-            <button onclick="editRoutine(${r.id})" title="Editar">✎</button>
-            <button class="btn-del" onclick="deleteRoutine(${r.id})" title="Excluir">✕</button>
-          </div>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  // Attach drag events
-  document.querySelectorAll('.kanban-card[draggable]').forEach(card => {
-    card.addEventListener('dragstart', onDragStart);
-    card.addEventListener('dragend', onDragEnd);
-  });
-  document.querySelectorAll('.kanban-body').forEach(body => {
-    body.addEventListener('dragover', onDragOver);
-    body.addEventListener('dragenter', onDragEnter);
-    body.addEventListener('dragleave', onDragLeave);
-    body.addEventListener('drop', onDrop);
-  });
-
-  updateRoutineBadge();
-}
-
-function updateRoutineBadge() {
-  const pending = state.routines.filter(r => r.status !== 'done').length;
-  const badge = document.getElementById('routine-count-badge');
-  if (badge) {
-    badge.textContent = pending;
-    badge.style.display = pending > 0 ? 'inline' : 'none';
-  }
-}
-
-let draggedCard = null;
-
-function onDragStart(e) {
-  draggedCard = e.target.closest('.kanban-card');
-  if (!draggedCard) return;
-  draggedCard.classList.add('dragging');
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', draggedCard.dataset.id);
-}
-
-function onDragEnd(e) {
-  const card = e.target.closest('.kanban-card');
-  if (card) card.classList.remove('dragging');
-  document.querySelectorAll('.kanban-body').forEach(b => b.classList.remove('drag-over'));
-  draggedCard = null;
-}
-
-function onDragOver(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-}
-
-function onDragEnter(e) {
-  const body = e.target.closest('.kanban-body');
-  if (body) body.classList.add('drag-over');
-}
-
-function onDragLeave(e) {
-  const body = e.target.closest('.kanban-body');
-  if (body && !body.contains(e.relatedTarget)) body.classList.remove('drag-over');
-}
-
-async function onDrop(e) {
-  e.preventDefault();
-  const body = e.target.closest('.kanban-body');
-  if (!body) return;
-  body.classList.remove('drag-over');
-
-  const id = e.dataTransfer.getData('text/plain');
-  const newStatus = body.closest('.kanban-column').dataset.status;
-  if (!id || !newStatus) return;
-
-  const card = document.querySelector(`.kanban-card[data-id="${id}"]`);
-  const oldStatus = card ? card.dataset.status : null;
-  if (oldStatus === newStatus) return;
-
-  try {
-    await api('PATCH', `/daily-routines/${id}`, { status: newStatus });
-    toast(`Rotina movida para ${routineStatusLabel(newStatus)}`, 'success');
-    loadDailyRoutines();
-  } catch (e) { toast(e.message, 'error'); }
-}
-
-/* ── Modal CRUD ─────────────────────────────────────────────────────────── */
-
-function openRoutineModal(routine) {
-  document.getElementById('modal-routine-title').textContent = routine ? 'Editar Rotina' : 'Nova Rotina';
-  document.getElementById('routine-id').value = routine ? routine.id : '';
-  document.getElementById('routine-title').value = routine ? (routine.title || '') : '';
-  document.getElementById('routine-desc').value = routine ? (routine.description || '') : '';
-  document.getElementById('routine-status').value = routine ? (routine.status || 'pending') : 'pending';
-  document.getElementById('routine-priority').value = routine ? (routine.priority || 'medium') : 'medium';
-  document.getElementById('routine-assigned').value = routine ? (routine.assigned_to || '') : '';
-  document.getElementById('routine-due').value = routine ? (routine.due_date ? routine.due_date.substring(0, 10) : '') : '';
-  openModal('modal-routine');
-}
-
-function editRoutine(id) {
-  const routine = state.routines.find(r => r.id === id);
-  if (routine) openRoutineModal(routine);
-}
-
-async function deleteRoutine(id) {
-  if (!confirm('Excluir esta rotina?')) return;
-  try {
-    await api('DELETE', `/daily-routines/${id}`);
-    toast('Rotina excluída', 'success');
-    loadDailyRoutines();
-  } catch (e) { toast(e.message, 'error'); }
-}
-
-on('btn-new-routine', 'click', () => openRoutineModal(null));
-on('btn-refresh-routines', 'click', loadDailyRoutines);
-
-on('routine-filter-priority', 'change', renderKanban);
-on('routine-filter-assigned', 'change', renderKanban);
-
-on('modal-routine-form', 'submit', async (e) => {
-  e.preventDefault();
-  const id = document.getElementById('routine-id').value;
-  const body = {
-    title: document.getElementById('routine-title').value,
-    description: document.getElementById('routine-desc').value,
-    status: document.getElementById('routine-status').value,
-    priority: document.getElementById('routine-priority').value,
-    assigned_to: document.getElementById('routine-assigned').value || null,
-    due_date: document.getElementById('routine-due').value || null,
-  };
-  try {
-    if (id) {
-      await api('PATCH', `/daily-routines/${id}`, body);
-      toast('Rotina atualizada', 'success');
-    } else {
-      await api('POST', '/daily-routines', body);
-      toast('Rotina criada', 'success');
-    }
-    closeModal('modal-routine');
-    loadDailyRoutines();
-  } catch (e) { toast(e.message, 'error'); }
-});
-
 /* ── WEBHOOKS ────────────────────────────────────────────────────────────── */
 
 async function loadWebhooks() {
@@ -1322,6 +1196,266 @@ function renderLogs() {
 
 on('btn-refresh-logs', 'click', loadLogs);
 
+/* ── KANBAN COMERCIAL ──────────────────────────────────────────────────── */
+
+const KANBAN_LABELS = {
+  novo_lead: { label: 'Novo Lead', icon: 'fa-solid fa-star', color: '#f5a623' },
+  em_tentativa: { label: 'Em Tentativa', icon: 'fa-solid fa-phone', color: '#3b82f6' },
+  em_qualificacao: { label: 'Em Qualificação', icon: 'fa-solid fa-filter', color: '#8b5cf6' },
+  reuniao_agendada: { label: 'Reunião Agendada', icon: 'fa-solid fa-calendar-check', color: '#06b6d4' },
+  proposta_enviada: { label: 'Proposta Enviada', icon: 'fa-solid fa-file-invoice', color: '#ec4899' },
+  contrato_fechamento: { label: 'Contrato/Fechamento', icon: 'fa-solid fa-file-signature', color: '#f97316' },
+  ganho: { label: 'Ganho', icon: 'fa-solid fa-trophy', color: '#10b981' },
+  perdido: { label: 'Perdido', icon: 'fa-solid fa-times-circle', color: '#ef4444' },
+  arquivado: { label: 'Arquivado', icon: 'fa-solid fa-archive', color: '#6b7280' },
+};
+
+let kanbanData = null;
+
+async function loadKanban() {
+  try {
+    const data = await api('GET', '/leads/kanban');
+    kanbanData = data;
+    renderKanban();
+    loadSlaAlerts();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function loadSlaAlerts() {
+  try {
+    const alerts = await api('GET', '/leads/sla-alerts');
+    const container = document.getElementById('kanban-alerts');
+    if (!container) return;
+    if (alerts.length === 0) { container.style.display = 'none'; return; }
+    container.style.display = 'block';
+    container.innerHTML = alerts.map(a =>
+      `<div class="kanban-alert"><i class="fa-solid fa-clock"></i> Lead <strong>${esc(a.name)}</strong> em "${KANBAN_LABELS[a.status]?.label || a.status}" há <strong>${a.sla_days} dias</strong> sem atividade</div>`
+    ).join('');
+  } catch {}
+}
+
+function renderKanban() {
+  const board = document.getElementById('kanban-board');
+  const empty = document.getElementById('kanban-empty');
+  if (!board) return;
+
+  if (!kanbanData || kanbanData.every(c => c.leads.length === 0)) {
+    board.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  board.innerHTML = kanbanData.map(col => {
+    const info = KANBAN_LABELS[col.status] || { label: col.status, icon: 'fa-solid fa-circle', color: '#6b7280' };
+    const isTerminal = ['ganho', 'perdido', 'arquivado'].includes(col.status);
+    return `
+      <div class="kanban-col" data-status="${col.status}">
+        <div class="kanban-col-header" style="border-top-color:${info.color}">
+          <span class="kanban-col-title"><i class="${info.icon}" style="color:${info.color}"></i> ${info.label}</span>
+          <span class="kanban-col-count">${col.count}</span>
+        </div>
+        <div class="kanban-col-body" id="kanban-body-${col.status}">
+          ${col.leads.map(lead => renderKanbanCard(lead, isTerminal)).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+  // Inicializa drag & drop nos cards
+  initKanbanDragDrop();
+}
+
+function renderKanbanCard(lead, isTerminal) {
+  const slaWarning = (lead.status === 'em_tentativa' || lead.status === 'proposta_enviada') && lead.sla_days > 5
+    ? `<div class="kanban-sla-warn"><i class="fa-solid fa-clock"></i> ${lead.sla_days}d</div>` : '';
+  const term = isTerminal ? ' data-terminal="1"' : '';
+  return `
+    <div class="kanban-card" data-id="${lead.id}" data-status="${lead.status}" draggable="true"${term}>
+      <div class="kanban-card-name">${esc(lead.name)}</div>
+      ${lead.company ? `<div class="kanban-card-company">${esc(lead.company)}</div>` : ''}
+      <div class="kanban-card-meta">
+        <span>${lead.email ? esc(lead.email) : ''}</span>
+        ${lead.proposal_value > 0 ? `<span class="kanban-card-value">${fmtCurrency(lead.proposal_value)}</span>` : ''}
+      </div>
+      ${slaWarning}
+      <div class="kanban-card-actions">
+        <button class="btn-icon btn-sm" onclick="event.stopPropagation();openKanbanTransition(${lead.id}, '${lead.status}')" title="Mover"><i class="fa-solid fa-arrow-right"></i></button>
+        <button class="btn-icon btn-sm" onclick="event.stopPropagation();openLeadModal(${lead.id})" title="Editar"><i class="fa-solid fa-pen"></i></button>
+      </div>
+    </div>
+  `;
+}
+
+/* ── Drag & Drop Kanban ───────────────────────────────────────────────── */
+
+let dragSrcId = null;
+
+function initKanbanDragDrop() {
+  document.querySelectorAll('.kanban-card').forEach(card => {
+    card.addEventListener('dragstart', onDragStart);
+    card.addEventListener('dragend', onDragEnd);
+  });
+  document.querySelectorAll('.kanban-col-body').forEach(col => {
+    col.addEventListener('dragover', onDragOver);
+    col.addEventListener('dragenter', onDragEnter);
+    col.addEventListener('dragleave', onDragLeave);
+    col.addEventListener('drop', onDrop);
+  });
+}
+
+function onDragStart(e) {
+  const card = e.target.closest('.kanban-card');
+  if (!card || card.dataset.terminal) { e.preventDefault(); return; }
+  dragSrcId = card.dataset.id;
+  card.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', card.dataset.id);
+}
+
+function onDragEnd(e) {
+  const card = e.target.closest('.kanban-card');
+  if (card) card.classList.remove('dragging');
+  document.querySelectorAll('.kanban-col-body.drag-over').forEach(c => c.classList.remove('drag-over'));
+  dragSrcId = null;
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function onDragEnter(e) {
+  const col = e.target.closest('.kanban-col-body');
+  if (col && !col.classList.contains('drag-over')) {
+    // Verifica se a coluna tem card sendo arrastado
+    const targetStatus = col.closest('.kanban-col')?.dataset.status;
+    if (targetStatus && ['ganho','perdido','arquivado'].includes(targetStatus) && dragSrcId) {
+      // Terminal columns drop is handled via validation
+    }
+    col.classList.add('drag-over');
+  }
+}
+
+function onDragLeave(e) {
+  const col = e.target.closest('.kanban-col-body');
+  if (col && !col.contains(e.relatedTarget)) {
+    col.classList.remove('drag-over');
+  }
+}
+
+async function onDrop(e) {
+  e.preventDefault();
+  const col = e.target.closest('.kanban-col-body');
+  if (!col) return;
+  col.classList.remove('drag-over');
+
+  const toStatus = col.closest('.kanban-col')?.dataset.status;
+  const leadId = dragSrcId;
+  if (!toStatus || !leadId) return;
+
+  // Se drop na mesma coluna, ignora
+  const card = document.querySelector(`.kanban-card[data-id="${leadId}"]`);
+  if (card && card.dataset.status === toStatus) return;
+
+  try {
+    // Tenta transição; se backend rejeitar, mostra toast com erro
+    await api('PATCH', `/leads/${leadId}/transition`, { status: toStatus });
+    toast('Lead movido!', 'success');
+    loadKanban();
+    loadLeads();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+function openKanbanTransition(leadId, currentStatus) {
+  const cols = ['novo_lead','em_tentativa','em_qualificacao','reuniao_agendada','proposta_enviada','contrato_fechamento','ganho','perdido','arquivado'];
+  const terminal = ['ganho','perdido','arquivado'];
+  const transitionMap = {
+    novo_lead: ['em_tentativa','em_qualificacao','arquivado'],
+    em_tentativa: ['em_qualificacao','novo_lead','arquivado'],
+    em_qualificacao: ['reuniao_agendada','perdido','arquivado'],
+    reuniao_agendada: ['proposta_enviada','em_qualificacao','perdido'],
+    proposta_enviada: ['contrato_fechamento','em_tentativa','perdido'],
+    contrato_fechamento: ['ganho','perdido','arquivado'],
+    ganho: [], perdido: [], arquivado: [],
+  };
+
+  if (terminal.includes(currentStatus)) {
+    toast('Lead em status final. Não pode ser movido.', 'error');
+    return;
+  }
+
+  const allowed = transitionMap[currentStatus] || [];
+  const modal = document.getElementById('modal-transition');
+  if (!modal) return;
+  document.getElementById('transition-lead-id').value = leadId;
+  document.getElementById('transition-current-status').textContent = KANBAN_LABELS[currentStatus]?.label || currentStatus;
+
+  const select = document.getElementById('transition-status');
+  select.innerHTML = allowed.map(s => {
+    const info = KANBAN_LABELS[s] || { label: s };
+    return `<option value="${s}">${info.label}</option>`;
+  }).join('');
+
+  // Mostra campos condicionais
+  document.getElementById('transition-field-appointment').style.display = 'none';
+  document.getElementById('transition-field-proposal').style.display = 'none';
+  document.getElementById('transition-field-lost').style.display = 'none';
+
+  select.onchange = () => {
+    const val = select.value;
+    document.getElementById('transition-field-appointment').style.display = val === 'reuniao_agendada' ? 'block' : 'none';
+    document.getElementById('transition-field-proposal').style.display = val === 'proposta_enviada' ? 'block' : 'none';
+    document.getElementById('transition-field-lost').style.display = val === 'perdido' ? 'block' : 'none';
+    // Pre-requisite fields from current lead
+    if (val === 'reuniao_agendada') {
+      document.getElementById('transition-lead-id').value = leadId;
+    }
+  };
+
+  openModal('modal-transition');
+}
+
+on('modal-transition-form', 'submit', async (e) => {
+  e.preventDefault();
+  const leadId = document.getElementById('transition-lead-id').value;
+  const status = document.getElementById('transition-status').value;
+
+  // Collect conditional fields
+  const extra = {};
+  if (status === 'reuniao_agendada') {
+    const date = document.getElementById('transition-appointment-date').value;
+    if (!date) { toast('Preencha a data de agendamento', 'error'); return; }
+    extra.appointment_date = date;
+  }
+  if (status === 'proposta_enviada') {
+    const val = parseFloat(document.getElementById('transition-proposal-value').value);
+    if (!val || val <= 0) { toast('Informe o valor da proposta', 'error'); return; }
+    extra.proposal_value = val;
+  }
+  if (status === 'perdido') {
+    const reason = document.getElementById('transition-lost-reason').value.trim();
+    if (!reason) { toast('Informe o motivo da perda', 'error'); return; }
+    extra.lost_reason = reason;
+  }
+
+  try {
+    // First update extra fields if any
+    if (Object.keys(extra).length > 0) {
+      await api('PATCH', `/leads/${leadId}`, extra);
+    }
+    // Then transition
+    await api('PATCH', `/leads/${leadId}/transition`, { status });
+    toast('Lead movido com sucesso!', 'success');
+    closeModal('modal-transition');
+    loadKanban();
+    loadLeads();
+  } catch (err) { toast(err.message, 'error'); }
+});
+
+on('btn-kanban-refresh', 'click', loadKanban);
+
 /* ── FASE 3 — EQUIPMENT ──────────────────────────────────────────────── */
 
 async function loadEquipment() {
@@ -1352,6 +1486,7 @@ function renderEquipment() {
       <td>${esc(e.plate || '—')}</td>
       <td><span class="badge badge-${e.status}">${statusMap[e.status] || e.status}</span></td>
       <td style="text-align:right">${e.daily_rate ? fmtCurrency(e.daily_rate) + '/dia' : '—'}</td>
+      <td style="text-align:right">${e.monthly_rate ? fmtCurrency(e.monthly_rate) + '/mês' : '—'}</td>
       <td style="text-align:right;white-space:nowrap">
         <button class="btn-icon" onclick="editEquipment('${e.id}')" title="Editar">✎</button>
         <button class="btn-icon" onclick="deleteEquipment('${e.id}')" title="Excluir" style="color:var(--red)">✕</button>
@@ -1370,6 +1505,7 @@ function openEquipmentModal(item) {
   document.getElementById('equipment-year').value = item ? (item.year || '') : '';
   document.getElementById('equipment-plate').value = item ? (item.plate || '') : '';
   document.getElementById('equipment-daily').value = item ? (item.daily_rate || '') : '';
+  document.getElementById('equipment-monthly').value = item ? (item.monthly_rate || '') : '';
   document.getElementById('equipment-status').value = item ? (item.status || 'available') : 'available';
   document.getElementById('equipment-notes').value = item ? (item.notes || '') : '';
   openModal('modal-equipment');
@@ -1400,6 +1536,7 @@ document.getElementById('modal-equipment-form')?.addEventListener('submit', asyn
     year: document.getElementById('equipment-year').value ? parseInt(document.getElementById('equipment-year').value) : null,
     plate: document.getElementById('equipment-plate').value,
     daily_rate: parseFloat(document.getElementById('equipment-daily').value) || 0,
+    monthly_rate: parseFloat(document.getElementById('equipment-monthly').value) || 0,
     status: document.getElementById('equipment-status').value,
     notes: document.getElementById('equipment-notes').value,
   };
@@ -1443,6 +1580,7 @@ function renderServiceOrders() {
       <td>${esc(o.client_name || '—')}</td>
       <td><span class="badge badge-${o.status}">${statusMap[o.status] || o.status}</span></td>
       <td><span class="badge badge-${o.priority || 'medium'}">${priorityMap[o.priority] || o.priority}</span></td>
+      <td>${esc(o.assigned_to || '—')}</td>
       <td style="text-align:right">${o.value ? fmtCurrency(o.value) : '—'}</td>
       <td style="text-align:right;white-space:nowrap">
         <button class="btn-icon" onclick="editServiceOrder('${o.id}')" title="Editar">✎</button>
@@ -1471,6 +1609,7 @@ function openSOModal(order) {
   document.getElementById('so-priority').value = order ? (order.priority || 'medium') : 'medium';
   document.getElementById('so-value').value = order ? (order.value || '') : '';
   document.getElementById('so-notes').value = order ? (order.notes || '') : '';
+  document.getElementById('so-responsible').value = order ? (order.assigned_to || '') : '';
 
   // Populate dropdowns
   const eqSelect = document.getElementById('so-equipment');
@@ -1506,6 +1645,7 @@ document.getElementById('modal-so-form')?.addEventListener('submit', async (e) =
     description: document.getElementById('so-desc').value,
     equipment_id: document.getElementById('so-equipment').value || null,
     client_id: document.getElementById('so-client').value || null,
+    assigned_to: document.getElementById('so-responsible').value || null,
     status: document.getElementById('so-status').value,
     priority: document.getElementById('so-priority').value,
     value: parseFloat(document.getElementById('so-value').value) || 0,
@@ -1667,13 +1807,12 @@ function renderCharts(data) {
     });
   }
 
-  // Pipeline by stage (doughnut)
+  // Leads by source (doughnut)
   const pipeCtx = document.getElementById('chart-pipeline');
-  if (pipeCtx && data.deals_by_stage) {
-    const stageMap = { prospecting: 'Prospecção', qualification: 'Qualificação', proposal: 'Proposta', negotiation: 'Negociação', won: 'Ganho', lost: 'Perdido' };
-    const labels = data.deals_by_stage.map(r => stageMap[r.stage] || r.stage);
-    const values = data.deals_by_stage.map(r => r.total_value || r.count);
-    const colors = ['#f5a623', '#3b82f6', '#8b5cf6', '#ec4899', '#10b981', '#ef4444'];
+  if (pipeCtx && data.leads_by_source) {
+    const labels = data.leads_by_source.map(r => r.source);
+    const values = data.leads_by_source.map(r => r.count);
+    const colors = ['#0F2496', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#ef4444'];
 
     chartInstances.pipeline = new Chart(pipeCtx, {
       type: 'doughnut',
@@ -1695,6 +1834,240 @@ function renderCharts(data) {
       },
     });
   }
+}
+
+/* ── Dashboard Summary ──────────────────────────────────────────────────── */
+
+function renderDashboardSummary(data) {
+  if (!data) return;
+  
+  const { totals, this_month } = data;
+  
+  // Update stat cards
+  if (totals) {
+    const el = (id) => document.getElementById(id);
+    if (el('stat-total')) el('stat-total').textContent = totals.totalLeads ?? '—';
+    if (el('stat-companies')) el('stat-companies').textContent = totals.totalCompanies ?? '—';
+    if (el('stat-tasks-pending')) el('stat-tasks-pending').textContent = totals.totalEquipment ?? '—';
+  }
+  
+  if (this_month) {
+    const el = (id) => document.getElementById(id);
+    if (el('stat-new')) el('stat-new').textContent = this_month.newLeadsThisMonth ?? '—';
+    if (el('stat-converted')) el('stat-converted').textContent = this_month.activeContracts ?? '—';
+    if (el('stat-lost')) el('stat-lost').textContent = this_month.pendingInvoices ?? '—';
+    if (el('stat-deals-won')) el('stat-deals-won').textContent = this_month.activeDeals ?? '—';
+  }
+}
+
+/* ── Funnel Visualization ───────────────────────────────────────────────── */
+
+function renderFunnel(data) {
+  const container = document.getElementById('funnel-container');
+  if (!container || !data || !data.stages) return;
+  
+  const { stages, conversion_rates } = data;
+  const maxValue = Math.max(...stages.map(s => s.count), 1);
+  
+  let html = '<div class="funnel-container">';
+  
+  stages.forEach((stage, i) => {
+    const width = Math.max(30, (stage.count / maxValue) * 100);
+    
+    html += `
+      <div class="funnel-stage">
+        <div class="funnel-label">${esc(stage.name)}</div>
+        <div class="funnel-bar" style="background:${stage.color};width:${width}%;min-width:80px">
+          <span class="funnel-bar-value">${stage.count}</span>
+        </div>
+      </div>
+    `;
+    
+    if (i < stages.length - 1) {
+      const convKey = ['lead_to_qualified', 'qualified_to_proposal', 'proposal_to_won'][i];
+      const convRate = conversion_rates?.[convKey] ?? 0;
+      html += `
+        <div class="funnel-arrow">
+          <i class="fa-solid fa-chevron-right"></i>
+          <span class="funnel-conversion">${convRate}%</span>
+        </div>
+      `;
+    }
+  });
+  
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+/* ── Activity Rendering ─────────────────────────────────────────────────── */
+
+function renderActivity(data) {
+  if (!data) return;
+  
+  // Recent Leads
+  const recentLeadsEl = document.getElementById('dash-recent-leads');
+  if (recentLeadsEl && data.recent_leads) {
+    if (data.recent_leads.length === 0) {
+      recentLeadsEl.innerHTML = '<div style="padding:8px;color:var(--text-muted);font-size:12px">Nenhum lead recente</div>';
+    } else {
+      recentLeadsEl.innerHTML = data.recent_leads.map(l => `
+        <div class="activity-item">
+          <div>
+            <div class="activity-item-name">${esc(l.name)}</div>
+            <div class="activity-item-detail">${esc(l.company || l.source || '—')}</div>
+          </div>
+          <span class="activity-item-badge badge-${l.status}">${statusLabel(l.status)}</span>
+        </div>
+      `).join('');
+    }
+  }
+  
+  // Expiring Contracts
+  const expiringEl = document.getElementById('dash-expiring-contracts');
+  if (expiringEl && data.expiring_contracts) {
+    if (data.expiring_contracts.length === 0) {
+      expiringEl.innerHTML = '<div style="padding:8px;color:var(--text-muted);font-size:12px">Nenhum contrato vencendo</div>';
+    } else {
+      expiringEl.innerHTML = data.expiring_contracts.map(c => `
+        <div class="activity-item">
+          <div>
+            <div class="activity-item-name">${esc(c.title)}</div>
+            <div class="activity-item-detail">${esc(c.company_name || '—')} • Vence: ${fmtDate(c.end_date)}</div>
+          </div>
+          <span class="activity-item-badge badge-active">Ativo</span>
+        </div>
+      `).join('');
+    }
+  }
+  
+  // Pending Proposals
+  const proposalsEl = document.getElementById('dash-pending-proposals');
+  if (proposalsEl && data.pending_proposals) {
+    if (data.pending_proposals.length === 0) {
+      proposalsEl.innerHTML = '<div style="padding:8px;color:var(--text-muted);font-size:12px">Nenhuma proposta pendente</div>';
+    } else {
+      proposalsEl.innerHTML = data.pending_proposals.map(p => `
+        <div class="activity-item">
+          <div>
+            <div class="activity-item-name">${esc(p.title)}</div>
+            <div class="activity-item-detail">${esc(p.company_name || '—')} • ${fmtCurrency(p.value)}</div>
+          </div>
+          <span class="activity-item-badge badge-${p.status}">${statusLabel(p.status)}</span>
+        </div>
+      `).join('');
+    }
+  }
+}
+
+/* ── Marketing Rendering ────────────────────────────────────────────────── */
+
+function renderMarketing(data) {
+  if (!data) return;
+  
+  // Leads by Source
+  const sourceEl = document.getElementById('dash-leads-source');
+  if (sourceEl && data.leads_by_source) {
+    if (data.leads_by_source.length === 0) {
+      sourceEl.innerHTML = '<div style="padding:8px;color:var(--text-muted);font-size:12px">Sem dados de fontes</div>';
+    } else {
+      const maxCount = Math.max(...data.leads_by_source.map(s => s.count), 1);
+      const colors = ['#0F2496', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+      
+      sourceEl.innerHTML = data.leads_by_source.map((s, i) => {
+        const width = (s.count / maxCount) * 100;
+        return `
+          <div class="source-bar">
+            <span class="source-bar-label">${esc(s.source)}</span>
+            <div class="source-bar-track">
+              <div class="source-bar-fill" style="width:${width}%;background:${colors[i % colors.length]}"></div>
+            </div>
+            <span class="source-bar-count">${s.count}</span>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+  
+  // Recent Campaigns
+  const campaignsEl = document.getElementById('dash-recent-campaigns');
+  if (campaignsEl && data.recent_campaigns) {
+    if (data.recent_campaigns.length === 0) {
+      campaignsEl.innerHTML = '<div style="padding:8px;color:var(--text-muted);font-size:12px">Nenhuma campanha</div>';
+    } else {
+      campaignsEl.innerHTML = data.recent_campaigns.map(c => `
+        <div class="campaign-item">
+          <div>
+            <div style="font-weight:500">${esc(c.name)}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${esc(c.type)} • ${c.sent_count || 0} enviados</div>
+          </div>
+          <span class="activity-item-badge badge-${c.status}">${statusLabel(c.status)}</span>
+        </div>
+      `).join('');
+    }
+  }
+}
+
+/* ── Fleet Utilization ──────────────────────────────────────────────────── */
+
+function renderFleetUtilization(data) {
+  const container = document.getElementById('dash-fleet');
+  if (!container || !data) return;
+  
+  const { total, inUse, available, maintenance, utilization } = data;
+  
+  if (total === 0) {
+    container.innerHTML = '<div style="padding:8px;color:var(--text-muted);font-size:12px">Nenhum equipamento cadastrado</div>';
+    return;
+  }
+  
+  const inUsePct = ((inUse / total) * 100).toFixed(0);
+  const availablePct = ((available / total) * 100).toFixed(0);
+  const maintenancePct = ((maintenance / total) * 100).toFixed(0);
+  
+  container.innerHTML = `
+    <div class="fleet-bar">
+      <div class="fleet-bar-segment" style="width:${inUsePct}%;background:#f59e0b" title="Em Uso: ${inUse}">${inUsePct > 10 ? inUsePct + '%' : ''}</div>
+      <div class="fleet-bar-segment" style="width:${availablePct}%;background:#10b981" title="Disponível: ${available}">${availablePct > 10 ? availablePct + '%' : ''}</div>
+      <div class="fleet-bar-segment" style="width:${maintenancePct}%;background:#ef4444" title="Manutenção: ${maintenance}">${maintenancePct > 10 ? maintenancePct + '%' : ''}</div>
+    </div>
+    <div class="fleet-legend">
+      <div class="fleet-legend-item">
+        <div class="fleet-legend-dot" style="background:#f59e0b"></div>
+        Em Uso (${inUse})
+      </div>
+      <div class="fleet-legend-item">
+        <div class="fleet-legend-dot" style="background:#10b981"></div>
+        Disponível (${available})
+      </div>
+      <div class="fleet-legend-item">
+        <div class="fleet-legend-dot" style="background:#ef4444"></div>
+        Manutenção (${maintenance})
+      </div>
+      <div class="fleet-legend-item" style="margin-left:auto;font-weight:600;color:var(--text-primary)">
+        Utilização: ${utilization}%
+      </div>
+    </div>
+  `;
+}
+
+/* ── Top Clients ────────────────────────────────────────────────────────── */
+
+function renderTopClients(clients) {
+  const tbody = document.getElementById('dash-top-clients');
+  if (!tbody || !clients) return;
+  
+  if (clients.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:20px">Nenhum cliente com negócios fechados</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = clients.map(c => `
+    <tr>
+      <td><strong>${esc(c.name)}</strong></td>
+      <td style="text-align:right">${c.deal_count}</td>
+      <td style="text-align:right;font-weight:600;color:var(--green)">${fmtCurrency(c.total_value)}</td>
+    </tr>
+  `).join('');
 }
 
 /* ── FASE 2 — NOTIFICATIONS ────────────────────────────────────────────── */
@@ -1853,7 +2226,7 @@ function exportCsv(endpoint) {
 
 /* ── FASE 2 — LOAD DASHBOARD CHARTS ───────────────────────────────────── */
 
-// Augment loadDashboard to also load charts
+// Augment loadDashboard to also load charts and new dashboard data
 const _origLoadDashboard = loadDashboard;
 loadDashboard = async function() {
   await _origLoadDashboard.call(this);
@@ -1862,6 +2235,27 @@ loadDashboard = async function() {
     initCharts();
     const chartsData = await api('GET', '/dashboard/charts');
     renderCharts(chartsData);
+    // Render fleet utilization from charts data
+    if (chartsData.fleet_utilization) {
+      renderFleetUtilization(chartsData.fleet_utilization);
+    }
+    // Render top clients from charts data
+    if (chartsData.top_clients) {
+      renderTopClients(chartsData.top_clients);
+    }
+  } catch {}
+  // Load new dashboard data
+  try {
+    const [summary, funnel, activity, marketing] = await Promise.all([
+      api('GET', '/dashboard/summary'),
+      api('GET', '/dashboard/funnel'),
+      api('GET', '/dashboard/activity'),
+      api('GET', '/dashboard/marketing'),
+    ]);
+    renderDashboardSummary(summary);
+    renderFunnel(funnel);
+    renderActivity(activity);
+    renderMarketing(marketing);
   } catch {}
   // Load unread notifications
   loadUnreadCount();
@@ -2344,114 +2738,6 @@ document.getElementById('modal-project-form')?.addEventListener('submit', async 
 /* ── NOVOS MÓDULOS: TICKETS ─────────────────────────────────────────── */
 
 let ticketsPage = 1;
-async function loadTickets(page) {
-  if (page) ticketsPage = page;
-  showLoader();
-  try {
-    const status = document.getElementById('ticket-filter-status')?.value || '';
-    const priority = document.getElementById('ticket-filter-priority')?.value || '';
-    let url = `/tickets?page=${ticketsPage}&limit=10`;
-    if (status) url += '&status=' + status;
-    if (priority) url += '&priority=' + priority;
-    const res = await api('GET', url);
-    state.tickets = res.tickets || [];
-    renderTickets();
-    loadTicketSLA();
-  } catch (e) { toast(e.message, 'error'); }
-  finally { hideLoader(); }
-}
-
-async function loadTicketSLA() {
-  try {
-    const sla = await api('GET', '/tickets/sla/stats');
-    const el = document.getElementById('ticket-sla-stats');
-    if (el) el.innerHTML = `<div class="stat-card green" style="flex:1"><div class="stat-label">Dentro do SLA</div><div class="stat-value">${sla.withinSla}</div><div class="stat-sub">${sla.rate}%</div></div><div class="stat-card red" style="flex:1"><div class="stat-label">Violados</div><div class="stat-value">${sla.breached}</div></div>`;
-  } catch {}
-}
-
-function renderTickets() {
-  const tbody = document.getElementById('tickets-tbody');
-  const empty = document.getElementById('tickets-empty');
-  const pagEl = document.getElementById('tickets-pagination');
-  const list = state.tickets || [];
-  if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (pagEl) pagEl.innerHTML = ''; return; }
-  if (empty) empty.style.display = 'none';
-  const statusMap = { open: 'Aberto', in_progress: 'Em Andamento', resolved: 'Resolvido', closed: 'Fechado' };
-  const priorityMap = { high: 'Alta', medium: 'Média', low: 'Baixa', critical: 'Crítica' };
-  document.getElementById('ticket-count-badge').textContent = list.filter(t => t.status !== 'closed' && t.status !== 'resolved').length;
-  tbody.innerHTML = list.map(t => {
-    const slaOk = t.sla_deadline ? new Date(t.sla_deadline) > new Date() : true;
-    return `<tr>
-      <td>#${t.id}</td>
-      <td><strong>${esc(t.title)}</strong></td>
-      <td>${esc(t.company_name || '—')}</td>
-      <td>${esc(t.category || '—')}</td>
-      <td><span class="badge badge-${t.priority}">${priorityMap[t.priority] || t.priority}</span></td>
-      <td><span class="badge badge-${t.status}">${statusMap[t.status] || t.status}</span></td>
-      <td><span style="color:${slaOk ? 'var(--green)' : 'var(--red)'};font-size:12px">${slaOk ? '✓' : '✗'} ${t.sla_deadline ? fmtDate(t.sla_deadline) : '—'}</span></td>
-      <td style="text-align:right;white-space:nowrap">
-        <button class="btn-icon" onclick="editTicket('${t.id}')" title="Editar">✎</button>
-        <button class="btn-icon" onclick="deleteTicket('${t.id}')" title="Excluir" style="color:var(--red)">✕</button>
-      </td></tr>`;
-  }).join('');
-}
-
-async function loadTicketCompanies() {
-  try {
-    const co = await api('GET', '/companies?page=1&limit=500');
-    const sel = document.getElementById('ticket-company');
-    if (sel) sel.innerHTML = '<option value="">Selecione</option>' + (co.companies || co || []).map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
-  } catch {}
-}
-
-function openTicketModal(ticket) {
-  document.getElementById('modal-ticket-title').textContent = ticket ? 'Editar Chamado' : 'Novo Chamado';
-  document.getElementById('ticket-id').value = ticket ? ticket.id : '';
-  document.getElementById('ticket-title').value = ticket ? (ticket.title || '') : '';
-  document.getElementById('ticket-desc').value = ticket ? (ticket.description || '') : '';
-  document.getElementById('ticket-contact').value = ticket ? (ticket.contact_name || '') : '';
-  document.getElementById('ticket-category').value = ticket ? (ticket.category || 'support') : 'support';
-  document.getElementById('ticket-priority').value = ticket ? (ticket.priority || 'medium') : 'medium';
-  document.getElementById('ticket-level').value = ticket ? (ticket.level || '1') : '1';
-  document.getElementById('ticket-notes').value = ticket ? (ticket.notes || '') : '';
-  if (!ticket) loadTicketCompanies();
-  openModal('modal-ticket');
-}
-
-function editTicket(id) {
-  const t = state.tickets?.find(t => t.id === id);
-  if (t) { loadTicketCompanies().then(() => openTicketModal(t)); }
-}
-
-async function deleteTicket(id) {
-  if (!confirm('Excluir este chamado?')) return;
-  try { await api('DELETE', `/tickets/${id}`); toast('Excluído', 'success'); loadTickets(); } catch (e) { toast(e.message, 'error'); }
-}
-
-document.getElementById('btn-new-ticket')?.addEventListener('click', () => { loadTicketCompanies().then(() => openTicketModal(null)); });
-document.getElementById('btn-refresh-tickets')?.addEventListener('click', loadTickets);
-document.getElementById('ticket-filter-status')?.addEventListener('change', loadTickets);
-document.getElementById('ticket-filter-priority')?.addEventListener('change', loadTickets);
-document.getElementById('modal-ticket-form')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const id = document.getElementById('ticket-id').value;
-  const body = {
-    title: document.getElementById('ticket-title').value,
-    description: document.getElementById('ticket-desc').value,
-    company_id: document.getElementById('ticket-company').value || null,
-    contact_name: document.getElementById('ticket-contact').value,
-    category: document.getElementById('ticket-category').value,
-    priority: document.getElementById('ticket-priority').value,
-    level: parseInt(document.getElementById('ticket-level').value) || 1,
-    notes: document.getElementById('ticket-notes').value,
-  };
-  try {
-    if (id) { await api('PATCH', `/tickets/${id}`, body); toast('Atualizado', 'success'); }
-    else { await api('POST', '/tickets', body); toast('Criado', 'success'); }
-    closeModal('modal-ticket'); loadTickets();
-  } catch (e) { toast(e.message, 'error'); }
-});
-
 /* ── NOVOS MÓDULOS: RENTAL ──────────────────────────────────────────── */
 
 async function loadRental() {
@@ -2596,112 +2882,6 @@ document.getElementById('modal-campaign-form')?.addEventListener('submit', async
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* ── NOVOS MÓDULOS: FOLLOWUPS ───────────────────────────────────────── */
-
-let followupsPage = 1;
-async function loadFollowups(page) {
-  if (page) followupsPage = page;
-  showLoader();
-  try {
-    const status = document.getElementById('followup-filter-status')?.value || '';
-    let url = `/followups?page=${followupsPage}&limit=10`;
-    if (status) url += '&status=' + status;
-    const res = await api('GET', url);
-    state.followups = res.followups || [];
-    renderFollowups();
-  } catch (e) { toast(e.message, 'error'); }
-  finally { hideLoader(); }
-}
-
-function renderFollowups() {
-  const tbody = document.getElementById('followups-tbody');
-  const empty = document.getElementById('followups-empty');
-  const pagEl = document.getElementById('followups-pagination');
-  const list = state.followups || [];
-  if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (pagEl) pagEl.innerHTML = ''; return; }
-  if (empty) empty.style.display = 'none';
-  const actionMap = { call: 'Ligação', email: 'Email', visit: 'Visita', whatsapp: 'WhatsApp', meeting: 'Reunião' };
-  const priorityMap = { high: 'Alta', medium: 'Média', low: 'Baixa' };
-  tbody.innerHTML = list.map(f => `<tr>
-    <td><strong>${esc(f.lead_name || '—')}</strong></td>
-    <td>${actionMap[f.action] || f.action}</td>
-    <td>${esc((f.description || '').substring(0, 40))}</td>
-    <td>${f.due_date ? fmtDate(f.due_date) : '—'}</td>
-    <td><span class="badge badge-${f.priority}">${priorityMap[f.priority] || f.priority}</span></td>
-    <td><span class="badge badge-${f.status}">${f.status === 'pending' ? 'Pendente' : f.status === 'completed' ? 'Concluído' : f.status}</span></td>
-    <td style="text-align:right;white-space:nowrap">
-      <button class="btn-icon" onclick="completeFollowup('${f.id}')" title="Concluir" style="color:var(--green)">✓</button>
-      <button class="btn-icon" onclick="editFollowup('${f.id}')" title="Editar">✎</button>
-      <button class="btn-icon" onclick="deleteFollowup('${f.id}')" title="Excluir" style="color:var(--red)">✕</button>
-    </td></tr>`).join('');
-}
-
-async function loadFollowupLeads() {
-  try {
-    const leads = await api('GET', '/leads?page=1&limit=500');
-    const sel = document.getElementById('followup-lead');
-    if (sel) sel.innerHTML = '<option value="">Selecione</option>' + (leads.leads || leads || []).map(l => `<option value="${l.id}">${esc(l.name)}</option>`).join('');
-  } catch {}
-}
-
-function openFollowupModal(followup) {
-  document.getElementById('modal-followup-title').textContent = followup ? 'Editar Acompanhamento' : 'Novo Acompanhamento';
-  document.getElementById('followup-id').value = followup ? followup.id : '';
-  document.getElementById('followup-desc').value = followup ? (followup.description || '') : '';
-  document.getElementById('followup-due').value = followup ? (followup.due_date ? followup.due_date.substring(0,10) : '') : '';
-  document.getElementById('followup-action').value = followup ? (followup.action || 'call') : 'call';
-  document.getElementById('followup-priority').value = followup ? (followup.priority || 'medium') : 'medium';
-  document.getElementById('followup-notes').value = followup ? (followup.notes || '') : '';
-  if (!followup) loadFollowupLeads();
-  openModal('modal-followup');
-}
-
-function editFollowup(id) {
-  const f = state.followups?.find(f => f.id === id);
-  if (f) { loadFollowupLeads().then(() => openFollowupModal(f)); }
-}
-
-async function completeFollowup(id) {
-  try { await api('PATCH', `/followups/${id}/complete`); toast('Concluído', 'success'); loadFollowups(); } catch (e) { toast(e.message, 'error'); }
-}
-
-async function deleteFollowup(id) {
-  if (!confirm('Excluir este acompanhamento?')) return;
-  try { await api('DELETE', `/followups/${id}`); toast('Excluído', 'success'); loadFollowups(); } catch (e) { toast(e.message, 'error'); }
-}
-
-async function loadFollowupsOverdue() {
-  showLoader();
-  try {
-    const overdue = await api('GET', '/followups/overdue/list');
-    state.followups = overdue || [];
-    renderFollowups();
-  } catch (e) { toast(e.message, 'error'); }
-  finally { hideLoader(); }
-}
-
-document.getElementById('btn-new-followup')?.addEventListener('click', () => { loadFollowupLeads().then(() => openFollowupModal(null)); });
-document.getElementById('btn-refresh-followups')?.addEventListener('click', loadFollowups);
-document.getElementById('btn-followup-overdue')?.addEventListener('click', loadFollowupsOverdue);
-document.getElementById('followup-filter-status')?.addEventListener('change', loadFollowups);
-document.getElementById('modal-followup-form')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const id = document.getElementById('followup-id').value;
-  const body = {
-    lead_id: document.getElementById('followup-lead').value || null,
-    action: document.getElementById('followup-action').value,
-    description: document.getElementById('followup-desc').value,
-    due_date: document.getElementById('followup-due').value || null,
-    priority: document.getElementById('followup-priority').value,
-    notes: document.getElementById('followup-notes').value,
-  };
-  try {
-    if (id) { await api('PATCH', `/followups/${id}`, body); toast('Atualizado', 'success'); }
-    else { await api('POST', '/followups', body); toast('Criado', 'success'); }
-    closeModal('modal-followup'); loadFollowups();
-  } catch (e) { toast(e.message, 'error'); }
-});
-
 /* ── NOVOS MÓDULOS: HUNTER ──────────────────────────────────────────── */
 
 let hunterPage = 1;
@@ -2842,6 +3022,41 @@ document.querySelectorAll('.nav-item[data-page]').forEach(item => {
   });
 });
 
+/* ── Topbar Search → focus sidebar search ─────────────────────────────── */
+const topbarSearch = document.getElementById('global-search-topbar');
+if (topbarSearch) {
+  topbarSearch.addEventListener('focus', () => {
+    const sidebarSearch = document.getElementById('global-search');
+    if (sidebarSearch && window.innerWidth > 768) {
+      sidebarSearch.focus();
+      topbarSearch.blur();
+    }
+  });
+  // Keyboard shortcut: Ctrl+K → focus search
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      const ss = document.getElementById('global-search');
+      if (ss) ss.focus();
+    }
+  });
+}
+
+/* ── Dev/Suporte group toggle ──────────────────────────────────────────── */
+on('btn-dev-suporte', 'click', () => {
+  const children = document.getElementById('dev-suporte-children');
+  const arrow = document.querySelector('#btn-dev-suporte .nav-group-arrow i');
+  if (children) {
+    children.classList.toggle('open');
+    if (arrow) arrow.style.transform = children.classList.contains('open') ? 'rotate(0deg)' : 'rotate(-90deg)';
+  }
+});
+// Start closed
+const devChildren = document.getElementById('dev-suporte-children');
+if (devChildren) devChildren.classList.remove('open');
+const devArrow = document.querySelector('#btn-dev-suporte .nav-group-arrow i');
+if (devArrow) devArrow.style.transform = 'rotate(-90deg)';
+
 on('btn-logout', 'click', logout);
 
 on('login-form', 'submit', async (e) => {
@@ -2862,6 +3077,22 @@ on('login-form', 'submit', async (e) => {
 /* ── Init ───────────────────────────────────────────────────────────────── */
 
 (async function init() {
+  // Init AOS for scroll animations
+  if (typeof AOS !== 'undefined') {
+    AOS.init({
+      duration: 600,
+      easing: 'ease-out-expo',
+      once: true,
+      offset: 80,
+      disable: 'mobile',
+    });
+  }
+
+  // Register GSAP ScrollTrigger if available
+  if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
+  }
+
   if (state.token) {
     try {
       const me = await api('GET', '/auth/me');

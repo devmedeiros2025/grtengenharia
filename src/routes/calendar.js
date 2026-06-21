@@ -12,34 +12,55 @@ export async function calendarRoutes(app) {
     const end = `${year}-${String(month).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
 
     // Service orders opened/closed in this month
-    const orders = await db.raw(`
-      SELECT id, title as title, 'service_order' as type, status,
-             opened_at as start_date, closed_at as end_date
-      FROM service_orders
-      WHERE (opened_at::date BETWEEN ? AND ?) OR (closed_at::date BETWEEN ? AND ?)
-      ORDER BY opened_at
-    `, [start, end, start, end]);
+    const orders = await db.select('service_orders', {
+      columns: "id, title, 'service_order' as type, status, opened_at as start_date, closed_at as end_date",
+      conditions: [
+        { field: 'opened_at', op: 'gte', value: start },
+        { field: 'opened_at', op: 'lte', value: end + 'T23:59:59' },
+      ],
+    });
 
     // Contracts active or ending in this month
-    const contracts = await db.raw(`
-      SELECT id, title as title, 'contract' as type, status,
-             start_date, end_date
-      FROM contracts
-      WHERE (start_date BETWEEN ? AND ?) OR (end_date BETWEEN ? AND ?) OR (status = 'active' AND start_date <= ? AND end_date >= ?)
-      ORDER BY start_date
-    `, [start, end, start, end, start, end]);
+    const contracts = await db.select('contracts', {
+      columns: "id, title, 'contract' as type, status, start_date, end_date",
+      conditions: [
+        { field: 'start_date', op: 'gte', value: start },
+        { field: 'start_date', op: 'lte', value: end },
+      ],
+    });
+
+    const contractsEnding = await db.select('contracts', {
+      columns: "id, title, 'contract' as type, status, start_date, end_date",
+      conditions: [
+        { field: 'end_date', op: 'gte', value: start },
+        { field: 'end_date', op: 'lte', value: end },
+      ],
+    });
+
+    const activeContracts = await db.select('contracts', {
+      columns: "id, title, 'contract' as type, status, start_date, end_date",
+      conditions: [
+        { field: 'status', op: 'eq', value: 'active' },
+        { field: 'start_date', op: 'lte', value: end },
+        { field: 'end_date', op: 'gte', value: start },
+      ],
+    });
 
     // Tasks with due dates in this month
-    const tasks = await db.raw(`
-      SELECT id, title as title, 'task' as type, status,
-             due_date as start_date, NULL as end_date
-      FROM tasks
-      WHERE due_date::date BETWEEN ? AND ?
-      ORDER BY due_date
-    `, [start, end]);
+    const tasks = await db.select('tasks', {
+      columns: "id, title, 'task' as type, status, due_date as start_date, NULL as end_date",
+      conditions: [
+        { field: 'due_date', op: 'gte', value: start },
+        { field: 'due_date', op: 'lte', value: end + 'T23:59:59' },
+      ],
+    });
+
+    // Merge contracts (deduplicate by id)
+    const allContracts = [...contracts, ...contractsEnding, ...activeContracts];
+    const uniqueContracts = [...new Map(allContracts.map(c => [c.id, c])).values()];
 
     return {
-      events: [...orders, ...contracts, ...tasks],
+      events: [...orders, ...uniqueContracts, ...tasks],
       month,
       year,
     };
