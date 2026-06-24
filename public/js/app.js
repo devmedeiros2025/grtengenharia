@@ -6,7 +6,7 @@ const API = (function() {
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return 'http://localhost:3002';
   }
-  return '/api'; // Vercel proxy ou produ��o
+  return '/api'; // Vercel proxy ou produção
 })();
 
 /* ── Safe DOM helpers ────────────────────────────────────────────────────── */
@@ -72,12 +72,12 @@ async function api(method, path, body) {
         isRefreshing = false;
         localStorage.removeItem('grt_refresh_token');
         logout();
-        throw new Error('Sess�o expirada. Fa�a login novamente.');
+        throw new Error('Sessão expirada. Faça login novamente.');
       }
       isRefreshing = false;
     } else if (!refreshToken) {
       logout();
-      throw new Error('Sess�o expirada. Fa�a login novamente.');
+      throw new Error('Sessão expirada. Faça login novamente.');
     }
   }
 
@@ -201,7 +201,7 @@ function showApp() {
   }
   // Aplica role-based visibility na sidebar
   applyRoleFilter();
-  // Navega para p� �gina inicial conforme role
+  // Navega para p+nico +nicogina inicial conforme role
   const role = state.user?.role || '';
   navigate(role === 'comercial' ? 'kanban' : 'dashboard');
 }
@@ -209,13 +209,13 @@ function showApp() {
 function applyRoleFilter() {
   const role = state.user?.role || '';
   
-  // CEO e Developer v�em TUDO — sem filtro
+  // CEO e Developer v+nicoem TUDO — sem filtro
   if (!role || role === 'ceo' || role === 'developer') {
     document.querySelectorAll('[data-role]').forEach(el => el.style.display = '');
     return;
   }
   
-  // Demais roles s� veem itens com data-role contendo a role
+  // Demais roles só veem itens com data-role contendo a role
   document.querySelectorAll('[data-role]').forEach(el => {
     const roles = (el.dataset.role || '').split(',').map(r => r.trim());
     el.style.display = roles.includes(role) ? '' : 'none';
@@ -374,7 +374,7 @@ async function deleteLead(id) {
   if (!confirm('Excluir este lead permanentemente?')) return;
   try {
     await api('DELETE', `/leads/${id}`);
-    toast('Lead exclu�do', 'success');
+    toast('Lead excluído', 'success');
     loadLeads();
     loadDashboard();
   } catch (e) { toast(e.message, 'error'); }
@@ -440,8 +440,8 @@ function paginationContainer(key, loadFn) {
       ${p.page > 2 && p.page < p.totalPages ? btn(p.page, p.page) : ''}
       ${p.totalPages > 1 && p.page < p.totalPages - 1 ? '<span class="page-info">…</span>' : ''}
       ${p.totalPages > 1 ? btn(p.totalPages, p.totalPages, p.page === p.totalPages) : ''}
-      ${btn(p.page + 1, 'Pr�ximo ›')}
-      <span class="page-info">P� �gina ${p.page} de ${p.totalPages} (${p.total} itens)</span>
+      ${btn(p.page + 1, 'Próximo ›')}
+      <span class="page-info">+gina +nicogina ${p.page} de ${p.totalPages} (${p.total} itens)</span>
     </div>`;
 }
 
@@ -572,7 +572,7 @@ async function deleteCompany(id) {
   if (!confirm('Excluir esta empresa permanentemente?')) return;
   try {
     await api('DELETE', `/companies/${id}`);
-    toast('Empresa exclu�da', 'success');
+    toast('Empresa excluída', 'success');
     loadCompanies();
     loadDashboard();
   } catch (e) { toast(e.message, 'error'); }
@@ -620,7 +620,7 @@ let dealStages = [
   { key: 'lead_in', label: 'Lead In', color: '#3b82f6' },
   { key: 'qualified', label: 'Qualificado', color: '#8b5cf6' },
   { key: 'proposal', label: 'Proposta', color: '#f59e0b' },
-  { key: 'negotiation', label: 'Negocia��o', color: '#f97316' },
+  { key: 'negotiation', label: 'Negociação', color: '#f97316' },
   { key: 'closed_won', label: 'Ganho', color: '#22c55e' },
   { key: 'closed_lost', label: 'Perdido', color: '#ef4444' },
 ];
@@ -679,7 +679,7 @@ function renderPipeline() {
           <span class="pipeline-count">${deals.length}</span>
         </div>
         <div class="pipeline-col-body" ondrop="onDealDrop(event)" ondragover="onDragOver(event)">
-          ${deals.length === 0 ? '<div class="pipeline-empty-col">Arraste neg�cios para c� �</div>' : ''}
+          ${deals.length === 0 ? '<div class="pipeline-empty-col">Arraste negócios para cá +nico</div>' : ''}
           ${deals.map(d => `
             <div class="deal-card" draggable="true" ondragstart="onDealDragStart(event, '${d.id}')" onclick="editDeal('${d.id}')">
               <div class="deal-card-title">${esc(d.title)}</div>
@@ -736,7 +736,7 @@ async function onDealDrop(e) {
 }
 
 function openDealModal(deal) {
-  document.getElementById('modal-deal-title').textContent = deal ? 'Editar Neg�cio' : 'Novo Neg�cio';
+  document.getElementById('modal-deal-title').textContent = deal ? 'Editar Negócio' : 'Novo Negócio';
   document.getElementById('deal-id').value = deal ? deal.id : '';
   document.getElementById('deal-title').value = deal ? (deal.title || '') : '';
   document.getElementById('deal-value').value = deal ? (deal.value || '') : '';
@@ -771,10 +771,10 @@ function editDeal(id) {
 }
 
 async function deleteDeal(id) {
-  if (!confirm('Excluir este neg�cio permanentemente?')) return;
+  if (!confirm('Excluir este +cioscio permanentemente?')) return;
   try {
     await api('DELETE', `/deals/${id}`);
-    toast('Neg�cio exclu�do', 'success');
+    toast('Negócio excluído', 'success');
     loadDeals();
     loadDashboard();
   } catch (e) { toast(e.message, 'error'); }
@@ -805,10 +805,10 @@ on('modal-deal-form', 'submit', async (e) => {
   try {
     if (id) {
       await api('PATCH', `/deals/${id}`, body);
-      toast('Neg�cio atualizado', 'success');
+      toast('Negócio atualizado', 'success');
     } else {
       await api('POST', '/deals', body);
-      toast('Neg�cio criado', 'success');
+      toast('Negócio criado', 'success');
     }
     closeModal('modal-deal');
     loadDeals();
@@ -876,12 +876,12 @@ function renderTasks() {
 }
 
 function priorityLabel(p) {
-  const m = { high: 'Alta', medium: 'M�dia', low: 'Baixa' };
-  return m[p] || p || 'M�dia';
+  const m = { high: 'Alta', medium: 'Média', low: 'Baixa' };
+  return m[p] || p || 'Média';
 }
 
 function taskStatusLabel(s) {
-  const m = { pending: 'Pendente', in_progress: 'Em andamento', done: 'Conclu�da' };
+  const m = { pending: 'Pendente', in_progress: 'Em andamento', done: 'Concluída' };
   return m[s] || s || 'Pendente';
 }
 
@@ -913,7 +913,7 @@ async function deleteTask(id) {
   if (!confirm('Excluir esta tarefa?')) return;
   try {
     await api('DELETE', `/tasks/${id}`);
-    toast('Tarefa exclu�da', 'success');
+    toast('Tarefa excluída', 'success');
     loadTasks();
     loadDashboard();
   } catch (e) { toast(e.message, 'error'); }
@@ -949,7 +949,7 @@ on('task-filter-status', 'change', renderTasks);
 on('task-filter-priority', 'change', renderTasks);
 on('btn-refresh-tasks', 'click', loadTasks);
 
-/* ── ROTINAS DI� �RIAS / KANBAN ────────────────────────────────────────────── */
+/* ── ROTINAS DI+nico +nicoRIAS / KANBAN ────────────────────────────────────────────── */
 
 async function loadRoutines() {
   try {
@@ -1056,7 +1056,7 @@ async function deleteRoutine(id) {
   if (!confirm('Excluir esta tarefa?')) return;
   try {
     await api('DELETE', `/api/daily-routines/${id}`);
-    toast('Tarefa exclu�da', 'success');
+    toast('Tarefa excluída', 'success');
     loadRoutines();
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -1074,7 +1074,7 @@ async function loadUsersForRoutines() {
     }
     if (selectFilter) {
       const cv = selectFilter.value;
-      selectFilter.innerHTML = '<option value="">Todos os usu� �rios</option>' +
+      selectFilter.innerHTML = '<option value="">Todos os usu+nico +nicorios</option>' +
         users.map(u => `<option value="${esc(u.name || u.email)}">${esc(u.name || u.email)}</option>`).join('');
       selectFilter.value = cv;
     }
@@ -1111,12 +1111,12 @@ on('modal-routine-form', 'submit', async (e) => {
 });
 
 function routinePriorityLabel(p) {
-  const m = { high: 'Alta', medium: 'M�dia', low: 'Baixa' };
-  return m[p] || p || 'M�dia';
+  const m = { high: 'Alta', medium: 'Média', low: 'Baixa' };
+  return m[p] || p || 'Média';
 }
 
 function routineStatusLabel(s) {
-  const m = { pending: 'Pendente', in_progress: 'Em Andamento', done: 'Conclu�da' };
+  const m = { pending: 'Pendente', in_progress: 'Em Andamento', done: 'Concluída' };
   return m[s] || s || 'Pendente';
 }
 
@@ -1215,7 +1215,7 @@ async function deleteInbound(id) {
   if (!confirm('Excluir este webhook inbound?')) return;
   try {
     await api('DELETE', `/settings/webhooks/inbound/${id}`);
-    toast('Webhook exclu�do', 'success');
+    toast('Webhook excluído', 'success');
     loadWebhooks();
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -1237,7 +1237,7 @@ async function deleteOutbound(id) {
   if (!confirm('Excluir este webhook outbound?')) return;
   try {
     await api('DELETE', `/settings/webhooks/outbound/${id}`);
-    toast('Webhook exclu�do', 'success');
+    toast('Webhook excluído', 'success');
     loadWebhooks();
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -1350,7 +1350,7 @@ async function deleteApiKey(id) {
   if (!confirm('Excluir esta API key?')) return;
   try {
     await api('DELETE', `/settings/api-keys/${id}`);
-    toast('API key exclu�da', 'success');
+    toast('API key excluída', 'success');
     loadApiKeys();
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -1497,8 +1497,8 @@ on('btn-refresh-logs', 'click', loadLogs);
 const KANBAN_LABELS = {
   novo_lead: { label: 'Novo Lead', icon: 'fa-solid fa-star', color: '#f5a623' },
   em_tentativa: { label: 'Em Tentativa', icon: 'fa-solid fa-phone', color: '#3b82f6' },
-  em_qualificacao: { label: 'Em Qualifica��o', icon: 'fa-solid fa-filter', color: '#8b5cf6' },
-  reuniao_agendada: { label: 'Reuni�o Agendada', icon: 'fa-solid fa-calendar-check', color: '#06b6d4' },
+  em_qualificacao: { label: 'Em Qualificação', icon: 'fa-solid fa-filter', color: '#8b5cf6' },
+  reuniao_agendada: { label: 'Reunião Agendada', icon: 'fa-solid fa-calendar-check', color: '#06b6d4' },
   proposta_enviada: { label: 'Proposta Enviada', icon: 'fa-solid fa-file-invoice', color: '#ec4899' },
   contrato_fechamento: { label: 'Contrato/Fechamento', icon: 'fa-solid fa-file-signature', color: '#f97316' },
   ganho: { label: 'Ganho', icon: 'fa-solid fa-trophy', color: '#10b981' },
@@ -1525,7 +1525,7 @@ async function loadSlaAlerts() {
     if (alerts.length === 0) { container.style.display = 'none'; return; }
     container.style.display = 'block';
     container.innerHTML = alerts.map(a =>
-      `<div class="kanban-alert"><i class="fa-solid fa-clock"></i> Lead <strong>${esc(a.name)}</strong> em "${KANBAN_LABELS[a.status]?.label || a.status}" h� � <strong>${a.sla_days} dias</strong> sem atividade</div>`
+      `<div class="kanban-alert"><i class="fa-solid fa-clock"></i> Lead <strong>${esc(a.name)}</strong> em "${KANBAN_LABELS[a.status]?.label || a.status}" há +nico <strong>${a.sla_days} dias</strong> sem atividade</div>`
     ).join('');
   } catch {}
 }
@@ -1654,7 +1654,7 @@ async function onDrop(e) {
   if (card && card.dataset.status === toStatus) return;
 
   try {
-    // Tenta transi��o; se backend rejeitar, mostra toast com erro
+    // Tenta transição; se backend rejeitar, mostra toast com erro
     await api('PATCH', `/leads/${leadId}/transition`, { status: toStatus });
     toast('Lead movido!', 'success');
     loadKanban();
@@ -1823,7 +1823,7 @@ function editEquipment(id) {
 
 async function deleteEquipment(id) {
   if (!confirm('Excluir este equipamento?')) return;
-  try { await api('DELETE', `/equipment/${id}`); toast('Exclu�do', 'success'); loadEquipment(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/equipment/${id}`); toast('Excluído', 'success'); loadEquipment(); } catch (e) { toast(e.message, 'error'); }
 }
 
 document.getElementById('btn-new-equipment')?.addEventListener('click', () => openEquipmentModal(null));
@@ -1883,8 +1883,8 @@ function renderServiceOrders() {
   const list = state.orders || [];
   if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (paginationEl) paginationEl.innerHTML = ''; return; }
   if (empty) empty.style.display = 'none';
-  const statusMap = { open: 'Aberta', in_progress: 'Em Andamento', closed: 'Conclu�da', cancelled: 'Cancelada' };
-  const priorityMap = { high: 'Alta', medium: 'M�dia', low: 'Baixa' };
+  const statusMap = { open: 'Aberta', in_progress: 'Em Andamento', closed: 'Concluída', cancelled: 'Cancelada' };
+  const priorityMap = { high: 'Alta', medium: 'Média', low: 'Baixa' };
   tbody.innerHTML = list.map(o => `
     <tr>
       <td><strong>${esc(o.title)}</strong></td>
@@ -1943,7 +1943,7 @@ function editServiceOrder(id) {
 
 async function deleteServiceOrder(id) {
   if (!confirm('Excluir esta OS?')) return;
-  try { await api('DELETE', `/service-orders/${id}`); toast('Exclu�da', 'success'); loadServiceOrders(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/service-orders/${id}`); toast('Excluída', 'success'); loadServiceOrders(); } catch (e) { toast(e.message, 'error'); }
 }
 
 document.getElementById('btn-new-so')?.addEventListener('click', () => { loadSODropdowns().then(() => openSOModal(null)); });
@@ -2001,7 +2001,7 @@ function renderContracts() {
   if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (paginationEl) paginationEl.innerHTML = ''; return; }
   if (empty) empty.style.display = 'none';
   const statusMap = { draft: 'Rascunho', active: 'Ativo', expired: 'Expirado', terminated: 'Encerrado' };
-  const typeMap = { rental: 'Locação', service: 'Servi�o' };
+  const typeMap = { rental: 'Locação', service: 'Serviço' };
   tbody.innerHTML = list.map(c => `
     <tr>
       <td><strong>${esc(c.title)}</strong></td>
@@ -2057,7 +2057,7 @@ function editContract(id) {
 
 async function deleteContract(id) {
   if (!confirm('Excluir este contrato?')) return;
-  try { await api('DELETE', `/contracts/${id}`); toast('Exclu�do', 'success'); loadContracts(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/contracts/${id}`); toast('Excluído', 'success'); loadContracts(); } catch (e) { toast(e.message, 'error'); }
 }
 
 document.getElementById('btn-new-contract')?.addEventListener('click', () => { loadContractDropdowns().then(() => openContractModal(null)); });
@@ -2377,7 +2377,7 @@ function renderTopClients(clients) {
   if (!tbody || !clients) return;
   
   if (clients.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:20px">Nenhum cliente com neg�cios fechados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:20px">Nenhum cliente com negócios fechados</td></tr>';
     return;
   }
   
@@ -2418,7 +2418,7 @@ async function loadUnreadCount() {
 function renderNotifications() {
   const list = document.getElementById('notif-list');
   if (!state.notifications || state.notifications.length === 0) {
-    list.innerHTML = '<div class="notif-empty">Nenhuma notifica��o</div>';
+    list.innerHTML = '<div class="notif-empty">Nenhuma notificação</div>';
     return;
   }
   list.innerHTML = state.notifications.map(n => `
@@ -2447,7 +2447,7 @@ document.getElementById('btn-notif-read-all')?.addEventListener('click', async (
     await api('POST', '/notifications/read-all');
     loadNotifications();
     loadUnreadCount();
-    toast('Notifica��es marcadas como lidas', 'success');
+    toast('Notifica+nico+nicoes marcadas como lidas', 'success');
   } catch (e) { toast(e.message, 'error'); }
 });
 
@@ -2517,7 +2517,7 @@ async function loadFiles(entityType, entityId) {
 async function deleteFile(id, entityType, entityId) {
   try {
     await api('DELETE', `/files/${id}`);
-    toast('Arquivo exclu�do', 'success');
+    toast('Arquivo excluído', 'success');
     loadFiles(entityType, entityId);
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -2657,7 +2657,7 @@ async function loadCalendar() {
 }
 
 function renderCalendar(events) {
-  const monthNames = ['Janeiro','Fevereiro','Mar�o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   document.getElementById('calendar-month-label').textContent = `${monthNames[calendarMonth - 1]} ${calendarYear}`;
 
   const firstDay = new Date(calendarYear, calendarMonth - 1, 1).getDay();
@@ -2724,7 +2724,7 @@ document.getElementById('btn-cal-prev')?.addEventListener('click', () => { calen
 document.getElementById('btn-cal-next')?.addEventListener('click', () => { calendarMonth++; if (calendarMonth > 12) { calendarMonth = 1; calendarYear++; } loadCalendar(); });
 document.getElementById('btn-cal-today')?.addEventListener('click', () => { const d = new Date(); calendarMonth = d.getMonth() + 1; calendarYear = d.getFullYear(); loadCalendar(); });
 
-/* ── NOVOS M� �DULOS: BI ──────────────────────────────────────────────── */
+/* ── NOVOS +dia +nicoDULOS: BI ──────────────────────────────────────────────── */
 
 async function loadBI() {
   showLoader();
@@ -2757,14 +2757,14 @@ async function renderBICharts() {
     const deals = await api('GET', '/bi/deals-by-month');
     const dlEl = document.getElementById('chart-bi-deals');
     if (dlEl && deals && deals.length > 0) {
-      new Chart(dlEl, { type: 'bar', data: { labels: deals.map(r => r.month), datasets: [{ label: 'Neg�cios', data: deals.map(r => r.count), backgroundColor: 'rgba(59, 130, 246, 0.6)', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
+      new Chart(dlEl, { type: 'bar', data: { labels: deals.map(r => r.month), datasets: [{ label: 'Negócios', data: deals.map(r => r.count), backgroundColor: 'rgba(59, 130, 246, 0.6)', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
     }
   } catch {}
 }
 
 document.getElementById('btn-refresh-bi')?.addEventListener('click', loadBI);
 
-/* ── NOVOS M� �DULOS: INVOICES ────────────────────────────────────────── */
+/* ── NOVOS +dia +nicoDULOS: INVOICES ────────────────────────────────────────── */
 
 async function loadInvoices(page) {
   if (page) pagination.invoices.page = page;
@@ -2846,7 +2846,7 @@ function editInvoice(id) {
 
 async function deleteInvoice(id) {
   if (!confirm('Excluir esta fatura?')) return;
-  try { await api('DELETE', `/invoices/${id}`); toast('Exclu�da', 'success'); loadInvoices(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/invoices/${id}`); toast('Excluída', 'success'); loadInvoices(); } catch (e) { toast(e.message, 'error'); }
 }
 
 let _detailInvoiceId = null;
@@ -2938,7 +2938,7 @@ document.getElementById('modal-invoice-form')?.addEventListener('submit', async 
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* ── NOVOS M� �DULOS: PROPOSALS ───────────────────────────────────────── */
+/* ── NOVOS +dia +nicoDULOS: PROPOSALS ───────────────────────────────────────── */
 
 async function loadProposals(page) {
   if (page) pagination.proposals.page = page;
@@ -3006,7 +3006,7 @@ function editProposal(id) {
 
 async function deleteProposal(id) {
   if (!confirm('Excluir esta proposta?')) return;
-  try { await api('DELETE', `/proposals/${id}`); toast('Exclu�da', 'success'); loadProposals(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/proposals/${id}`); toast('Excluída', 'success'); loadProposals(); } catch (e) { toast(e.message, 'error'); }
 }
 
 let _detailProposalId = null;
@@ -3132,11 +3132,11 @@ document.getElementById('btn-proposal-add-item')?.addEventListener('click', () =
   const row = document.createElement('div');
   row.className = 'proposal-item-row';
   row.style.cssText = 'display:flex;gap:6px';
-  row.innerHTML = '<input type="text" placeholder="Descri��o" style="flex:3;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px"><input type="number" placeholder="Qtd" style="width:60px;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px" min="1" value="1"><input type="number" placeholder="Valor" style="width:100px;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px" step="0.01" min="0"><button type="button" class="btn btn-secondary" style="padding:4px 8px;font-size:12px" onclick="this.parentElement.remove()">✕</button>';
+  row.innerHTML = '<input type="text" placeholder="Descrição" style="flex:3;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px"><input type="number" placeholder="Qtd" style="width:60px;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px" min="1" value="1"><input type="number" placeholder="Valor" style="width:100px;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px" step="0.01" min="0"><button type="button" class="btn btn-secondary" style="padding:4px 8px;font-size:12px" onclick="this.parentElement.remove()">✕</button>';
   container.appendChild(row);
 });
 
-/* ── NOVOS M� �DULOS: PROJECTS ────────────────────────────────────────── */
+/* ── NOVOS +dia +nicoDULOS: PROJECTS ────────────────────────────────────────── */
 
 async function loadProjects(page) {
   if (page) pagination.projects.page = page;
@@ -3162,7 +3162,7 @@ function renderProjects() {
   const list = state.projects || [];
   if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (pagEl) pagEl.innerHTML = ''; return; }
   if (empty) empty.style.display = 'none';
-  const statusMap = { planning: 'Planejamento', in_progress: 'Em Andamento', completed: 'Conclu�do', cancelled: 'Cancelado' };
+  const statusMap = { planning: 'Planejamento', in_progress: 'Em Andamento', completed: 'Concluído', cancelled: 'Cancelado' };
   tbody.innerHTML = list.map(p => `<tr>
     <td><strong>${esc(p.name)}</strong></td>
     <td>${esc(p.company_name || '—')}</td>
@@ -3205,7 +3205,7 @@ function editProject(id) {
 
 async function deleteProject(id) {
   if (!confirm('Excluir esta obra?')) return;
-  try { await api('DELETE', `/projects/${id}`); toast('Exclu�da', 'success'); loadProjects(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/projects/${id}`); toast('Excluída', 'success'); loadProjects(); } catch (e) { toast(e.message, 'error'); }
 }
 
 document.getElementById('btn-new-project')?.addEventListener('click', () => { loadProjectCompanies().then(() => openProjectModal(null)); });
@@ -3232,7 +3232,7 @@ document.getElementById('modal-project-form')?.addEventListener('submit', async 
 
 /* ── PROJECT PHASES ─────────────────────────────────────────────────── */
 
-const phaseStatusMap = { pending: 'Pendente', in_progress: 'Em Andamento', completed: 'Conclu�do' };
+const phaseStatusMap = { pending: 'Pendente', in_progress: 'Em Andamento', completed: 'Concluído' };
 let _currentProjectId = null;
 
 async function loadProjectPhases(projectId) {
@@ -3257,7 +3257,7 @@ function renderPhases(phases) {
         <select class="phase-status-select" data-phase-id="${ph.id}" onchange="updatePhaseStatus('${ph.id}', this.value)" style="font-size:12px;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-input);color:var(--text-color)">
           <option value="pending" ${ph.status === 'pending' ? 'selected' : ''}>Pendente</option>
           <option value="in_progress" ${ph.status === 'in_progress' ? 'selected' : ''}>Em Andamento</option>
-          <option value="completed" ${ph.status === 'completed' ? 'selected' : ''}>Conclu�do</option>
+          <option value="completed" ${ph.status === 'completed' ? 'selected' : ''}>Concluído</option>
         </select>
       </td>
       <td>
@@ -3301,7 +3301,7 @@ async function deletePhase(phaseId) {
   if (!confirm('Excluir esta fase?')) return;
   try {
     await api('DELETE', '/projects/phases/' + phaseId);
-    toast('Fase exclu�da', 'success');
+    toast('Fase excluída', 'success');
     if (_currentProjectId) loadProjectPhases(_currentProjectId);
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -3320,10 +3320,10 @@ openProjectModal = function(project) {
   }
 };
 
-/* ── NOVOS M� �DULOS: TICKETS ─────────────────────────────────────────── */
+/* ── NOVOS +dia +nicoDULOS: TICKETS ─────────────────────────────────────────── */
 
 let ticketsPage = 1;
-/* ── NOVOS M� �DULOS: RENTAL ──────────────────────────────────────────── */
+/* ── NOVOS +dia +nicoDULOS: RENTAL ──────────────────────────────────────────── */
 
 async function loadRental() {
   showLoader();
@@ -3351,7 +3351,7 @@ async function loadRental() {
 
 async function deleteRentalBlock(id) {
   if (!confirm('Excluir este bloqueio?')) return;
-  try { await api('DELETE', `/rental/availability/${id}`); toast('Exclu�do', 'success'); loadRental(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/rental/availability/${id}`); toast('Excluído', 'success'); loadRental(); } catch (e) { toast(e.message, 'error'); }
 }
 
 async function loadRentalDropdowns() {
@@ -3384,7 +3384,7 @@ document.getElementById('modal-rental-form')?.addEventListener('submit', async (
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* ── NOVOS M� �DULOS: CAMPAIGNS ───────────────────────────────────────── */
+/* ── NOVOS +dia +nicoDULOS: CAMPAIGNS ───────────────────────────────────────── */
 
 let campaignsPage = 1;
 async function loadCampaigns(page) {
@@ -3408,7 +3408,7 @@ function renderCampaigns() {
   const list = state.campaigns || [];
   if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (pagEl) pagEl.innerHTML = ''; return; }
   if (empty) empty.style.display = 'none';
-  const statusMap = { draft: 'Rascunho', active: 'Ativa', paused: 'Pausada', finished: 'Conclu�da' };
+  const statusMap = { draft: 'Rascunho', active: 'Ativa', paused: 'Pausada', finished: 'Concluída' };
   tbody.innerHTML = list.map(c => `<tr>
     <td><strong>${esc(c.name)}</strong></td>
     <td>${esc(c.type || '—')}</td>
@@ -3442,7 +3442,7 @@ function editCampaign(id) {
 
 async function deleteCampaign(id) {
   if (!confirm('Excluir esta campanha?')) return;
-  try { await api('DELETE', `/campaigns/${id}`); toast('Exclu�da', 'success'); loadCampaigns(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/campaigns/${id}`); toast('Excluída', 'success'); loadCampaigns(); } catch (e) { toast(e.message, 'error'); }
 }
 
 document.getElementById('btn-new-campaign')?.addEventListener('click', () => openCampaignModal(null));
@@ -3467,7 +3467,7 @@ document.getElementById('modal-campaign-form')?.addEventListener('submit', async
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* ── NOVOS M� �DULOS: HUNTER ──────────────────────────────────────────── */
+/* ── NOVOS +dia +nicoDULOS: HUNTER ──────────────────────────────────────────── */
 
 let hunterPage = 1;
 async function loadHunter(page) {
@@ -3512,7 +3512,7 @@ async function loadEnrichmentLeads() {
 
 async function deleteEnrichment(id) {
   if (!confirm('Excluir este enriquecimento?')) return;
-  try { await api('DELETE', `/hunter/enrichments/${id}`); toast('Exclu�do', 'success'); loadHunter(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/hunter/enrichments/${id}`); toast('Excluído', 'success'); loadHunter(); } catch (e) { toast(e.message, 'error'); }
 }
 
 document.getElementById('btn-new-enrichment')?.addEventListener('click', () => { loadEnrichmentLeads().then(() => openModal('modal-enrichment')); });
@@ -3559,7 +3559,7 @@ async function loadUsers() {
     }
     if (empty) empty.style.display = 'none';
 
-    const roleLabels = { ceo: 'CEO', admin: 'Administrador', comercial: 'Comercial', developer: 'Developer', user: 'Usu� �rio' };
+    const roleLabels = { ceo: 'CEO', admin: 'Administrador', comercial: 'Comercial', developer: 'Developer', user: 'Usu+nico +nicorio' };
     tbody.innerHTML = filtered.map(u => `
       <tr>
         <td><strong>${esc(u.name)}</strong></td>
@@ -3632,7 +3632,7 @@ document.getElementById('modal-user-form')?.addEventListener('submit', async (e)
   };
   const password = document.getElementById('user-password-input').value;
   if (password) body.password = password;
-  if (!id && !password) { toast('Senha � obrigat�ria para novos colaboradores', 'error'); return; }
+  if (!id && !password) { toast('Senha Ã© obrigatória para novos colaboradores', 'error'); return; }
 
   try {
     if (id) {
