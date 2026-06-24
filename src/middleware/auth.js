@@ -1,32 +1,57 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { SignJWT, jwtVerify } from 'jose';
 import { config } from '../config.js';
 import { validateApiKey } from '../services/webhook-service.js';
 
 /**
- * Gera JWT simples (sem lib externa)
+ * Codifica a JWT_SECRET como Uint8Array para uso com jose
  */
-function signJwt(payload) {
-  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
-  const body = Buffer.from(JSON.stringify({ ...payload, iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 86400 * 7 })).toString('base64url');
-  const sig = createHmac('sha256', config.jwtSecret).update(`${header}.${body}`).digest('base64url');
-  return `${header}.${body}.${sig}`;
+function getSecretKey() {
+  return new TextEncoder().encode(config.jwtSecret);
 }
 
-function verifyJwt(token) {
+/**
+ * Gera um JWT padrão usando jose (HS256)
+ * @param {object} payload - Dados do usuário (sub, name, email, role, company_id)
+ * @returns {Promise<string>} Token JWT
+ */
+export async function signJwt(payload, expiresIn) {
+  const secret = getSecretKey();
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+    .setIssuedAt()
+    .setExpirationTime(expiresIn || config.jwtExpiresIn || '7d')
+    .sign(secret);
+}
+
+/**
+ * Verifica JWT usando jose
+ * @param {string} token
+ * @returns {Promise<object|null>} Payload decodificado ou null
+ */
+export async function verifyJwt(token) {
   try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const sig = createHmac('sha256', config.jwtSecret).update(`${parts[0]}.${parts[1]}`).digest('base64url');
-    if (!timingSafeEqual(Buffer.from(sig), Buffer.from(parts[2]))) return null;
-    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
+    const secret = getSecretKey();
+    const { payload } = await jwtVerify(token, secret);
     return payload;
   } catch {
     return null;
   }
 }
 
-export { signJwt, verifyJwt };
+/**
+ * Cria middleware de verificação de role.
+ * Uso: app.get('/rota', { preHandler: [app.requireAuth, requireRole('ceo')] }, handler)
+ * API Keys (server-side) têm acesso irrestrito.
+ */
+export function requireRole(...allowedRoles) {
+  return async (request, reply) => {
+    // API Key ou admin bypass
+    if (request.user?.type === 'api_key' || request.user?.role === 'ceo') return;
+    if (!request.user || !allowedRoles.includes(request.user.role)) {
+      return reply.code(403).send({ error: 'Acesso restrito ao perfil necessário' });
+    }
+  };
+}
 
 /**
  * Middleware: exige JWT válido
@@ -36,7 +61,7 @@ export async function requireAuth(request, reply) {
   const authHeader = request.headers.authorization;
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7);
-    const payload = verifyJwt(token);
+    const payload = await verifyJwt(token);
     if (payload) {
       request.user = payload;
       return;

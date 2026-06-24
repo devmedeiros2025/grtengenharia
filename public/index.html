@@ -3,35 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GRT Engenharia — CRM de Gestão para Locação de Máquinas</title>
-<meta name="description" content="CRM completo para gestão de locação de máquinas pesadas. Controle leads, contratos, frota, faturamento e muito mais.">
+<title>GRT Engenharia — Nosso Sistema de Gestão</title>
+<meta name="description" content="Conheça o sistema de gestão da GRT Engenharia. CRM integrado para controle de frota, contratos, leads, faturamento e muito mais.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230F2496'><path d='M12 2L2 7v3l10 5 10-5V7l-10-5zM2 17v3l10 5 10-5v-3L12 19l-10-5z'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
-   GRT CRM — Landing Page
+   GRT Engenharia — Sistema de Gestão (Redesign Técnico)
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  --primary: #0F2496;
-  --primary-light: #1a3adb;
-  --primary-dark: #0a1a6e;
-  --accent: #F5A623;
-  --accent-light: #FFD166;
-  --green: #10b981;
-  --blue: #3b82f6;
-  --purple: #8b5cf6;
-  --red: #ef4444;
-  --text: #1e293b;
-  --text-light: #64748b;
-  --text-white: #ffffff;
-  --bg: #f8fafc;
-  --bg-white: #ffffff;
-  --bg-dark: #0a1791;
-  --border: #e2e8f0;
+  /* Paleta técnica (functional colors only) */
+  --graphite-950: #14171C;
+  --graphite-800: #21262E;
+  --steel-600: #3D4D5C;
+  --steel-400: #6B7C8C;
+  --concrete-50: #F4F3EF;
+  --concrete-200: #E4E1D9;
+  --blueprint-500: #2D5DA1;
+  --caution-500: #F0A202;
+  --signal-green: #2E8B57;
+  --ink-900: #1A1D21;
+
+  /* Derived */
+  --text-on-dark: #E8EAED;
+  --text-muted-dark: rgba(232,234,237,0.55);
+  --border-dark: rgba(255,255,255,0.08);
+  --border-light: var(--concrete-200);
+
+  /* Tipografia */
+  --font-display: 'Space Grotesk', 'IBM Plex Sans Condensed', system-ui, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', 'Cascadia Code', monospace;
+
+  /* Spacing */
+  --radius-btn: 6px;
+  --radius-card: 8px;
+  --radius-panel: 8px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,11 +52,73 @@
 html { scroll-behavior: smooth; }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  font-family: var(--font-body);
+  background: var(--concrete-50);
+  color: var(--ink-900);
   line-height: 1.6;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; height: auto; }
+
+/* ── Malha técnica (blueprint grid) ───────────────────────────────────── */
+
+.tech-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.tech-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(45,93,161,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45,93,161,0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── Duotone overlay (hero + CTA) ────────────────────────────────────── */
+
+.duotone-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(135deg,
+    rgba(20,23,28,0.75) 0%,
+    rgba(45,93,161,0.50) 50%,
+    rgba(20,23,28,0.80) 100%
+  );
+}
+
+.duotone-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.03"><rect width="100" height="100" fill="none"/><path d="M0 50 L100 50 M50 0 L50 100" stroke="white" stroke-width="0.5"/></svg>');
+  background-size: 60px 60px;
+}
+
+/* ── Scan line opcional (hero) ────────────────────────────────────────── */
+
+.scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(45,93,161,0.15), transparent);
+  z-index: 2;
+  animation: scanMove 40s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scanMove {
+  0% { top: -2px; }
+  100% { top: 100%; }
 }
 
 /* ── Navbar ──────────────────────────────────────────────────────────────── */
@@ -54,20 +129,20 @@ body {
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-light);
   padding: 0 24px;
-  height: 72px;
+  height: 68px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: all 0.3s ease;
+  transition: box-shadow 0.3s ease;
 }
 
 .navbar.scrolled {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
 .navbar-brand {
@@ -78,7 +153,7 @@ body {
 }
 
 .navbar-logo {
-  height: 40px;
+  height: 36px;
   width: auto;
 }
 
@@ -88,56 +163,58 @@ body {
 }
 
 .navbar-brand-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--primary);
-  letter-spacing: -0.5px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink-900);
+  letter-spacing: -0.3px;
   line-height: 1.2;
 }
 
 .navbar-brand-sub {
-  font-size: 11px;
-  color: var(--text-light);
+  font-size: 10px;
+  color: var(--steel-400);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  font-weight: 500;
 }
 
 .navbar-nav {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 28px;
 }
 
 .navbar-link {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  color: var(--text-light);
+  color: var(--steel-600);
   text-decoration: none;
   transition: color 0.2s;
 }
 
-.navbar-link:hover { color: var(--primary); }
+.navbar-link:hover { color: var(--blueprint-500); }
 
 .btn-login {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 24px;
-  background: var(--primary);
-  color: #fff;
+  padding: 10px 22px;
+  background: var(--caution-500);
+  color: var(--ink-900);
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: var(--radius-btn);
+  font-family: var(--font-body);
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .btn-login:hover {
-  background: var(--primary-light);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(15,36,150,0.3);
+  background: #E09400;
+  box-shadow: 0 2px 8px rgba(240,162,2,0.3);
 }
 
 /* ── Hero Section ────────────────────────────────────────────────────────── */
@@ -147,32 +224,17 @@ body {
   display: flex;
   align-items: center;
   padding: 120px 24px 80px;
-  background: linear-gradient(135deg, #0a1791 0%, #1a3adb 50%, #0F2496 100%);
+  background: var(--graphite-950);
   position: relative;
   overflow: hidden;
 }
 
-.hero::before {
-  content: '';
+.hero-bg-image {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: url('https://grtengenharia.com.br/wp-content/uploads/2025/06/equip-2-scaled.jpg') center/cover no-repeat;
-  opacity: 0.08;
-}
-
-.hero::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(ellipse at 20% 30%, rgba(245,166,35,0.1) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 70%, rgba(255,255,255,0.05) 0%, transparent 50%);
+  opacity: 0.06;
+  z-index: 0;
 }
 
 .hero-content {
@@ -183,44 +245,57 @@ body {
   gap: 60px;
   align-items: center;
   position: relative;
-  z-index: 1;
+  z-index: 3;
 }
 
 .hero-text {
-  color: #fff;
+  color: var(--text-on-dark);
 }
 
-.hero-badge {
+/* Tag técnica (substitui pill com bolinha pulsante) */
+.hero-tag {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 16px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 100px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--accent);
-  margin-bottom: 24px;
+  padding: 5px 12px;
+  border: 1px solid rgba(232,234,237,0.2);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted-dark);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  margin-bottom: 24px;
+  background: rgba(255,255,255,0.03);
+}
+
+.hero-tag .tag-indicator {
+  width: 6px;
+  height: 6px;
+  background: var(--caution-500);
+  border-radius: 1px;
+  flex-shrink: 0;
 }
 
 .hero-title {
+  font-family: var(--font-display);
   font-size: 52px;
-  font-weight: 800;
-  line-height: 1.1;
+  font-weight: 700;
+  line-height: 1.08;
   margin-bottom: 20px;
   letter-spacing: -1px;
+  color: #fff;
 }
 
 .hero-title span {
-  color: var(--accent);
+  color: var(--caution-500);
 }
 
 .hero-subtitle {
-  font-size: 18px;
-  color: rgba(255,255,255,0.8);
+  font-family: var(--font-body);
+  font-size: 17px;
+  color: var(--text-muted-dark);
   margin-bottom: 32px;
   max-width: 500px;
   line-height: 1.7;
@@ -236,111 +311,121 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 16px 32px;
-  background: var(--accent);
-  color: var(--primary-dark);
+  padding: 14px 28px;
+  background: var(--caution-500);
+  color: var(--ink-900);
   border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 700;
+  border-radius: var(--radius-btn);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .btn-hero-primary:hover {
-  background: var(--accent-light);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(245,166,35,0.4);
+  background: #E09400;
+  box-shadow: 0 3px 10px rgba(240,162,2,0.35);
 }
 
 .btn-hero-secondary {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 16px 32px;
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.3);
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
+  padding: 14px 28px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text-on-dark);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-btn);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .btn-hero-secondary:hover {
-  background: rgba(255,255,255,0.2);
-  transform: translateY(-2px);
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.25);
 }
 
 .hero-stats {
   display: flex;
   gap: 40px;
   margin-top: 48px;
-  padding-top: 32px;
-  border-top: 1px solid rgba(255,255,255,0.15);
-}
-
-.hero-stat {
-  text-align: left;
+  padding-top: 28px;
+  border-top: 1px solid rgba(232,234,237,0.1);
 }
 
 .hero-stat-value {
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--caution-500);
   line-height: 1;
 }
 
 .hero-stat-label {
-  font-size: 13px;
-  color: rgba(255,255,255,0.6);
+  font-size: 12px;
+  color: var(--text-muted-dark);
   margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Hero Visual */
+/* Hero Visual — Painel Pipeline (app-style) */
 .hero-visual {
   position: relative;
 }
 
-.hero-card {
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 20px;
-  padding: 32px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+.hero-panel {
+  background: var(--graphite-800);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-panel);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  overflow: hidden;
 }
 
-.hero-card-header {
+.hero-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  padding: 12px 16px;
+  background: var(--graphite-950);
+  border-bottom: 1px solid var(--border-dark);
 }
 
-.hero-card-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #fff;
+.hero-panel-dots {
+  display: flex;
+  gap: 6px;
 }
 
-.hero-card-badge {
-  padding: 4px 12px;
-  background: rgba(16,185,129,0.2);
-  color: var(--green);
-  border-radius: 100px;
-  font-size: 12px;
-  font-weight: 600;
+.hero-panel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+  background: var(--steel-600);
+}
+
+.hero-panel-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--steel-400);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hero-panel-body {
+  padding: 20px;
 }
 
 .hero-funnel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .hero-funnel-step {
@@ -351,113 +436,136 @@ body {
 
 .hero-funnel-bar {
   flex: 1;
-  height: 36px;
-  border-radius: 8px;
+  height: 32px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   padding: 0 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-on-dark);
+  transition: width 0.8s ease-out;
 }
 
 .hero-funnel-count {
-  font-size: 14px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.9);
-  width: 40px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--steel-400);
+  width: 36px;
   text-align: right;
 }
 
-.hero-floating-cards {
+/* Notificações como painéis de log */
+.hero-notif-cards {
   position: absolute;
-  top: -20px;
-  right: -20px;
+  top: -16px;
+  right: -16px;
 }
 
-.hero-floating-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px 20px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+.hero-notif-card {
+  background: var(--graphite-800);
+  border: 1px solid var(--border-dark);
+  border-radius: 0;
+  padding: 14px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 12px;
-  animation: float 3s ease-in-out infinite;
+  margin-bottom: 10px;
+  border-left: 3px solid;
+  min-width: 240px;
+  animation: notifSlide 0.4s ease-out both;
 }
 
-.hero-floating-card:nth-child(2) { animation-delay: 0.5s; }
-.hero-floating-card:nth-child(3) { animation-delay: 1s; }
+.hero-notif-card:nth-child(1) { border-left-color: var(--signal-green); animation-delay: 0.1s; }
+.hero-notif-card:nth-child(2) { border-left-color: var(--blueprint-500); animation-delay: 0.3s; }
+.hero-notif-card:nth-child(3) { border-left-color: var(--caution-500); animation-delay: 0.5s; }
 
-.hero-floating-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+@keyframes notifSlide {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.hero-notif-icon {
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 14px;
+  flex-shrink: 0;
 }
 
-.hero-floating-text {
-  font-size: 13px;
+.hero-notif-icon.green { color: var(--signal-green); }
+.hero-notif-icon.blue { color: var(--blueprint-500); }
+.hero-notif-icon.caution { color: var(--caution-500); }
+
+.hero-notif-text {
+  font-size: 12px;
+  color: var(--text-muted-dark);
+  line-height: 1.4;
 }
 
-.hero-floating-text strong {
+.hero-notif-text strong {
   display: block;
-  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-on-dark);
 }
 
-.hero-floating-text span {
-  color: var(--text-light);
-  font-size: 11px;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+.hero-notif-text .notif-meta {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--steel-400);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 /* ── Features Section ────────────────────────────────────────────────────── */
 
 .features {
   padding: 100px 24px;
-  background: var(--bg-white);
+  background: var(--concrete-50);
 }
 
 .section-header {
   text-align: center;
-  max-width: 600px;
+  max-width: 640px;
   margin: 0 auto 60px;
 }
 
-.section-badge {
+.section-tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  background: rgba(15,36,150,0.08);
-  color: var(--primary);
-  border-radius: 100px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 4px 10px;
+  border: 1px solid var(--concrete-200);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--steel-400);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   margin-bottom: 16px;
 }
 
 .section-title {
-  font-size: 36px;
-  font-weight: 800;
-  color: var(--text);
-  margin-bottom: 16px;
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--ink-900);
+  margin-bottom: 14px;
   letter-spacing: -0.5px;
 }
 
 .section-subtitle {
   font-size: 16px;
-  color: var(--text-light);
+  color: var(--steel-600);
   line-height: 1.7;
 }
 
@@ -470,40 +578,66 @@ body {
 }
 
 .feature-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 32px;
-  transition: all 0.3s ease;
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-card);
+  padding: 28px;
+  transition: all 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 0;
+  background: var(--blueprint-500);
+  transition: height 0.2s ease;
+}
+
+.feature-card:hover::before {
+  height: 100%;
 }
 
 .feature-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.08);
-  border-color: var(--primary);
+  border-color: var(--blueprint-500);
+  box-shadow: 0 4px 20px rgba(45,93,161,0.08);
 }
 
 .feature-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  margin-bottom: 20px;
+  font-size: 20px;
+  color: var(--steel-400);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  margin-bottom: 18px;
+  background: transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.feature-card:hover .feature-icon {
+  color: var(--blueprint-500);
+  border-color: var(--blueprint-500);
 }
 
 .feature-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 10px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink-900);
+  margin-bottom: 8px;
 }
 
 .feature-desc {
   font-size: 14px;
-  color: var(--text-light);
+  color: var(--steel-600);
   line-height: 1.7;
 }
 
@@ -511,7 +645,9 @@ body {
 
 .modules {
   padding: 100px 24px;
-  background: var(--bg);
+  background: #fff;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .modules-grid {
@@ -523,74 +659,84 @@ body {
 }
 
 .module-card {
-  background: var(--bg-white);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-card);
+  padding: 20px 16px;
   text-align: center;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
+  cursor: default;
 }
 
 .module-card:hover {
-  border-color: var(--primary);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  border-color: var(--caution-500);
+  transform: translateY(-3px);
+  box-shadow: 3px 3px 0 var(--ink-900);
 }
 
 .module-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 42px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  margin: 0 auto 12px;
+  font-size: 18px;
+  color: var(--steel-400);
+  margin: 0 auto 10px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  transition: color 0.15s;
+}
+
+.module-card:hover .module-icon {
+  color: var(--caution-500);
 }
 
 .module-name {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--ink-900);
+  font-family: var(--font-body);
 }
 
 /* ── CTA Section ─────────────────────────────────────────────────────────── */
 
 .cta {
   padding: 100px 24px;
-  background: linear-gradient(135deg, #0a1791 0%, #1a3adb 100%);
+  background: var(--graphite-950);
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
-.cta::before {
-  content: '';
+.cta .cta-bg-image {
   position: absolute;
   inset: 0;
-  background: 
-    radial-gradient(ellipse at 30% 50%, rgba(245,166,35,0.15) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 50%, rgba(255,255,255,0.05) 0%, transparent 50%);
+  background: url('https://grtengenharia.com.br/wp-content/uploads/2025/06/equip-2-scaled.jpg') center/cover no-repeat;
+  opacity: 0.04;
+  z-index: 0;
 }
 
 .cta-content {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   max-width: 600px;
   margin: 0 auto;
 }
 
 .cta-title {
-  font-size: 40px;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 700;
   color: #fff;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   letter-spacing: -0.5px;
 }
 
 .cta-subtitle {
-  font-size: 18px;
-  color: rgba(255,255,255,0.8);
+  font-size: 16px;
+  color: var(--text-muted-dark);
   margin-bottom: 32px;
   line-height: 1.7;
 }
@@ -599,40 +745,65 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 18px 40px;
-  background: var(--accent);
-  color: var(--primary-dark);
+  padding: 16px 36px;
+  background: var(--caution-500);
+  color: var(--ink-900);
   border: none;
-  border-radius: 12px;
-  font-size: 18px;
-  font-weight: 700;
+  border-radius: var(--radius-btn);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .btn-cta:hover {
-  background: var(--accent-light);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(245,166,35,0.4);
+  background: #E09400;
+  box-shadow: 0 3px 12px rgba(240,162,2,0.35);
 }
 
 /* ── Footer ──────────────────────────────────────────────────────────────── */
 
 .footer {
-  padding: 40px 24px;
-  background: var(--primary-dark);
+  padding: 36px 24px;
+  background: var(--graphite-950);
   text-align: center;
+  border-top: 1px solid rgba(255,255,255,0.04);
 }
 
 .footer-text {
-  font-size: 14px;
-  color: rgba(255,255,255,0.6);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--steel-400);
+  letter-spacing: 0.3px;
 }
 
 .footer-text a {
-  color: var(--accent);
+  color: var(--caution-500);
   text-decoration: none;
+  font-weight: 500;
+}
+
+.footer-text a:hover {
+  color: #E09400;
+}
+
+/* ── Reveal Animation (scroll) ──────────────────────────────────────────── */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
@@ -642,7 +813,6 @@ body {
     grid-template-columns: 1fr;
     text-align: center;
   }
-  
   .hero-subtitle { margin: 0 auto 32px; }
   .hero-buttons { justify-content: center; }
   .hero-stats { justify-content: center; }
@@ -652,15 +822,31 @@ body {
 }
 
 @media (max-width: 768px) {
-  .navbar-nav { display: none; }
+  .navbar-nav .navbar-link { display: none; }
   .hero { padding: 100px 20px 60px; }
-  .hero-title { font-size: 36px; }
-  .hero-stats { flex-direction: column; gap: 20px; }
+  .hero-title { font-size: 32px; }
+  .hero-stats { flex-direction: column; gap: 16px; }
+  .hero-stat-value { font-size: 26px; }
   .features-grid { grid-template-columns: 1fr; }
   .modules-grid { grid-template-columns: repeat(2, 1fr); }
-  .section-title { font-size: 28px; }
-  .cta-title { font-size: 28px; }
+  .section-title { font-size: 26px; }
+  .cta-title { font-size: 26px; }
+  .hero-notif-cards { display: none; }
 }
+
+@media (max-width: 480px) {
+  .hero { padding: 90px 16px 50px; }
+  .hero-title { font-size: 28px; }
+  .hero-subtitle { font-size: 15px; }
+  .hero-stats { border-top: none; margin-top: 32px; padding-top: 0; }
+  .features { padding: 70px 16px; }
+  .modules { padding: 70px 16px; }
+  .modules-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .cta { padding: 70px 16px; }
+  .cta-title { font-size: 24px; }
+  .footer { padding: 28px 16px; }
+}
+</style>
 </style>
 </head>
 <body>
@@ -668,7 +854,7 @@ body {
 <!-- Navbar -->
 <nav class="navbar" id="navbar">
   <a href="/" class="navbar-brand">
-    <img src="https://grtengenharia.com.br/wp-content/uploads/2025/06/logo-grtbranca-01.png" alt="GRT Engenharia" class="navbar-logo" style="filter: brightness(0) invert(1); height: 36px;">
+    <img src="https://grtengenharia.com.br/wp-content/uploads/2025/06/logo-grtbranca-01.png" alt="GRT Engenharia" class="navbar-logo" style="filter: brightness(0); height: 36px;">
     <div class="navbar-brand-text">
       <span class="navbar-brand-name">GRT Engenharia</span>
       <span class="navbar-brand-sub">Sistema de Gestão</span>
@@ -677,7 +863,6 @@ body {
   <div class="navbar-nav">
     <a href="#features" class="navbar-link">Funcionalidades</a>
     <a href="#modules" class="navbar-link">Módulos</a>
-    <a href="#cta" class="navbar-link">Contato</a>
     <a href="/app.html" class="btn-login">
       <i class="fa-solid fa-right-to-bracket"></i>
       Acessar Sistema
@@ -686,101 +871,111 @@ body {
 </nav>
 
 <!-- Hero -->
-<section class="hero">
+<section class="hero" id="hero">
+  <div class="hero-bg-image"></div>
+  <div class="duotone-overlay"></div>
+  <div class="tech-grid"></div>
+  <div class="scan-line"></div>
   <div class="hero-content">
     <div class="hero-text">
-      <div class="hero-badge">
-        <i class="fa-solid fa-certificate"></i>
-        CRM Especializado em Locação
+      <div class="hero-tag">
+        <span class="tag-indicator"></span>
+        Sistema Interno GRT
       </div>
       <h1 class="hero-title">
-        Gerencie sua frota e vendas em <span>um só lugar</span>
+        A GRT cresceu. <span>Nosso jeito de trabalhar também.</span>
       </h1>
       <p class="hero-subtitle">
-        O CRM da GRT Engenharia foi desenvolvido especialmente para empresas de locação de máquinas pesadas. Controle leads, contratos, frota, faturamento e muito mais.
+        De uma planilha pra um sistema completo — porque cada lead, cada contrato e cada máquina da nossa frota merecem ser tratados com o mesmo cuidado que colocamos em cada obra. Esse sistema nasceu aqui dentro, pra gente daqui dentro.
       </p>
       <div class="hero-buttons">
         <a href="/app.html" class="btn-hero-primary">
-          <i class="fa-solid fa-rocket"></i>
-          Começar Agora
+          <i class="fa-solid fa-right-to-bracket"></i>
+          Acessar Sistema
         </a>
         <a href="#features" class="btn-hero-secondary">
-          <i class="fa-solid fa-play"></i>
-          Ver Demonstração
+          <i class="fa-solid fa-eye"></i>
+          Ver Módulos
         </a>
       </div>
       <div class="hero-stats">
         <div class="hero-stat">
-          <div class="hero-stat-value">50+</div>
-          <div class="hero-stat-label">Máquinas na Frota</div>
+          <div class="hero-stat-value">20+</div>
+          <div class="hero-stat-label">Módulos Integrados</div>
         </div>
         <div class="hero-stat">
-          <div class="hero-stat-value">100+</div>
-          <div class="hero-stat-label">Contratos Ativos</div>
+          <div class="hero-stat-value">100%</div>
+          <div class="hero-stat-label">Personalizado</div>
         </div>
         <div class="hero-stat">
           <div class="hero-stat-value">24/7</div>
-          <div class="hero-stat-label">Acesso ao Sistema</div>
+          <div class="hero-stat-label">Acesso Disponível</div>
         </div>
       </div>
     </div>
     
     <div class="hero-visual">
-      <div class="hero-card">
-        <div class="hero-card-header">
-          <span class="hero-card-title">Pipeline de Vendas</span>
-          <span class="hero-card-badge">● Ao vivo</span>
+      <div class="hero-panel">
+        <div class="hero-panel-header">
+          <div class="hero-panel-dots">
+            <span class="hero-panel-dot"></span>
+            <span class="hero-panel-dot"></span>
+            <span class="hero-panel-dot"></span>
+          </div>
+          <span class="hero-panel-title">Pipeline de Vendas — tempo real</span>
         </div>
-        <div class="hero-funnel">
-          <div class="hero-funnel-step">
-            <div class="hero-funnel-bar" style="width:100%;background:rgba(255,255,255,0.2)">Prospecção</div>
-            <span class="hero-funnel-count">24</span>
-          </div>
-          <div class="hero-funnel-step">
-            <div class="hero-funnel-bar" style="width:75%;background:rgba(59,130,246,0.6)">Qualificação</div>
-            <span class="hero-funnel-count">18</span>
-          </div>
-          <div class="hero-funnel-step">
-            <div class="hero-funnel-bar" style="width:50%;background:rgba(139,92,246,0.6)">Proposta</div>
-            <span class="hero-funnel-count">12</span>
-          </div>
-          <div class="hero-funnel-step">
-            <div class="hero-funnel-bar" style="width:30%;background:rgba(245,166,35,0.8)">Negociação</div>
-            <span class="hero-funnel-count">8</span>
-          </div>
-          <div class="hero-funnel-step">
-            <div class="hero-funnel-bar" style="width:20%;background:rgba(16,185,129,0.8)">Fechado</div>
-            <span class="hero-funnel-count">5</span>
+        <div class="hero-panel-body">
+          <div class="hero-funnel">
+            <div class="hero-funnel-step">
+              <div class="hero-funnel-bar" style="width:100%;background:rgba(45,93,161,0.35)">Prospecção</div>
+              <span class="hero-funnel-count">24</span>
+            </div>
+            <div class="hero-funnel-step">
+              <div class="hero-funnel-bar" style="width:75%;background:rgba(45,93,161,0.45)">Qualificação</div>
+              <span class="hero-funnel-count">18</span>
+            </div>
+            <div class="hero-funnel-step">
+              <div class="hero-funnel-bar" style="width:50%;background:rgba(45,93,161,0.55)">Proposta</div>
+              <span class="hero-funnel-count">12</span>
+            </div>
+            <div class="hero-funnel-step">
+              <div class="hero-funnel-bar" style="width:30%;background:rgba(45,93,161,0.65)">Negociação</div>
+              <span class="hero-funnel-count">8</span>
+            </div>
+            <div class="hero-funnel-step">
+              <div class="hero-funnel-bar" style="width:20%;background:var(--caution-500)">Fechado</div>
+              <span class="hero-funnel-count">5</span>
+            </div>
           </div>
         </div>
       </div>
       
-      <div class="hero-floating-cards">
-        <div class="hero-floating-card">
-          <div class="hero-floating-icon" style="background:rgba(16,185,129,0.1);color:var(--green)">
+      <div class="hero-notif-cards">
+        <div class="hero-notif-card">
+          <div class="hero-notif-icon green">
             <i class="fa-solid fa-check-circle"></i>
           </div>
-          <div class="hero-floating-text">
+          <div class="hero-notif-text">
             <strong>Contrato Aprovado</strong>
-            <span>Locação Retroescavadeira</span>
+            <span class="notif-meta">Locação Retroescavadeira</span>
           </div>
         </div>
-        <div class="hero-floating-card">
-          <div class="hero-floating-icon" style="background:rgba(59,130,246,0.1);color:var(--blue)">
+        <div class="hero-notif-card">
+          <div class="hero-notif-icon blue">
             <i class="fa-solid fa-user-plus"></i>
           </div>
-          <div class="hero-floating-text">
+          <div class="hero-notif-text">
             <strong>Novo Lead</strong>
-            <span>Meta Ads - Campanha Andromeda</span>
+            <span class="notif-meta">Meta Ads — Campanha Andromeda</span>
           </div>
         </div>
-        <div class="hero-floating-card">
-          <div class="hero-floating-icon" style="background:rgba(245,166,35,0.1);color:var(--accent)">
+        <div class="hero-notif-card">
+          <div class="hero-notif-icon caution">
             <i class="fa-solid fa-truck"></i>
           </div>
-          <div class="hero-floating-text">
+          <div class="hero-notif-text">
             <strong>Máquina Disponível</strong>
-            <span>Escavadeira CAT 320</span>
+            <span class="notif-meta">Escavadeira CAT 320</span>
           </div>
         </div>
       </div>
@@ -791,57 +986,54 @@ body {
 <!-- Features -->
 <section class="features" id="features">
   <div class="section-header">
-    <div class="section-badge">
-      <i class="fa-solid fa-star"></i>
-      Funcionalidades
-    </div>
-    <h2 class="section-title">Tudo que sua empresa precisa</h2>
-    <p class="section-subtitle">Um sistema completo para gerenciar todo o ciclo de locação de máquinas pesadas, desde a captação de leads até o faturamento.</p>
+    <div class="section-tag">Funcionalidades</div>
+    <h2 class="section-title">O que temos disponível</h2>
+    <p class="section-subtitle">Um sistema completo que desenvolvemos para gerenciar toda a nossa operação, da captação de leads ao faturamento.</p>
   </div>
   
   <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon" style="background:rgba(59,130,246,0.1);color:var(--blue)">
+    <div class="feature-card reveal">
+      <div class="feature-icon">
         <i class="fa-solid fa-filter"></i>
       </div>
       <h3 class="feature-title">Funil de Conversão</h3>
-      <p class="feature-desc">Visualize todo o processo de vendas em um funil intuitivo. Acompanhe desde visitantes até contratos fechados com taxas de conversão.</p>
+      <p class="feature-desc">Visualizamos todo o processo de vendas em um funil intuitivo. Acompanhamos desde visitantes até contratos fechados com taxas de conversão.</p>
     </div>
     
-    <div class="feature-card">
-      <div class="feature-icon" style="background:rgba(139,92,246,0.1);color:var(--purple)">
+    <div class="feature-card reveal">
+      <div class="feature-icon">
         <i class="fa-solid fa-columns"></i>
       </div>
       <h3 class="feature-title">Kanban Comercial</h3>
-      <p class="feature-desc">Gerencie seus leads com um board visual arrastar e soltar. Mova leads entre estágios com facilidade.</p>
+      <p class="feature-desc">Gerenciamos nossos leads com um board visual arrastar e soltar. Movemos leads entre estágios com facilidade.</p>
     </div>
     
-    <div class="feature-card">
-      <div class="feature-icon" style="background:rgba(16,185,129,0.1);color:var(--green)">
-        <i class="fa-solid fa-cogs"></i>
+    <div class="feature-card reveal">
+      <div class="feature-icon">
+        <i class="fa-solid fa-truck"></i>
       </div>
       <h3 class="feature-title">Gestão de Frota</h3>
-      <p class="feature-desc">Controle completo da sua frota: disponibilidade, manutenção, valores diários/mensais e utilização em tempo real.</p>
+      <p class="feature-desc">Controle completo da nossa frota: disponibilidade, manutenção, valores diários/mensais e utilização em tempo real.</p>
     </div>
     
-    <div class="feature-card">
-      <div class="feature-icon" style="background:rgba(245,166,35,0.1);color:var(--accent)">
+    <div class="feature-card reveal">
+      <div class="feature-icon">
         <i class="fa-solid fa-file-contract"></i>
       </div>
       <h3 class="feature-title">Contratos</h3>
-      <p class="feature-desc">Crie e gerencie contratos de locação vinculando clientes, equipamentos e períodos. Controle de vigência automático.</p>
+      <p class="feature-desc">Criamos e gerenciamos contratos de locação vinculando clientes, equipamentos e períodos. Controle de vigência automático.</p>
     </div>
     
-    <div class="feature-card">
-      <div class="feature-icon" style="background:rgba(239,68,68,0.1);color:var(--red)">
+    <div class="feature-card reveal">
+      <div class="feature-icon">
         <i class="fa-solid fa-dollar-sign"></i>
       </div>
       <h3 class="feature-title">Faturamento</h3>
-      <p class="feature-desc">Emissão de notas fiscais, controle de pagamentos, inadimplência e relatórios financeiros.</p>
+      <p class="feature-desc">Emissão de notas fiscais, controle de pagamentos, inadimplência e relatórios financeiros integrados.</p>
     </div>
     
-    <div class="feature-card">
-      <div class="feature-icon" style="background:rgba(15,36,150,0.1);color:var(--primary)">
+    <div class="feature-card reveal">
+      <div class="feature-icon">
         <i class="fa-solid fa-chart-line"></i>
       </div>
       <h3 class="feature-title">BI Analytics</h3>
@@ -853,107 +1045,104 @@ body {
 <!-- Modules -->
 <section class="modules" id="modules">
   <div class="section-header">
-    <div class="section-badge">
-      <i class="fa-solid fa-puzzle-piece"></i>
-      Módulos
-    </div>
+    <div class="section-tag">Módulos</div>
     <h2 class="section-title">Módulos do Sistema</h2>
-    <p class="section-subtitle">20 módulos integrados para cobrir todas as necessidades do seu negócio.</p>
+    <p class="section-subtitle">Mais de 20 módulos integrados para cobrir todas as necessidades da nossa operação.</p>
   </div>
   
   <div class="modules-grid">
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(59,130,246,0.1);color:var(--blue)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-user-plus"></i>
       </div>
       <div class="module-name">Leads</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(139,92,246,0.1);color:var(--purple)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-bullseye"></i>
       </div>
       <div class="module-name">Pipeline</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(16,185,129,0.1);color:var(--green)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-columns"></i>
       </div>
       <div class="module-name">Kanban</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(245,166,35,0.1);color:var(--accent)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-building"></i>
       </div>
       <div class="module-name">Empresas</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(239,68,68,0.1);color:var(--red)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-check-square"></i>
       </div>
       <div class="module-name">Tarefas</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(59,130,246,0.1);color:var(--blue)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-cogs"></i>
       </div>
       <div class="module-name">Equipamentos</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(16,185,129,0.1);color:var(--green)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-file-contract"></i>
       </div>
       <div class="module-name">Contratos</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(139,92,246,0.1);color:var(--purple)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-file-pen"></i>
       </div>
       <div class="module-name">Propostas</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(245,166,35,0.1);color:var(--accent)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-dollar-sign"></i>
       </div>
       <div class="module-name">Faturamento</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(239,68,68,0.1);color:var(--red)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-chart-line"></i>
       </div>
       <div class="module-name">BI Analytics</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(59,130,246,0.1);color:var(--blue)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-calendar-check"></i>
       </div>
       <div class="module-name">Locação</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(16,185,129,0.1);color:var(--green)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-helmet-safety"></i>
       </div>
       <div class="module-name">Obras</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(139,92,246,0.1);color:var(--purple)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-file-signature"></i>
       </div>
       <div class="module-name">OS</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(245,166,35,0.1);color:var(--accent)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-bullhorn"></i>
       </div>
       <div class="module-name">Campanhas</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(239,68,68,0.1);color:var(--red)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-crosshairs"></i>
       </div>
       <div class="module-name">Hunter</div>
     </div>
-    <div class="module-card">
-      <div class="module-icon" style="background:rgba(59,130,246,0.1);color:var(--blue)">
+    <div class="module-card reveal">
+      <div class="module-icon">
         <i class="fa-solid fa-calendar"></i>
       </div>
       <div class="module-name">Calendário</div>
@@ -963,12 +1152,15 @@ body {
 
 <!-- CTA -->
 <section class="cta" id="cta">
+  <div class="cta-bg-image"></div>
+  <div class="duotone-overlay"></div>
+  <div class="tech-grid"></div>
   <div class="cta-content">
-    <h2 class="cta-title">Pronto para otimizar sua gestão?</h2>
-    <p class="cta-subtitle">Acesse o sistema e comece a gerenciar sua frota, contratos e vendas em um só lugar.</p>
+    <h2 class="cta-title">Acesse o sistema</h2>
+    <p class="cta-subtitle">Entre com suas credenciais e comece a usar todos os módulos disponíveis.</p>
     <a href="/app.html" class="btn-cta">
       <i class="fa-solid fa-right-to-bracket"></i>
-      Acessar o Sistema
+      Entrar no Sistema
     </a>
   </div>
 </section>
@@ -981,26 +1173,109 @@ body {
 </footer>
 
 <script>
-// Navbar scroll effect
-window.addEventListener('scroll', () => {
-  const navbar = document.getElementById('navbar');
-  if (window.scrollY > 50) {
-    navbar.classList.add('scrolled');
-  } else {
-    navbar.classList.remove('scrolled');
-  }
-});
+(function() {
+  'use strict';
 
-// Smooth scroll for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function(e) {
-    e.preventDefault();
-    const target = document.querySelector(this.getAttribute('href'));
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ── 1. Navbar scroll effect ──────────────────────────────────────────────
+  const navbar = document.getElementById('navbar');
+  let lastScrollY = 0;
+
+  window.addEventListener('scroll', function() {
+    const sy = window.scrollY;
+    if (sy > 50) { navbar.classList.add('scrolled'); }
+    else { navbar.classList.remove('scrolled'); }
+    lastScrollY = sy;
+  }, { passive: true });
+
+  // ── 2. Smooth scroll for anchor links ────────────────────────────────────
+  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
   });
-});
+
+  // ── 3. Scroll Reveal (IntersectionObserver) ──────────────────────────────
+  if (!prefersReducedMotion && 'IntersectionObserver' in window) {
+    var revealObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          var delay = Array.from(entry.target.parentNode.children).indexOf(entry.target) * 60;
+          entry.target.style.transitionDelay = delay + 'ms';
+          entry.target.classList.add('revealed');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.reveal').forEach(function(el) {
+      revealObserver.observe(el);
+    });
+  } else {
+    document.querySelectorAll('.reveal').forEach(function(el) {
+      el.classList.add('revealed');
+    });
+  }
+
+  // ── 4. Count-up animation for stats ──────────────────────────────────────
+  if (!prefersReducedMotion && 'IntersectionObserver' in window) {
+    var countObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          var el = entry.target;
+          var text = el.textContent.trim();
+          var numeric = parseFloat(text.replace(/[^0-9.]/g, ''));
+          if (isNaN(numeric)) { countObserver.unobserve(el); return; }
+          var suffix = text.replace(/[0-9.]/g, '');
+          var duration = 800;
+          var startTime = performance.now();
+
+          function update(now) {
+            var elapsed = now - startTime;
+            var progress = Math.min(elapsed / duration, 1);
+            var current = Math.round(progress * numeric);
+            el.textContent = current + suffix;
+            if (progress < 1) { requestAnimationFrame(update); }
+            else { el.textContent = text; }
+          }
+          requestAnimationFrame(update);
+          countObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.hero-stat-value').forEach(function(el) {
+      countObserver.observe(el);
+    });
+  }
+
+  // ── 5. Pipeline bar animation ────────────────────────────────────────────
+  if (!prefersReducedMotion && 'IntersectionObserver' in window) {
+    var pipeObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          var bars = entry.target.querySelectorAll('.hero-funnel-bar');
+          bars.forEach(function(bar) {
+            var w = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(function() {
+              bar.style.width = w;
+            }, 100);
+          });
+          pipeObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    var pipeSection = document.querySelector('.hero-panel');
+    if (pipeSection) { pipeObserver.observe(pipeSection); }
+  }
+})();
 </script>
 
 </body>

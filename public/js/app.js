@@ -1,10 +1,15 @@
-/* ═══════════════════════════════════════════════════════════════════════════
-   GRT CRM — Frontend Application
-   ═══════════════════════════════════════════════════════════════════════════ */
+﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   GRT CRM â€” Frontend Application
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-const API = '/api';
+const API = (function() {
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:3002';
+  }
+  return '/api'; // Vercel proxy ou produção
+})();
 
-/* ── Safe DOM helpers ────────────────────────────────────────────────────── */
+/* â”€â”€ Safe DOM helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function on(id, event, fn) {
   const el = document.getElementById(id);
   if (el) el.addEventListener(event, fn);
@@ -21,12 +26,15 @@ let state = {
   outbounds: [],
   apikeys: [],
   logs: [],
+  activityLogs: [],
   stages: [],
   notifications: [],
   routines: [],
 };
 
-/* ── HTTP helpers ────────────────────────────────────────────────────────── */
+/* â”€â”€ HTTP helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+let isRefreshing = false;
 
 async function api(method, path, body) {
   const headers = { 'Content-Type': 'application/json' };
@@ -36,12 +44,49 @@ async function api(method, path, body) {
     headers,
     body: body ? JSON.stringify(body) : undefined,
   });
+
+  if (res.status === 401 && !path.includes('/auth/')) {
+    const refreshToken = localStorage.getItem('grt_refresh_token');
+    if (refreshToken && !isRefreshing) {
+      isRefreshing = true;
+      try {
+        const refreshRes = await fetch(`${API}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        });
+        if (refreshRes.ok) {
+          const refreshData = await refreshRes.json();
+          state.token = refreshData.token;
+          state.user = refreshData.user;
+          localStorage.setItem('grt_token', refreshData.token);
+          localStorage.setItem('grt_refresh_token', refreshData.refreshToken);
+          isRefreshing = false;
+          headers['Authorization'] = `Bearer ${state.token}`;
+          const retryRes = await fetch(`${API}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+          const retryData = await retryRes.json().catch(() => ({}));
+          if (!retryRes.ok) throw new Error(retryData.error || `Erro ${retryRes.status}`);
+          return retryData;
+        }
+      } catch (e) {
+        isRefreshing = false;
+        localStorage.removeItem('grt_refresh_token');
+        logout();
+        throw new Error('Sessão expirada. Faça login novamente.');
+      }
+      isRefreshing = false;
+    } else if (!refreshToken) {
+      logout();
+      throw new Error('Sessão expirada. Faça login novamente.');
+    }
+  }
+
   const data = await res.json().catch(() => ({}));
   if (!res.ok) { throw new Error(data.error || `Erro ${res.status}`); }
   return data;
 }
 
-/* ── Toast ───────────────────────────────────────────────────────────────── */
+/* â”€â”€ Toast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function toast(msg, type = 'info') {
   const container = document.getElementById('toast-container') || document.body;
@@ -66,13 +111,14 @@ function toast(msg, type = 'info') {
   }
 }
 
-/* ── Auth ────────────────────────────────────────────────────────────────── */
+/* â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 async function login(username, password) {
   const data = await api('POST', '/auth/login', { username, password });
   state.token = data.token;
   state.user = data.user;
   localStorage.setItem('grt_token', data.token);
+  localStorage.setItem('grt_refresh_token', data.refreshToken);
   showApp();
 }
 
@@ -80,12 +126,20 @@ function logout() {
   state.token = null;
   state.user = null;
   localStorage.removeItem('grt_token');
+  localStorage.removeItem('grt_refresh_token');
   showLogin();
 }
 
-/* ── Navigation ──────────────────────────────────────────────────────────── */
+/* â”€â”€ Navigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function navigate(page) {
+  const sidebar = document.getElementById('sidebar');
+  if (page === 'dashboard') {
+    sidebar.classList.remove('collapsed');
+  } else {
+    sidebar.classList.add('collapsed');
+  }
+
   // Animate current page out
   const currentPage = document.querySelector('.page.active');
   if (currentPage && typeof gsap !== 'undefined') {
@@ -112,7 +166,7 @@ function showNewPage(page) {
   if (typeof gsap !== 'undefined') {
     gsap.fromTo(pg, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' });
   }
-  const titles = { dashboard: 'Dashboard', deals: 'Pipeline', kanban: 'Kanban Comercial', leads: 'Leads', companies: 'Empresas', tasks: 'Tarefas', equipment: 'Equipamentos', 'service-orders': 'Ordens de Serviço', contracts: 'Contratos', calendar: 'Calendário', webhooks: 'Webhooks', apikeys: 'API Keys', logs: 'Logs', bi: 'BI Analytics', invoices: 'Faturamento', proposals: 'Propostas', projects: 'Obras & Projetos', rental: 'Locação', campaigns: 'Campanhas', hunter: 'Hunter' };
+  const titles = { dashboard: 'Dashboard', deals: 'Pipeline', kanban: 'Kanban Comercial', leads: 'Leads', companies: 'Empresas', tasks: 'Tarefas', routines: 'Rotinas Dià ¡rias', equipment: 'Equipamentos', 'service-orders': 'Ordens de Serviço', contracts: 'Contratos', calendar: 'Calendà ¡rio', webhooks: 'Webhooks', apikeys: 'API Keys', logs: 'Atividades', bi: 'BI Analytics', invoices: 'Faturamento', proposals: 'Propostas', projects: 'Obras & Projetos', rental: 'Locação', campaigns: 'Campanhas', hunter: 'Hunter', users: 'Colaboradores' };
   document.getElementById('page-title').textContent = titles[page] || page;
   // load data
   if (page === 'dashboard') loadDashboard();
@@ -121,12 +175,13 @@ function showNewPage(page) {
   if (page === 'deals') { if (!state.companies || state.companies.length === 0) loadCompanies(); loadDeals(); }
   if (page === 'companies') loadCompanies();
   if (page === 'tasks') loadTasks();
+  if (page === 'routines') loadRoutines();
   if (page === 'webhooks') loadWebhooks();
   if (page === 'apikeys') loadApiKeys();
   if (page === 'logs') loadLogs();
 }
 
-/* ── UI show/hide ────────────────────────────────────────────────────────── */
+/* â”€â”€ UI show/hide â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function showLogin() {
   document.getElementById('page-login').style.display = 'flex';
@@ -146,7 +201,7 @@ function showApp() {
   }
   // Aplica role-based visibility na sidebar
   applyRoleFilter();
-  // Navega para página inicial conforme role
+  // Navega para pà ¡gina inicial conforme role
   const role = state.user?.role || '';
   navigate(role === 'comercial' ? 'kanban' : 'dashboard');
 }
@@ -154,7 +209,7 @@ function showApp() {
 function applyRoleFilter() {
   const role = state.user?.role || '';
   
-  // CEO e Developer vêem TUDO — sem filtro
+  // CEO e Developer vêem TUDO â€” sem filtro
   if (!role || role === 'ceo' || role === 'developer') {
     document.querySelectorAll('[data-role]').forEach(el => el.style.display = '');
     return;
@@ -167,7 +222,7 @@ function applyRoleFilter() {
   });
 }
 
-/* ── Modal helpers ───────────────────────────────────────────────────────── */
+/* â”€â”€ Modal helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function openModal(id) {
   const el = document.getElementById(id);
@@ -183,10 +238,15 @@ function closeModal(id) {
   const el = document.getElementById(id);
   if (!el) return;
   const modal = el.querySelector('.modal');
-  if (modal && typeof gsap !== 'undefined') {
-    gsap.to(modal, { opacity: 0, scale: 0.95, y: 10, duration: 0.2, ease: 'power2.in', onComplete: () => el.classList.remove('open') });
-  } else {
+  const onClose = () => {
     el.classList.remove('open');
+    if (id === 'modal-invoice') resetInvoiceDetailMode();
+    if (id === 'modal-proposal') resetProposalDetailMode();
+  };
+  if (modal && typeof gsap !== 'undefined') {
+    gsap.to(modal, { opacity: 0, scale: 0.95, y: 10, duration: 0.2, ease: 'power2.in', onComplete: onClose });
+  } else {
+    onClose();
   }
 }
 
@@ -199,7 +259,7 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', (e) => { if (e.target === m) closeModal(m.id); });
 });
 
-/* ── LEADS ───────────────────────────────────────────────────────────────── */
+/* â”€â”€ LEADS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 async function loadLeads() {
   try {
@@ -233,15 +293,15 @@ function renderLeads() {
   tbody.innerHTML = filtered.map(l => `
     <tr>
       <td><strong>${esc(l.name)}</strong></td>
-      <td>${esc(l.company || '—')}</td>
-      <td>${esc(l.email || '—')}</td>
-      <td>${esc(l.phone || '—')}</td>
+      <td>${esc(l.company || 'â€”')}</td>
+      <td>${esc(l.email || 'â€”')}</td>
+      <td>${esc(l.phone || 'â€”')}</td>
       <td><span class="badge badge-${l.status}">${statusLabel(l.status)}</span></td>
-      <td>${esc(l.source || '—')}</td>
+      <td>${esc(l.source || 'â€”')}</td>
       <td>${fmtDate(l.created_at)}</td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-icon" onclick="editLead('${l.id}')" title="Editar">✎</button>
-        <button class="btn-icon" onclick="deleteLead('${l.id}')" title="Excluir" style="color:var(--red)">✕</button>
+        <button class="btn-icon" onclick="editLead('${l.id}')" title="Editar">âœŽ</button>
+        <button class="btn-icon" onclick="deleteLead('${l.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
       </td>
     </tr>
   `).join('');
@@ -256,10 +316,10 @@ async function loadDashboard() {
   try {
     // Stats
     const stats = await api('GET', '/leads/stats/summary');
-    document.getElementById('stat-total').textContent = stats.total ?? '—';
-    document.getElementById('stat-new').textContent = stats.byStatus?.new ?? stats.new ?? '—';
-    document.getElementById('stat-converted').textContent = stats.byStatus?.converted ?? stats.converted ?? '—';
-    document.getElementById('stat-lost').textContent = stats.byStatus?.lost ?? stats.lost ?? '—';
+    document.getElementById('stat-total').textContent = stats.total ?? 'â€”';
+    document.getElementById('stat-new').textContent = stats.byStatus?.new ?? stats.new ?? 'â€”';
+    document.getElementById('stat-converted').textContent = stats.byStatus?.converted ?? stats.converted ?? 'â€”';
+    document.getElementById('stat-lost').textContent = stats.byStatus?.lost ?? stats.lost ?? 'â€”';
     document.getElementById('lead-count-badge').textContent = stats.total ?? 0;
 
     // Deals stats
@@ -271,17 +331,13 @@ async function loadDashboard() {
       document.getElementById('stat-deals-won').textContent = won.length;
       document.getElementById('stat-deals-value').textContent = fmtCurrency(pipelineTotal);
     } catch {}
-    try {
-      document.getElementById('stat-deals-won').textContent = '—';
-      document.getElementById('stat-deals-value').textContent = '—';
-    } catch {}
 
     // Companies count
     try {
       const compRes = await api('GET', '/companies');
       state.companies = Array.isArray(compRes) ? compRes : (compRes.companies || []);
       document.getElementById('stat-companies').textContent = state.companies.length;
-    } catch { document.getElementById('stat-companies').textContent = '—'; }
+    } catch { document.getElementById('stat-companies').textContent = 'â€”'; }
 
     // Tasks pending
     try {
@@ -289,29 +345,8 @@ async function loadDashboard() {
       const pending = state.tasks.filter(t => t.status !== 'done').length;
       document.getElementById('stat-tasks-pending').textContent = pending;
       document.getElementById('task-count-badge').textContent = pending;
-    } catch { document.getElementById('stat-tasks-pending').textContent = '—'; }
+    } catch { document.getElementById('stat-tasks-pending').textContent = 'â€”'; }
 
-    // Recent leads
-    const leadsRes = await api('GET', '/leads');
-    state.leads = Array.isArray(leadsRes) ? leadsRes : (leadsRes.leads || []);
-    const recent = state.leads.slice(0, 5);
-    const tbody = document.getElementById('dash-leads-tbody');
-    const empty = document.getElementById('dash-empty');
-    if (recent.length === 0) {
-      tbody.innerHTML = '';
-      empty.style.display = 'block';
-      return;
-    }
-    empty.style.display = 'none';
-    tbody.innerHTML = recent.map(l => `
-      <tr>
-        <td><strong>${esc(l.name)}</strong></td>
-        <td>${esc(l.company || '—')}</td>
-        <td><span class="badge badge-${l.status}">${statusLabel(l.status)}</span></td>
-        <td>${esc(l.source || '—')}</td>
-        <td>${fmtDate(l.created_at)}</td>
-      </tr>
-    `).join('');
   } catch (e) { /* silently fail on dashboard load */ }
 }
 
@@ -377,13 +412,20 @@ on('lead-search', 'input', renderLeads);
 on('lead-filter-status', 'change', renderLeads);
 on('btn-refresh-leads', 'click', loadLeads);
 
-/* ── COMPANIES ───────────────────────────────────────────────────────────── */
+/* â”€â”€ COMPANIES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-/* ── Pagination state ────────────────────────────────────────────────────── */
+/* â”€â”€ Pagination state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 const pagination = {
   companies: { page: 1, limit: 10, total: 0, totalPages: 0 },
   deals: { page: 1, limit: 10, total: 0, totalPages: 0 },
+  'service-orders': { page: 1, limit: 10, total: 0, totalPages: 0 },
+  contracts: { page: 1, limit: 10, total: 0, totalPages: 0 },
+  equipment: { page: 1, limit: 10, total: 0, totalPages: 0 },
+  invoices: { page: 1, limit: 10, total: 0, totalPages: 0 },
+  proposals: { page: 1, limit: 10, total: 0, totalPages: 0 },
+  projects: { page: 1, limit: 10, total: 0, totalPages: 0 },
+  tasks: { page: 1, limit: 10, total: 0, totalPages: 0 },
 };
 
 function paginationContainer(key, loadFn) {
@@ -392,18 +434,18 @@ function paginationContainer(key, loadFn) {
     `<button class="page-btn${active ? ' active' : ''}" onclick="${loadFn.name}(${page})" ${page < 1 || page > p.totalPages ? 'disabled' : ''}>${esc(label)}</button>`;
   return `
     <div class="pagination">
-      ${btn(p.page - 1, '‹ Anterior')}
+      ${btn(p.page - 1, 'â€¹ Anterior')}
       ${btn(1, '1')}
-      ${p.totalPages > 1 && p.page > 3 ? '<span class="page-info">…</span>' : ''}
+      ${p.totalPages > 1 && p.page > 3 ? '<span class="page-info">â€¦</span>' : ''}
       ${p.page > 2 && p.page < p.totalPages ? btn(p.page, p.page) : ''}
-      ${p.totalPages > 1 && p.page < p.totalPages - 1 ? '<span class="page-info">…</span>' : ''}
+      ${p.totalPages > 1 && p.page < p.totalPages - 1 ? '<span class="page-info">â€¦</span>' : ''}
       ${p.totalPages > 1 ? btn(p.totalPages, p.totalPages, p.page === p.totalPages) : ''}
-      ${btn(p.page + 1, 'Próximo ›')}
-      <span class="page-info">Página ${p.page} de ${p.totalPages} (${p.total} itens)</span>
+      ${btn(p.page + 1, 'Próximo â€º')}
+      <span class="page-info">Pà ¡gina ${p.page} de ${p.totalPages} (${p.total} itens)</span>
     </div>`;
 }
 
-/* ── Loader ──────────────────────────────────────────────────────────────── */
+/* â”€â”€ Loader â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function showLoader() {
   document.getElementById('app-loader').style.display = 'flex';
@@ -413,7 +455,7 @@ function hideLoader() {
   document.getElementById('app-loader').style.display = 'none';
 }
 
-/* ── Dark Mode ──────────────────────────────────────────────────────────── */
+/* â”€â”€ Dark Mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function initTheme() {
   const saved = localStorage.getItem('grt_theme');
@@ -444,7 +486,7 @@ function toggleTheme() {
 document.addEventListener('DOMContentLoaded', initTheme);
 document.getElementById('btn-theme')?.addEventListener('click', toggleTheme);
 
-/* ── COMPANIES ───────────────────────────────────────────────────────────── */
+/* â”€â”€ COMPANIES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 let companiesPage = 1;
 
@@ -488,14 +530,14 @@ function renderCompanies() {
   tbody.innerHTML = filtered.map(c => `
     <tr>
       <td><strong>${esc(c.name)}</strong></td>
-      <td>${esc(c.email || '—')}</td>
-      <td>${esc(c.phone || '—')}</td>
-      <td>${esc(c.cnpj ? c.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : '—')}</td>
-      <td>${esc(c.city || '—')}</td>
+      <td>${esc(c.email || 'â€”')}</td>
+      <td>${esc(c.phone || 'â€”')}</td>
+      <td>${esc(c.cnpj ? c.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : 'â€”')}</td>
+      <td>${esc(c.city || 'â€”')}</td>
       <td><span class="badge badge-${c.active !== false ? 'active' : 'inactive'}">${c.active !== false ? 'Ativa' : 'Inativa'}</span></td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-icon" onclick="editCompany('${c.id}')" title="Editar">✎</button>
-        <button class="btn-icon" onclick="deleteCompany('${c.id}')" title="Excluir" style="color:var(--red)">✕</button>
+        <button class="btn-icon" onclick="editCompany('${c.id}')" title="Editar">âœŽ</button>
+        <button class="btn-icon" onclick="deleteCompany('${c.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
       </td>
     </tr>
   `).join('');
@@ -571,7 +613,7 @@ on('company-search', 'input', renderCompanies);
 on('company-filter-status', 'change', renderCompanies);
 on('btn-refresh-companies', 'click', loadCompanies);
 
-/* ── DEALS ────────────────────────────────────────────────────────────────── */
+/* â”€â”€ DEALS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 let dealsPage = 1;
 let dealStages = [
@@ -637,7 +679,7 @@ function renderPipeline() {
           <span class="pipeline-count">${deals.length}</span>
         </div>
         <div class="pipeline-col-body" ondrop="onDealDrop(event)" ondragover="onDragOver(event)">
-          ${deals.length === 0 ? '<div class="pipeline-empty-col">Arraste negócios para cá</div>' : ''}
+          ${deals.length === 0 ? '<div class="pipeline-empty-col">Arraste negócios para cà ¡</div>' : ''}
           ${deals.map(d => `
             <div class="deal-card" draggable="true" ondragstart="onDealDragStart(event, '${d.id}')" onclick="editDeal('${d.id}')">
               <div class="deal-card-title">${esc(d.title)}</div>
@@ -645,7 +687,7 @@ function renderPipeline() {
               ${d.company_name ? `<div class="deal-card-company">${esc(d.company_name)}</div>` : ''}
               ${d.contact_name ? `<div class="deal-card-contact">${esc(d.contact_name)}</div>` : ''}
               <div class="deal-card-actions">
-                <button class="btn-icon-sm" onclick="event.stopPropagation();deleteDeal('${d.id}')" title="Excluir" style="color:var(--red)">✕</button>
+                <button class="btn-icon-sm" onclick="event.stopPropagation();deleteDeal('${d.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
               </div>
             </div>
           `).join('')}
@@ -774,11 +816,16 @@ on('modal-deal-form', 'submit', async (e) => {
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* ── TASKS ────────────────────────────────────────────────────────────────── */
+/* â”€â”€ TASKS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-async function loadTasks() {
+async function loadTasks(page) {
+  if (page) pagination.tasks.page = page;
   try {
-    state.tasks = await api('GET', '/tasks');
+    const p = pagination.tasks;
+    const res = await api('GET', `/tasks?page=${p.page}&limit=${p.limit}`);
+    state.tasks = res.tasks || [];
+    pagination.tasks.total = res.total || 0;
+    pagination.tasks.totalPages = res.totalPages || 1;
     renderTasks();
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -815,15 +862,17 @@ function renderTasks() {
       </td>
       <td><span class="badge badge-${t.priority || 'medium'}">${priorityLabel(t.priority)}</span></td>
       <td><span class="badge badge-${t.status}">${taskStatusLabel(t.status)}</span></td>
-      <td>${t.due_date ? fmtDate(t.due_date) : '—'}</td>
+      <td>${t.due_date ? fmtDate(t.due_date) : 'â€”'}</td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-icon" onclick="editTask('${t.id}')" title="Editar">✎</button>
-        <button class="btn-icon" onclick="deleteTask('${t.id}')" title="Excluir" style="color:var(--red)">✕</button>
+        <button class="btn-icon" onclick="editTask('${t.id}')" title="Editar">âœŽ</button>
+        <button class="btn-icon" onclick="deleteTask('${t.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
       </td>
     </tr>
   `).join('');
 
   document.getElementById('task-count-badge').textContent = state.tasks.filter(t => t.status !== 'done').length;
+  const paginationEl = document.getElementById('tasks-pagination');
+  if (paginationEl) paginationEl.innerHTML = paginationContainer('tasks', loadTasks);
 }
 
 function priorityLabel(p) {
@@ -900,7 +949,166 @@ on('task-filter-status', 'change', renderTasks);
 on('task-filter-priority', 'change', renderTasks);
 on('btn-refresh-tasks', 'click', loadTasks);
 
-/* ── ROTINAS DIÁRIAS / KANBAN ────────────────────────────────────────────── */
+/* â”€â”€ ROTINAS DIà RIAS / KANBAN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+async function loadRoutines() {
+  try {
+    const data = await api('GET', '/api/daily-routines');
+    state.routines = Array.isArray(data) ? data : [];
+    renderRoutines();
+    loadUsersForRoutines();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function renderRoutines() {
+  const filterUser = document.getElementById('routine-filter-user').value;
+  let routines = state.routines;
+  if (filterUser) routines = routines.filter(r => r.assigned_to === filterUser);
+
+  const columns = ['pending', 'in_progress', 'done'];
+  const columnIds = ['kanban-pending', 'kanban-progress', 'kanban-done'];
+  const countIds = ['count-pending', 'count-progress', 'count-done'];
+
+  columns.forEach((col, i) => {
+    const items = routines.filter(r => r.status === col);
+    const body = document.getElementById(columnIds[i]);
+    if (!body) return;
+    document.getElementById(countIds[i]).textContent = items.length;
+
+    if (items.length === 0) {
+      body.innerHTML = '<div class="pipeline-empty-col">Nenhuma tarefa</div>';
+      return;
+    }
+
+    body.innerHTML = items.map(r => `
+      <div class="kanban-card" draggable="true" data-id="${r.id}" data-status="${r.status}"
+           ondragstart="dragRoutine(event)" onclick="editRoutine('${r.id}')">
+        <div class="kanban-card-title">${esc(r.title)}</div>
+        ${r.description ? `<div class="kanban-card-desc">${esc(r.description.substring(0, 100))}</div>` : ''}
+        <div class="kanban-card-meta">
+          <span class="kanban-card-assignee">ðŸ‘¤ ${esc(r.assigned_to || 'â€”')}</span>
+          <span class="kanban-card-due ${isOverdue(r.due_date) && r.status !== 'done' ? 'overdue' : ''}">ðŸ“… ${formatDateKanban(r.due_date)}</span>
+        </div>
+        <div style="margin-top:6px;display:flex;gap:4px;justify-content:space-between;align-items:center">
+          <span class="badge badge-${r.priority || 'medium'}">${routinePriorityLabel(r.priority)}</span>
+          <span>
+            <button class="btn-icon-sm" onclick="event.stopPropagation();editRoutine('${r.id}')" title="Editar">âœŽ</button>
+            <button class="btn-icon-sm" onclick="event.stopPropagation();deleteRoutine('${r.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+          </span>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+// Drag & Drop
+function dragRoutine(e) {
+  e.dataTransfer.setData('text/plain', e.target.closest('.kanban-card').dataset.id);
+  e.dataTransfer.setData('status', e.target.closest('.kanban-card').dataset.status);
+}
+
+function allowDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+
+function dropRoutine(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const id = e.dataTransfer.getData('text/plain');
+  const newColumn = e.currentTarget.closest('.kanban-column').dataset.column;
+  const card = document.querySelector(`.kanban-card[data-id="${id}"]`);
+  if (card) {
+    const oldStatus = card.dataset.status;
+    if (oldStatus !== newColumn) {
+      updateRoutineStatus(id, newColumn);
+    }
+  }
+}
+
+async function updateRoutineStatus(id, newStatus) {
+  try {
+    await api('PATCH', `/api/daily-routines/${id}`, { status: newStatus });
+    toast('Status atualizado', 'success');
+    loadRoutines();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// Modal CRUD
+function openRoutineModal(routine) {
+  document.getElementById('modal-routine-title').textContent = routine ? 'Editar Tarefa' : 'Nova Tarefa';
+  document.getElementById('routine-id').value = routine ? routine.id : '';
+  document.getElementById('routine-title').value = routine ? (routine.title || '') : '';
+  document.getElementById('routine-desc').value = routine ? (routine.description || '') : '';
+  document.getElementById('routine-status').value = routine ? (routine.status || 'pending') : 'pending';
+  document.getElementById('routine-priority').value = routine ? (routine.priority || 'medium') : 'medium';
+  document.getElementById('routine-assigned-to').value = routine ? (routine.assigned_to || '') : '';
+  document.getElementById('routine-due').value = routine ? (routine.due_date ? routine.due_date.substring(0, 10) : '') : '';
+  openModal('modal-routine');
+}
+
+function editRoutine(id) {
+  const item = state.routines.find(r => r.id == id);
+  if (item) openRoutineModal(item);
+}
+
+async function deleteRoutine(id) {
+  if (!confirm('Excluir esta tarefa?')) return;
+  try {
+    await api('DELETE', `/api/daily-routines/${id}`);
+    toast('Tarefa excluída', 'success');
+    loadRoutines();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function loadUsersForRoutines() {
+  try {
+    const users = await api('GET', '/users');
+    const selectFilter = document.getElementById('routine-filter-user');
+    const selectAssign = document.getElementById('routine-assigned-to');
+    if (selectAssign) {
+      const cv = selectAssign.value;
+      selectAssign.innerHTML = '<option value="">Selecione...</option>' +
+        users.map(u => `<option value="${esc(u.name || u.email)}">${esc(u.name || u.email)}</option>`).join('');
+      selectAssign.value = cv;
+    }
+    if (selectFilter) {
+      const cv = selectFilter.value;
+      selectFilter.innerHTML = '<option value="">Todos os usuà ¡rios</option>' +
+        users.map(u => `<option value="${esc(u.name || u.email)}">${esc(u.name || u.email)}</option>`).join('');
+      selectFilter.value = cv;
+    }
+  } catch (e) { /* users may not be available */ }
+}
+
+// Event listeners
+on('btn-new-routine', 'click', () => openRoutineModal(null));
+on('btn-refresh-routines', 'click', loadRoutines);
+on('routine-filter-user', 'change', renderRoutines);
+
+on('modal-routine-form', 'submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('routine-id').value;
+  const body = {
+    title: document.getElementById('routine-title').value,
+    description: document.getElementById('routine-desc').value || null,
+    status: document.getElementById('routine-status').value,
+    priority: document.getElementById('routine-priority').value,
+    assigned_to: document.getElementById('routine-assigned-to').value || null,
+    due_date: document.getElementById('routine-due').value || null,
+  };
+  try {
+    if (id) {
+      await api('PATCH', `/api/daily-routines/${id}`, body);
+      toast('Tarefa atualizada', 'success');
+    } else {
+      await api('POST', '/api/daily-routines', body);
+      toast('Tarefa criada', 'success');
+    }
+    closeModal('modal-routine');
+    loadRoutines();
+  } catch (e) { toast(e.message, 'error'); }
+});
 
 function routinePriorityLabel(p) {
   const m = { high: 'Alta', medium: 'Média', low: 'Baixa' };
@@ -926,7 +1134,7 @@ function isOverdue(d) {
   return due < today;
 }
 
-/* ── WEBHOOKS ────────────────────────────────────────────────────────────── */
+/* â”€â”€ WEBHOOKS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 async function loadWebhooks() {
   try {
@@ -959,8 +1167,9 @@ function renderInbounds() {
           <div class="meta">Criado ${fmtDate(w.created_at)}</div>
         </div>
         <div class="webhook-actions">
-          <button class="btn-icon" onclick="copyText('${url}')" title="Copiar URL">📋</button>
-          <button class="btn-icon" onclick="deleteInbound('${w.id}')" title="Excluir" style="color:var(--red)">✕</button>
+          <button class="btn-icon" onclick="editInbound('${w.id}')" title="Editar">âœŽ</button>
+          <button class="btn-icon" onclick="copyText('${url}')" title="Copiar URL">ðŸ“‹</button>
+          <button class="btn-icon" onclick="deleteInbound('${w.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
         </div>
       </div>
     `;
@@ -985,10 +1194,21 @@ function renderOutbounds() {
         <div class="meta">Criado ${fmtDate(w.created_at)}</div>
       </div>
       <div class="webhook-actions">
-        <button class="btn-icon" onclick="deleteOutbound('${w.id}')" title="Excluir" style="color:var(--red)">✕</button>
+        <button class="btn-icon" onclick="editOutbound('${w.id}')" title="Editar">âœŽ</button>
+        <button class="btn-icon" onclick="deleteOutbound('${w.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
       </div>
     </div>
   `).join('');
+}
+
+async function editInbound(id) {
+  const item = state.inbounds.find(w => w.id == id);
+  if (!item) return;
+  document.getElementById('modal-inbound-title').textContent = 'Editar Webhook Inbound';
+  document.getElementById('inbound-id').value = item.id;
+  document.getElementById('inbound-name').value = item.name || '';
+  document.getElementById('inbound-desc').value = item.description || '';
+  openModal('modal-inbound');
 }
 
 async function deleteInbound(id) {
@@ -998,6 +1218,19 @@ async function deleteInbound(id) {
     toast('Webhook excluído', 'success');
     loadWebhooks();
   } catch (e) { toast(e.message, 'error'); }
+}
+
+async function editOutbound(id) {
+  const item = state.outbounds.find(w => w.id == id);
+  if (!item) return;
+  document.getElementById('modal-outbound-title').textContent = 'Editar Webhook Outbound';
+  document.getElementById('outbound-id').value = item.id;
+  document.getElementById('outbound-name').value = item.name || '';
+  document.getElementById('outbound-url').value = item.url || '';
+  document.querySelectorAll('#modal-outbound-form input[type="checkbox"]').forEach(c => {
+    c.checked = (item.events || []).includes(c.value);
+  });
+  openModal('modal-outbound');
 }
 
 async function deleteOutbound(id) {
@@ -1010,6 +1243,7 @@ async function deleteOutbound(id) {
 }
 
 on('btn-new-inbound', 'click', () => {
+  document.getElementById('modal-inbound-title').textContent = 'Novo Webhook Inbound';
   document.getElementById('inbound-id').value = '';
   document.getElementById('inbound-name').value = '';
   document.getElementById('inbound-desc').value = '';
@@ -1018,13 +1252,18 @@ on('btn-new-inbound', 'click', () => {
 
 on('modal-inbound-form', 'submit', async (e) => {
   e.preventDefault();
+  const id = document.getElementById('inbound-id').value;
   const body = {
     name: document.getElementById('inbound-name').value,
     description: document.getElementById('inbound-desc').value,
   };
   try {
-    await api('POST', '/settings/webhooks/inbound', body);
-    toast('Webhook inbound criado', 'success');
+    if (id) {
+      await api('PATCH', `/settings/webhooks/inbound/${id}`, body);
+    } else {
+      await api('POST', '/settings/webhooks/inbound', body);
+    }
+    toast(id ? 'Webhook atualizado' : 'Webhook inbound criado', 'success');
     closeModal('modal-inbound');
     loadWebhooks();
   } catch (e) { toast(e.message, 'error'); }
@@ -1054,7 +1293,7 @@ on('modal-outbound-form', 'submit', async (e) => {
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* ── Tabs ────────────────────────────────────────────────────────────────── */
+/* â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 document.querySelectorAll('.tabs .tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -1066,7 +1305,7 @@ document.querySelectorAll('.tabs .tab').forEach(tab => {
   });
 });
 
-/* ── API KEYS ────────────────────────────────────────────────────────────── */
+/* â”€â”€ API KEYS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 async function loadApiKeys() {
   try {
@@ -1091,8 +1330,9 @@ function renderApiKeys() {
       <td><span class="badge badge-${k.active ? 'active' : 'inactive'}">${k.active ? 'Ativa' : 'Inativa'}</span></td>
       <td>${fmtDate(k.created_at)}</td>
       <td style="text-align:right">
-        <button class="btn-icon" onclick="toggleApiKey('${k.id}')" title="${k.active ? 'Desativar' : 'Ativar'}">${k.active ? '⊘' : '✓'}</button>
-        <button class="btn-icon" onclick="deleteApiKey('${k.id}')" title="Excluir" style="color:var(--red)">✕</button>
+        <button class="btn-icon" onclick="editApiKey('${k.id}')" title="Editar">âœŽ</button>
+        <button class="btn-icon" onclick="toggleApiKey('${k.id}')" title="${k.active ? 'Desativar' : 'Ativar'}">${k.active ? 'âŠ˜' : 'âœ“'}</button>
+        <button class="btn-icon" onclick="deleteApiKey('${k.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
       </td>
     </tr>
   `).join('');
@@ -1149,11 +1389,16 @@ on('btn-copy-key', 'click', () => {
   });
 });
 
-/* ── LOGS ───────────────────────────────────────────────────────────────── */
+/* â”€â”€ LOGS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 async function loadLogs() {
   try {
-    state.logs = await api('GET', '/settings/webhooks/logs');
+    const [webhookLogs, activityData] = await Promise.all([
+      api('GET', '/settings/webhooks/logs').catch(() => []),
+      api('GET', '/activity-logs?limit=100').catch(() => ({ logs: [] })),
+    ]);
+    state.logs = webhookLogs;
+    state.activityLogs = activityData.logs || [];
     renderLogs();
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -1169,34 +1414,85 @@ function renderPayloadPreview(payload) {
 }
 
 function renderLogs() {
-  const list = document.getElementById('logs-list');
+  const grid = document.getElementById('logs-users-grid');
   const empty = document.getElementById('logs-empty');
-  if (state.logs.length === 0) {
-    list.innerHTML = '';
+  if (!grid) return;
+  const activityLogs = state.activityLogs || [];
+  const filterType = document.getElementById('logs-filter-type')?.value || '';
+  const filtered = filterType ? activityLogs.filter(l => l.action === filterType) : activityLogs;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
     empty.style.display = 'block';
     return;
   }
   empty.style.display = 'none';
-  list.innerHTML = state.logs.map(l => {
-    const dir = l.direction === 'inbound' ? 'inbound' : 'outbound';
-    const ok = l.status === 'success' || l.status === 'ok';
+
+  const usersMap = {};
+  filtered.forEach(l => {
+    const key = l.user_name || l.user_id || 'Desconhecido';
+    if (!usersMap[key]) usersMap[key] = [];
+    usersMap[key].push(l);
+  });
+
+  const actionColors = { create: '#10b981', update: '#3b82f6', delete: '#ef4444' };
+  const actionLabels = { create: 'Criou', update: 'Atualizou', delete: 'Removeu' };
+  const entityIcons = { lead: 'fa-solid fa-user-plus', deal: 'fa-solid fa-bullseye', company: 'fa-solid fa-building', task: 'fa-solid fa-check-square', equipment: 'fa-solid fa-cogs', contract: 'fa-solid fa-file-contract', user: 'fa-solid fa-users-gear' };
+
+  grid.innerHTML = Object.entries(usersMap).map(([userName, logs]) => {
+    const total = logs.length;
+    const creates = logs.filter(l => l.action === 'create').length;
+    const updates = logs.filter(l => l.action === 'update').length;
+    const deletes = logs.filter(l => l.action === 'delete').length;
+    const initials = userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
     return `
-      <div class="log-entry">
-        <div>
-          <span class="log-direction ${dir}">${l.direction === 'inbound' ? '⬅ IN' : '➡ OUT'}</span>
-          <span class="log-status ${ok ? 'ok' : 'fail'}">${ok ? '✓' : '✗'}</span>
-          <span style="color:var(--text-secondary)">${esc(l.webhook_name || l.endpoint || '')}</span>
+      <div class="card" style="overflow:hidden">
+        <div style="padding:20px;cursor:pointer" onclick="this.parentElement.querySelector('.logs-user-detail').classList.toggle('open');this.querySelector('.logs-expand-icon').classList.toggle('rotated')">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:44px;height:44px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0">${initials}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:15px;color:var(--text-primary)">${esc(userName)}</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${total} atividade${total !== 1 ? 's' : ''}</div>
+            </div>
+            <i class="fa-solid fa-chevron-down logs-expand-icon" style="color:var(--text-muted);font-size:12px;transition:transform .2s"></i>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:12px">
+            <span style="font-size:11px;color:#10b981;font-weight:600">${creates} criados</span>
+            <span style="font-size:11px;color:#3b82f6;font-weight:600">${updates} atualizados</span>
+            <span style="font-size:11px;color:#ef4444;font-weight:600">${deletes} removidos</span>
+          </div>
         </div>
-        <div class="log-meta">${fmtDate(l.created_at)} · ${l.direction === 'inbound' ? 'Recebido' : esc(l.endpoint || '')} · ${esc(l.status)}${l.status_code ? ' (' + l.status_code + ')' : ''}</div>
-        ${l.payload ? renderPayloadPreview(l.payload) : ''}
+        <div class="logs-user-detail" style="display:none;max-height:400px;overflow-y:auto;border-top:1px solid var(--border-color)">
+          ${logs.slice(0, 50).map(l => {
+            const color = actionColors[l.action] || 'var(--text-muted)';
+            const icon = entityIcons[l.entity_type] || 'fa-solid fa-circle';
+            return `
+              <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 20px;border-bottom:1px solid var(--border-light);font-size:13px">
+                <div style="width:28px;height:28px;border-radius:6px;background:${color}15;color:${color};display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:2px"><i class="${icon}"></i></div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                    <span style="font-weight:600;color:var(--text-primary)">${actionLabels[l.action] || l.action}</span>
+                    <span style="color:var(--text-muted)">${esc(l.entity_type || '')}</span>
+                    <span style="font-weight:600;color:var(--accent)">${esc(l.entity_name || '')}</span>
+                  </div>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${esc(l.details || '')} Â· ${fmtDate(l.created_at)}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+          ${logs.length > 50 ? `<div style="padding:10px 20px;text-align:center;font-size:12px;color:var(--text-muted)">+ ${logs.length - 50} atividades anteriores</div>` : ''}
+        </div>
       </div>
     `;
   }).join('');
 }
 
+document.getElementById('logs-filter-type')?.addEventListener('change', renderLogs);
+
 on('btn-refresh-logs', 'click', loadLogs);
 
-/* ── KANBAN COMERCIAL ──────────────────────────────────────────────────── */
+/* â”€â”€ KANBAN COMERCIAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 const KANBAN_LABELS = {
   novo_lead: { label: 'Novo Lead', icon: 'fa-solid fa-star', color: '#f5a623' },
@@ -1229,7 +1525,7 @@ async function loadSlaAlerts() {
     if (alerts.length === 0) { container.style.display = 'none'; return; }
     container.style.display = 'block';
     container.innerHTML = alerts.map(a =>
-      `<div class="kanban-alert"><i class="fa-solid fa-clock"></i> Lead <strong>${esc(a.name)}</strong> em "${KANBAN_LABELS[a.status]?.label || a.status}" há <strong>${a.sla_days} dias</strong> sem atividade</div>`
+      `<div class="kanban-alert"><i class="fa-solid fa-clock"></i> Lead <strong>${esc(a.name)}</strong> em "${KANBAN_LABELS[a.status]?.label || a.status}" hà ¡ <strong>${a.sla_days} dias</strong> sem atividade</div>`
     ).join('');
   } catch {}
 }
@@ -1286,7 +1582,7 @@ function renderKanbanCard(lead, isTerminal) {
   `;
 }
 
-/* ── Drag & Drop Kanban ───────────────────────────────────────────────── */
+/* â”€â”€ Drag & Drop Kanban â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 let dragSrcId = null;
 
@@ -1456,15 +1752,22 @@ on('modal-transition-form', 'submit', async (e) => {
 
 on('btn-kanban-refresh', 'click', loadKanban);
 
-/* ── FASE 3 — EQUIPMENT ──────────────────────────────────────────────── */
+/* â”€â”€ FASE 3 â€” EQUIPMENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-async function loadEquipment() {
+async function loadEquipment(page) {
+  if (page) pagination.equipment.page = page;
   showLoader();
   try {
     const search = document.getElementById('equipment-search')?.value;
     const status = document.getElementById('equipment-filter-status')?.value;
-    const res = await api('GET', '/equipment?page=1&limit=100' + (status ? '&status=' + status : '') + (search ? '&search=' + encodeURIComponent(search) : ''));
+    const p = pagination.equipment;
+    let url = `/equipment?page=${p.page}&limit=${p.limit}`;
+    if (status) url += '&status=' + status;
+    if (search) url += '&search=' + encodeURIComponent(search);
+    const res = await api('GET', url);
     state.equipment = res.equipment || [];
+    pagination.equipment.total = res.total || 0;
+    pagination.equipment.totalPages = res.totalPages || 1;
     renderEquipment();
   } catch (e) { toast(e.message, 'error'); }
   finally { hideLoader(); }
@@ -1473,26 +1776,28 @@ async function loadEquipment() {
 function renderEquipment() {
   const tbody = document.getElementById('equipment-tbody');
   const empty = document.getElementById('equipment-empty');
+  const paginationEl = document.getElementById('equipment-pagination');
   if (!tbody) return;
   const list = state.equipment || [];
-  if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; return; }
+  if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (paginationEl) paginationEl.innerHTML = ''; return; }
   if (empty) empty.style.display = 'none';
-  const statusMap = { available: 'Disponível', in_use: 'Em Uso', maintenance: 'Manutenção' };
+  const statusMap = { available: 'Disponível', rented: 'Alugado', maintenance: 'Manutenção' };
   tbody.innerHTML = list.map(e => `
     <tr>
       <td><strong>${esc(e.name)}</strong></td>
-      <td>${esc(e.type || '—')}</td>
+      <td>${esc(e.type || 'â€”')}</td>
       <td>${esc(e.brand || '')} ${esc(e.model || '')}</td>
-      <td>${esc(e.plate || '—')}</td>
+      <td>${esc(e.plate || 'â€”')}</td>
       <td><span class="badge badge-${e.status}">${statusMap[e.status] || e.status}</span></td>
-      <td style="text-align:right">${e.daily_rate ? fmtCurrency(e.daily_rate) + '/dia' : '—'}</td>
-      <td style="text-align:right">${e.monthly_rate ? fmtCurrency(e.monthly_rate) + '/mês' : '—'}</td>
+      <td style="text-align:right">${e.daily_rate ? fmtCurrency(e.daily_rate) + '/dia' : 'â€”'}</td>
+      <td style="text-align:right">${e.monthly_rate ? fmtCurrency(e.monthly_rate) + '/mês' : 'â€”'}</td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-icon" onclick="editEquipment('${e.id}')" title="Editar">✎</button>
-        <button class="btn-icon" onclick="deleteEquipment('${e.id}')" title="Excluir" style="color:var(--red)">✕</button>
+        <button class="btn-icon" onclick="editEquipment('${e.id}')" title="Editar">âœŽ</button>
+        <button class="btn-icon" onclick="deleteEquipment('${e.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
       </td>
     </tr>
   `).join('');
+  if (paginationEl) paginationEl.innerHTML = paginationContainer('equipment', loadEquipment);
 }
 
 function openEquipmentModal(item) {
@@ -1547,18 +1852,24 @@ document.getElementById('modal-equipment-form')?.addEventListener('submit', asyn
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* ── FASE 3 — SERVICE ORDERS ─────────────────────────────────────────── */
+/* â”€â”€ FASE 3 â€” SERVICE ORDERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-async function loadServiceOrders() {
+async function loadServiceOrders(page) {
+  if (page) pagination['service-orders'].page = page;
   showLoader();
   try {
     const status = document.getElementById('so-filter-status')?.value;
     const priority = document.getElementById('so-filter-priority')?.value;
-    let url = '/service-orders?page=1&limit=100';
+    const search = document.getElementById('so-search')?.value;
+    const p = pagination['service-orders'];
+    let url = `/service-orders?page=${p.page}&limit=${p.limit}`;
     if (status) url += '&status=' + status;
     if (priority) url += '&priority=' + priority;
+    if (search) url += '&search=' + encodeURIComponent(search);
     const res = await api('GET', url);
     state.orders = res.orders || [];
+    pagination['service-orders'].total = res.total || 0;
+    pagination['service-orders'].totalPages = res.totalPages || 1;
     renderServiceOrders();
   } catch (e) { toast(e.message, 'error'); }
   finally { hideLoader(); }
@@ -1567,27 +1878,29 @@ async function loadServiceOrders() {
 function renderServiceOrders() {
   const tbody = document.getElementById('so-tbody');
   const empty = document.getElementById('so-empty');
+  const paginationEl = document.getElementById('so-pagination');
   if (!tbody) return;
   const list = state.orders || [];
-  if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; return; }
+  if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (paginationEl) paginationEl.innerHTML = ''; return; }
   if (empty) empty.style.display = 'none';
   const statusMap = { open: 'Aberta', in_progress: 'Em Andamento', closed: 'Concluída', cancelled: 'Cancelada' };
   const priorityMap = { high: 'Alta', medium: 'Média', low: 'Baixa' };
   tbody.innerHTML = list.map(o => `
     <tr>
       <td><strong>${esc(o.title)}</strong></td>
-      <td>${esc(o.equipment_name || '—')}</td>
-      <td>${esc(o.client_name || '—')}</td>
+      <td>${esc(o.equipment_name || 'â€”')}</td>
+      <td>${esc(o.client_name || 'â€”')}</td>
       <td><span class="badge badge-${o.status}">${statusMap[o.status] || o.status}</span></td>
       <td><span class="badge badge-${o.priority || 'medium'}">${priorityMap[o.priority] || o.priority}</span></td>
-      <td>${esc(o.assigned_to || '—')}</td>
-      <td style="text-align:right">${o.value ? fmtCurrency(o.value) : '—'}</td>
+      <td>${esc(o.assigned_to || 'â€”')}</td>
+      <td style="text-align:right">${o.value ? fmtCurrency(o.value) : 'â€”'}</td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-icon" onclick="editServiceOrder('${o.id}')" title="Editar">✎</button>
-        <button class="btn-icon" onclick="deleteServiceOrder('${o.id}')" title="Excluir" style="color:var(--red)">✕</button>
+        <button class="btn-icon" onclick="editServiceOrder('${o.id}')" title="Editar">âœŽ</button>
+        <button class="btn-icon" onclick="deleteServiceOrder('${o.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
       </td>
     </tr>
   `).join('');
+  if (paginationEl) paginationEl.innerHTML = paginationContainer('service-orders', loadServiceOrders);
 }
 
 async function loadSODropdowns() {
@@ -1658,16 +1971,22 @@ document.getElementById('modal-so-form')?.addEventListener('submit', async (e) =
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* ── FASE 3 — CONTRACTS ──────────────────────────────────────────────── */
+/* â”€â”€ FASE 3 â€” CONTRACTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-async function loadContracts() {
+async function loadContracts(page) {
+  if (page) pagination.contracts.page = page;
   showLoader();
   try {
     const status = document.getElementById('contract-filter-status')?.value;
-    let url = '/contracts?page=1&limit=100';
+    const search = document.getElementById('contract-search')?.value;
+    const p = pagination.contracts;
+    let url = `/contracts?page=${p.page}&limit=${p.limit}`;
     if (status) url += '&status=' + status;
+    if (search) url += '&search=' + encodeURIComponent(search);
     const res = await api('GET', url);
     state.contracts = res.contracts || [];
+    pagination.contracts.total = res.total || 0;
+    pagination.contracts.totalPages = res.totalPages || 1;
     renderContracts();
   } catch (e) { toast(e.message, 'error'); }
   finally { hideLoader(); }
@@ -1676,24 +1995,25 @@ async function loadContracts() {
 function renderContracts() {
   const tbody = document.getElementById('contracts-tbody');
   const empty = document.getElementById('contracts-empty');
+  const paginationEl = document.getElementById('contracts-pagination');
   if (!tbody) return;
   const list = state.contracts || [];
-  if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; return; }
+  if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (paginationEl) paginationEl.innerHTML = ''; return; }
   if (empty) empty.style.display = 'none';
-  const statusMap = { active: 'Ativo', ended: 'Encerrado', cancelled: 'Cancelado' };
+  const statusMap = { draft: 'Rascunho', active: 'Ativo', expired: 'Expirado', terminated: 'Encerrado' };
   const typeMap = { rental: 'Locação', service: 'Serviço' };
   tbody.innerHTML = list.map(c => `
     <tr>
       <td><strong>${esc(c.title)}</strong></td>
-      <td>${esc(c.company_name || '—')}</td>
-      <td>${esc(c.equipment_name || '—')}</td>
+      <td>${esc(c.company_name || 'â€”')}</td>
+      <td>${esc(c.equipment_name || 'â€”')}</td>
       <td>${typeMap[c.type] || c.type}</td>
-      <td style="text-align:right">${c.value ? fmtCurrency(c.value) : '—'}</td>
-      <td style="font-size:12px">${c.start_date ? fmtDate(c.start_date) : '—'} — ${c.end_date ? fmtDate(c.end_date) : '—'}</td>
+      <td style="text-align:right">${c.value ? fmtCurrency(c.value) : 'â€”'}</td>
+      <td style="font-size:12px">${c.start_date ? fmtDate(c.start_date) : 'â€”'} â€” ${c.end_date ? fmtDate(c.end_date) : 'â€”'}</td>
       <td><span class="badge badge-${c.status}">${statusMap[c.status] || c.status}</span></td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-icon" onclick="editContract('${c.id}')" title="Editar">✎</button>
-        <button class="btn-icon" onclick="deleteContract('${c.id}')" title="Excluir" style="color:var(--red)">✕</button>
+        <button class="btn-icon" onclick="editContract('${c.id}')" title="Editar">âœŽ</button>
+        <button class="btn-icon" onclick="deleteContract('${c.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
       </td>
     </tr>
   `).join('');
@@ -1764,7 +2084,7 @@ document.getElementById('modal-contract-form')?.addEventListener('submit', async
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* ── FASE 2 — CHARTS ───────────────────────────────────────────────────── */
+/* â”€â”€ FASE 2 â€” CHARTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 let chartsInitialized = false;
 let chartInstances = {};
@@ -1836,7 +2156,7 @@ function renderCharts(data) {
   }
 }
 
-/* ── Dashboard Summary ──────────────────────────────────────────────────── */
+/* â”€â”€ Dashboard Summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function renderDashboardSummary(data) {
   if (!data) return;
@@ -1846,21 +2166,21 @@ function renderDashboardSummary(data) {
   // Update stat cards
   if (totals) {
     const el = (id) => document.getElementById(id);
-    if (el('stat-total')) el('stat-total').textContent = totals.totalLeads ?? '—';
-    if (el('stat-companies')) el('stat-companies').textContent = totals.totalCompanies ?? '—';
-    if (el('stat-tasks-pending')) el('stat-tasks-pending').textContent = totals.totalEquipment ?? '—';
+    if (el('stat-total')) el('stat-total').textContent = totals.totalLeads ?? 'â€”';
+    if (el('stat-companies')) el('stat-companies').textContent = totals.totalCompanies ?? 'â€”';
+    if (el('stat-tasks-pending')) el('stat-tasks-pending').textContent = totals.totalEquipment ?? 'â€”';
   }
   
   if (this_month) {
     const el = (id) => document.getElementById(id);
-    if (el('stat-new')) el('stat-new').textContent = this_month.newLeadsThisMonth ?? '—';
-    if (el('stat-converted')) el('stat-converted').textContent = this_month.activeContracts ?? '—';
-    if (el('stat-lost')) el('stat-lost').textContent = this_month.pendingInvoices ?? '—';
-    if (el('stat-deals-won')) el('stat-deals-won').textContent = this_month.activeDeals ?? '—';
+    if (el('stat-new')) el('stat-new').textContent = this_month.newLeadsThisMonth ?? 'â€”';
+    if (el('stat-converted')) el('stat-converted').textContent = this_month.activeContracts ?? 'â€”';
+    if (el('stat-lost')) el('stat-lost').textContent = this_month.pendingInvoices ?? 'â€”';
+    if (el('stat-deals-won')) el('stat-deals-won').textContent = this_month.activeDeals ?? 'â€”';
   }
 }
 
-/* ── Funnel Visualization ───────────────────────────────────────────────── */
+/* â”€â”€ Funnel Visualization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function renderFunnel(data) {
   const container = document.getElementById('funnel-container');
@@ -1899,7 +2219,7 @@ function renderFunnel(data) {
   container.innerHTML = html;
 }
 
-/* ── Activity Rendering ─────────────────────────────────────────────────── */
+/* â”€â”€ Activity Rendering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function renderActivity(data) {
   if (!data) return;
@@ -1914,7 +2234,7 @@ function renderActivity(data) {
         <div class="activity-item">
           <div>
             <div class="activity-item-name">${esc(l.name)}</div>
-            <div class="activity-item-detail">${esc(l.company || l.source || '—')}</div>
+            <div class="activity-item-detail">${esc(l.company || l.source || 'â€”')}</div>
           </div>
           <span class="activity-item-badge badge-${l.status}">${statusLabel(l.status)}</span>
         </div>
@@ -1932,7 +2252,7 @@ function renderActivity(data) {
         <div class="activity-item">
           <div>
             <div class="activity-item-name">${esc(c.title)}</div>
-            <div class="activity-item-detail">${esc(c.company_name || '—')} • Vence: ${fmtDate(c.end_date)}</div>
+            <div class="activity-item-detail">${esc(c.company_name || 'â€”')} â€¢ Vence: ${fmtDate(c.end_date)}</div>
           </div>
           <span class="activity-item-badge badge-active">Ativo</span>
         </div>
@@ -1950,7 +2270,7 @@ function renderActivity(data) {
         <div class="activity-item">
           <div>
             <div class="activity-item-name">${esc(p.title)}</div>
-            <div class="activity-item-detail">${esc(p.company_name || '—')} • ${fmtCurrency(p.value)}</div>
+            <div class="activity-item-detail">${esc(p.company_name || 'â€”')} â€¢ ${fmtCurrency(p.value)}</div>
           </div>
           <span class="activity-item-badge badge-${p.status}">${statusLabel(p.status)}</span>
         </div>
@@ -1959,7 +2279,7 @@ function renderActivity(data) {
   }
 }
 
-/* ── Marketing Rendering ────────────────────────────────────────────────── */
+/* â”€â”€ Marketing Rendering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function renderMarketing(data) {
   if (!data) return;
@@ -1998,7 +2318,7 @@ function renderMarketing(data) {
         <div class="campaign-item">
           <div>
             <div style="font-weight:500">${esc(c.name)}</div>
-            <div style="font-size:11px;color:var(--text-muted)">${esc(c.type)} • ${c.sent_count || 0} enviados</div>
+            <div style="font-size:11px;color:var(--text-muted)">${esc(c.type)} â€¢ ${c.sent_count || 0} enviados</div>
           </div>
           <span class="activity-item-badge badge-${c.status}">${statusLabel(c.status)}</span>
         </div>
@@ -2007,7 +2327,7 @@ function renderMarketing(data) {
   }
 }
 
-/* ── Fleet Utilization ──────────────────────────────────────────────────── */
+/* â”€â”€ Fleet Utilization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function renderFleetUtilization(data) {
   const container = document.getElementById('dash-fleet');
@@ -2050,7 +2370,7 @@ function renderFleetUtilization(data) {
   `;
 }
 
-/* ── Top Clients ────────────────────────────────────────────────────────── */
+/* â”€â”€ Top Clients â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function renderTopClients(clients) {
   const tbody = document.getElementById('dash-top-clients');
@@ -2070,7 +2390,7 @@ function renderTopClients(clients) {
   `).join('');
 }
 
-/* ── FASE 2 — NOTIFICATIONS ────────────────────────────────────────────── */
+/* â”€â”€ FASE 2 â€” NOTIFICATIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 let notifInterval = null;
 
@@ -2140,7 +2460,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-/* ── FASE 2 — UPLOAD ──────────────────────────────────────────────────── */
+/* â”€â”€ FASE 2 â€” UPLOAD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 async function uploadFile(entityType, entityId, fileInput) {
   const file = fileInput.files[0];
@@ -2152,7 +2472,7 @@ async function uploadFile(entityType, entityId, fileInput) {
 
   const headers = {};
   if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
-  // Note: Don't set Content-Type for multipart — fetch sets it automatically with boundary
+  // Note: Don't set Content-Type for multipart â€” fetch sets it automatically with boundary
 
   showLoader();
   try {
@@ -2186,8 +2506,8 @@ async function loadFiles(entityType, entityId) {
       <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-light)">
         <span style="font-size:13px">${esc(f.original_name)}</span>
         <div style="display:flex;gap:8px">
-          <a href="/api/files/${f.id}/download" class="btn-link" style="font-size:12px" target="_blank" download>⬇</a>
-          <button class="btn-link" style="font-size:12px;color:var(--red)" onclick="deleteFile(${f.id},'${entityType}',${entityId})">✕</button>
+          <a href="/api/files/${f.id}/download" class="btn-link" style="font-size:12px" target="_blank" download>â¬‡</a>
+          <button class="btn-link" style="font-size:12px;color:var(--red)" onclick="deleteFile(${f.id},'${entityType}',${entityId})">âœ•</button>
         </div>
       </div>
     `).join('');
@@ -2202,7 +2522,7 @@ async function deleteFile(id, entityType, entityId) {
   } catch (e) { toast(e.message, 'error'); }
 }
 
-/* ── FASE 2 — EXPORT ──────────────────────────────────────────────────── */
+/* â”€â”€ FASE 2 â€” EXPORT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function exportCsv(endpoint) {
   const token = state.token;
@@ -2224,7 +2544,7 @@ function exportCsv(endpoint) {
     .catch(e => toast(e.message, 'error'));
 }
 
-/* ── FASE 2 — LOAD DASHBOARD CHARTS ───────────────────────────────────── */
+/* â”€â”€ FASE 2 â€” LOAD DASHBOARD CHARTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 // Augment loadDashboard to also load charts and new dashboard data
 const _origLoadDashboard = loadDashboard;
@@ -2261,7 +2581,7 @@ loadDashboard = async function() {
   loadUnreadCount();
 };
 
-/* ── FASE 2 — EXPORT BUTTONS ─────────────────────────────────────────--- */
+/* â”€â”€ FASE 2 â€” EXPORT BUTTONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€--- */
 
 // Add export buttons to page headers after navigation
 function addExportButtons(page) {
@@ -2277,7 +2597,7 @@ function addExportButtons(page) {
   if (header.querySelector('.btn-export')) return;
   const btn = document.createElement('button');
   btn.className = 'btn btn-secondary btn-export';
-  btn.textContent = '📥 CSV';
+  btn.textContent = 'ðŸ“¥ CSV';
   btn.style.marginLeft = '8px';
   btn.onclick = () => exportCsv(exportMap[page]);
   const actionGroup = header.querySelector('div:last-child') || header.lastElementChild;
@@ -2286,7 +2606,7 @@ function addExportButtons(page) {
   }
 }
 
-/* ── FASE 4 — GLOBAL SEARCH ─────────────────────────────────────────── */
+/* â”€â”€ FASE 4 â€” GLOBAL SEARCH â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 let searchTimeout;
 
@@ -2322,7 +2642,7 @@ document.addEventListener('click', (e) => {
   if (el && !e.target.closest('.sidebar-search')) el.style.display = 'none';
 });
 
-/* ── FASE 4 — CALENDAR ────────────────────────────────────────────── */
+/* â”€â”€ FASE 4 â€” CALENDAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 let calendarMonth = new Date().getMonth() + 1;
 let calendarYear = new Date().getFullYear();
@@ -2355,7 +2675,7 @@ function renderCalendar(events) {
     }
   }
 
-  const typeIcon = { service_order: '🔧', contract: '📄', task: '☐' };
+  const typeIcon = { service_order: 'ðŸ”§', contract: 'ðŸ“„', task: 'â˜' };
   const statusColor = { open: '#f59e0b', in_progress: '#3b82f6', closed: '#10b981', cancelled: '#ef4444', active: '#10b981', ended: '#6b7280', pending: '#f59e0b', done: '#10b981' };
 
   let cells = '';
@@ -2372,7 +2692,7 @@ function renderCalendar(events) {
 
     for (const ev of dayEvents.slice(0, 3)) {
       cells += `<div style="font-size:10px;padding:1px 4px;margin-bottom:1px;border-radius:3px;background:${statusColor[ev.status] || '#6b7280'}20;color:${statusColor[ev.status] || '#6b7280'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(ev.title)}">
-        ${typeIcon[ev.type] || '•'} ${esc(ev.title.substring(0, 20))}
+        ${typeIcon[ev.type] || 'â€¢'} ${esc(ev.title.substring(0, 20))}
       </div>`;
     }
     if (dayEvents.length > 3) {
@@ -2404,16 +2724,16 @@ document.getElementById('btn-cal-prev')?.addEventListener('click', () => { calen
 document.getElementById('btn-cal-next')?.addEventListener('click', () => { calendarMonth++; if (calendarMonth > 12) { calendarMonth = 1; calendarYear++; } loadCalendar(); });
 document.getElementById('btn-cal-today')?.addEventListener('click', () => { const d = new Date(); calendarMonth = d.getMonth() + 1; calendarYear = d.getFullYear(); loadCalendar(); });
 
-/* ── NOVOS MÓDULOS: BI ──────────────────────────────────────────────── */
+/* â”€â”€ NOVOS Mà “DULOS: BI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 async function loadBI() {
   showLoader();
   try {
     const kpis = await api('GET', '/bi/kpis');
-    document.getElementById('bi-conversion').textContent = kpis.conversionRate != null ? kpis.conversionRate + '%' : '—';
-    document.getElementById('bi-avg-ticket').textContent = kpis.avgTicket != null ? fmtCurrency(kpis.avgTicket) : '—';
-    document.getElementById('bi-fleet').textContent = kpis.fleetUtilization != null ? kpis.fleetUtilization + '%' : '—';
-    document.getElementById('bi-recurrence').textContent = kpis.recurrenceRate != null ? kpis.recurrenceRate + '%' : '—';
+    document.getElementById('bi-conversion').textContent = kpis.conversionRate != null ? kpis.conversionRate + '%' : 'â€”';
+    document.getElementById('bi-avg-ticket').textContent = kpis.avgTicket != null ? fmtCurrency(kpis.avgTicket) : 'â€”';
+    document.getElementById('bi-fleet').textContent = kpis.fleetUtilization != null ? kpis.fleetUtilization + '%' : 'â€”';
+    document.getElementById('bi-recurrence').textContent = kpis.recurrenceRate != null ? kpis.recurrenceRate + '%' : 'â€”';
   } catch {}
   try { renderBICharts(); } catch {}
   try {
@@ -2444,27 +2764,32 @@ async function renderBICharts() {
 
 document.getElementById('btn-refresh-bi')?.addEventListener('click', loadBI);
 
-/* ── NOVOS MÓDULOS: INVOICES ────────────────────────────────────────── */
+/* â”€â”€ NOVOS Mà “DULOS: INVOICES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-let invoicesPage = 1;
 async function loadInvoices(page) {
-  if (page) invoicesPage = page;
+  if (page) pagination.invoices.page = page;
   showLoader();
   try {
     const status = document.getElementById('invoice-filter-status')?.value || '';
-    let url = `/invoices?page=${invoicesPage}&limit=10`;
+    const p = pagination.invoices;
+    let url = `/invoices?page=${p.page}&limit=${p.limit}`;
     if (status) url += '&status=' + status;
     const res = await api('GET', url);
     state.invoices = res.invoices || [];
+    pagination.invoices.total = res.total || 0;
+    pagination.invoices.totalPages = res.totalPages || 1;
     // Summary stats
     try {
-      const summary = await api('GET', '/invoices/summary');
-      if (summary) {
-        document.getElementById('inv-received').textContent = fmtCurrency(summary.paid || 0);
-        document.getElementById('inv-pending').textContent = fmtCurrency(summary.pending || 0);
-        document.getElementById('inv-overdue').textContent = fmtCurrency(summary.overdue || 0);
-        document.getElementById('inv-total').textContent = fmtCurrency(summary.total || 0);
-      }
+  const summary = await api('GET', '/invoices/summary');
+  if (summary) {
+    const totalPaid = summary.totalPaidThisMonth || 0;
+    const totalPending = summary.totalPending || 0;
+    const totalOverdue = summary.totalOverdue || 0;
+    document.getElementById('inv-received').textContent = fmtCurrency(totalPaid);
+    document.getElementById('inv-pending').textContent = fmtCurrency(totalPending);
+    document.getElementById('inv-overdue').textContent = fmtCurrency(totalOverdue);
+    document.getElementById('inv-total').textContent = fmtCurrency(totalPending + totalOverdue + totalPaid);
+  }
     } catch {}
     renderInvoices();
   } catch (e) { toast(e.message, 'error'); }
@@ -2480,16 +2805,18 @@ function renderInvoices() {
   if (empty) empty.style.display = 'none';
   const statusMap = { pending: 'Pendente', paid: 'Pago', overdue: 'Vencido', cancelled: 'Cancelado' };
   tbody.innerHTML = list.map(i => `<tr>
-    <td>${esc(i.nf_number || '—')}</td>
-    <td>${esc(i.company_name || '—')}</td>
-    <td>${esc(i.description || '—')}</td>
+    <td>${esc(i.nf_number || 'â€”')}</td>
+    <td>${esc(i.company_name || 'â€”')}</td>
+    <td>${esc(i.description || 'â€”')}</td>
     <td style="text-align:right">${fmtCurrency(i.value)}</td>
-    <td>${i.due_date ? fmtDate(i.due_date) : '—'}</td>
+    <td>${i.due_date ? fmtDate(i.due_date) : 'â€”'}</td>
     <td><span class="badge badge-${i.status}">${statusMap[i.status] || i.status}</span></td>
     <td style="text-align:right;white-space:nowrap">
-      <button class="btn-icon" onclick="editInvoice('${i.id}')" title="Editar">✎</button>
-      <button class="btn-icon" onclick="deleteInvoice('${i.id}')" title="Excluir" style="color:var(--red)">✕</button>
+      <button class="btn-icon" onclick="showInvoiceDetail('${i.id}')" title="Detalhes">ðŸ“‹</button>
+      <button class="btn-icon" onclick="editInvoice('${i.id}')" title="Editar">âœŽ</button>
+      <button class="btn-icon" onclick="deleteInvoice('${i.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
     </td></tr>`).join('');
+  if (paginationEl) paginationEl.innerHTML = paginationContainer('invoices', loadInvoices);
 }
 
 async function loadInvoiceCompanies() {
@@ -2522,6 +2849,74 @@ async function deleteInvoice(id) {
   try { await api('DELETE', `/invoices/${id}`); toast('Excluída', 'success'); loadInvoices(); } catch (e) { toast(e.message, 'error'); }
 }
 
+let _detailInvoiceId = null;
+
+async function showInvoiceDetail(id) {
+  showLoader();
+  try {
+    const inv = await api('GET', '/invoices/' + id);
+    _detailInvoiceId = inv.id;
+    document.getElementById('modal-invoice-title').textContent = 'Detalhes da Fatura';
+    document.getElementById('invoice-id').value = inv.id;
+
+    document.getElementById('invoice-detail-number').textContent = esc(inv.invoice_number || 'â€”');
+    document.getElementById('invoice-detail-issue').textContent = inv.issue_date ? fmtDate(inv.issue_date) : 'â€”';
+    document.getElementById('invoice-detail-payment').textContent = inv.payment_date ? fmtDate(inv.payment_date) : 'â€”';
+
+    if (inv.contract_id) {
+      document.getElementById('invoice-detail-contract-row').style.display = '';
+      document.getElementById('invoice-detail-contract').innerHTML = `<a href="#" onclick="navigate('contracts');closeModal('modal-invoice');return false">Ver Contrato #${esc(inv.contract_id)}</a>`;
+    } else {
+      document.getElementById('invoice-detail-contract-row').style.display = 'none';
+    }
+
+    document.getElementById('invoice-detail-fields').style.display = '';
+    document.getElementById('invoice-detail-actions').style.display = '';
+    document.getElementById('invoice-form-actions').style.display = 'none';
+
+    document.querySelectorAll('#modal-invoice-form input, #modal-invoice-form select, #modal-invoice-form textarea').forEach(el => {
+      el.disabled = true;
+    });
+
+    loadInvoiceCompanies().then(() => {
+      const sel = document.getElementById('invoice-company');
+      if (inv.company_id) sel.value = inv.company_id;
+    });
+    document.getElementById('invoice-description').value = inv.description || '';
+    document.getElementById('invoice-value').value = inv.value || '';
+    document.getElementById('invoice-due').value = inv.due_date ? inv.due_date.substring(0,10) : '';
+    document.getElementById('invoice-status').value = inv.status || 'pending';
+    document.getElementById('invoice-notes').value = inv.notes || '';
+
+    openModal('modal-invoice');
+  } catch (e) { toast(e.message, 'error'); }
+  finally { hideLoader(); }
+}
+
+function editInvoiceFromDetail() {
+  closeModal('modal-invoice');
+  setTimeout(() => editInvoice(_detailInvoiceId), 300);
+}
+
+async function deleteInvoiceFromDetail() {
+  closeModal('modal-invoice');
+  setTimeout(() => deleteInvoice(_detailInvoiceId), 300);
+}
+
+document.getElementById('modal-invoice')?.addEventListener('click', function(e) {
+  if (e.target === this) resetInvoiceDetailMode();
+});
+
+function resetInvoiceDetailMode() {
+  _detailInvoiceId = null;
+  document.getElementById('invoice-detail-fields').style.display = 'none';
+  document.getElementById('invoice-detail-actions').style.display = 'none';
+  document.getElementById('invoice-form-actions').style.display = '';
+  document.querySelectorAll('#modal-invoice-form input, #modal-invoice-form select, #modal-invoice-form textarea').forEach(el => {
+    el.disabled = false;
+  });
+}
+
 document.getElementById('btn-new-invoice')?.addEventListener('click', () => { loadInvoiceCompanies().then(() => openInvoiceModal(null)); });
 document.getElementById('btn-refresh-invoices')?.addEventListener('click', loadInvoices);
 document.getElementById('invoice-filter-status')?.addEventListener('change', loadInvoices);
@@ -2543,18 +2938,20 @@ document.getElementById('modal-invoice-form')?.addEventListener('submit', async 
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* ── NOVOS MÓDULOS: PROPOSALS ───────────────────────────────────────── */
+/* â”€â”€ NOVOS Mà “DULOS: PROPOSALS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-let proposalsPage = 1;
 async function loadProposals(page) {
-  if (page) proposalsPage = page;
+  if (page) pagination.proposals.page = page;
   showLoader();
   try {
     const status = document.getElementById('proposal-filter-status')?.value || '';
-    let url = `/proposals?page=${proposalsPage}&limit=10`;
+    const p = pagination.proposals;
+    let url = `/proposals?page=${p.page}&limit=${p.limit}`;
     if (status) url += '&status=' + status;
     const res = await api('GET', url);
     state.proposals = res.proposals || [];
+    pagination.proposals.total = res.total || 0;
+    pagination.proposals.totalPages = res.totalPages || 1;
     renderProposals();
   } catch (e) { toast(e.message, 'error'); }
   finally { hideLoader(); }
@@ -2570,15 +2967,17 @@ function renderProposals() {
   const statusMap = { draft: 'Rascunho', sent: 'Enviada', approved: 'Aprovada', rejected: 'Rejeitada' };
   tbody.innerHTML = list.map(p => `<tr>
     <td><strong>${esc(p.title)}</strong></td>
-    <td>${esc(p.company_name || '—')}</td>
-    <td>${esc(p.contact_name || '—')}</td>
+    <td>${esc(p.company_name || 'â€”')}</td>
+    <td>${esc(p.contact_name || 'â€”')}</td>
     <td style="text-align:right">${fmtCurrency(p.value)}</td>
-    <td>${p.valid_until ? fmtDate(p.valid_until) : '—'}</td>
+    <td>${p.valid_until ? fmtDate(p.valid_until) : 'â€”'}</td>
     <td><span class="badge badge-${p.status}">${statusMap[p.status] || p.status}</span></td>
     <td style="text-align:right;white-space:nowrap">
-      <button class="btn-icon" onclick="editProposal('${p.id}')" title="Editar">✎</button>
-      <button class="btn-icon" onclick="deleteProposal('${p.id}')" title="Excluir" style="color:var(--red)">✕</button>
+      <button class="btn-icon" onclick="showProposalDetail('${p.id}')" title="Detalhes">ðŸ“‹</button>
+      <button class="btn-icon" onclick="editProposal('${p.id}')" title="Editar">âœŽ</button>
+      <button class="btn-icon" onclick="deleteProposal('${p.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
     </td></tr>`).join('');
+  if (pagEl) pagEl.innerHTML = paginationContainer('proposals', loadProposals);
 }
 
 async function loadProposalCompanies() {
@@ -2608,6 +3007,99 @@ function editProposal(id) {
 async function deleteProposal(id) {
   if (!confirm('Excluir esta proposta?')) return;
   try { await api('DELETE', `/proposals/${id}`); toast('Excluída', 'success'); loadProposals(); } catch (e) { toast(e.message, 'error'); }
+}
+
+let _detailProposalId = null;
+
+async function showProposalDetail(id) {
+  showLoader();
+  try {
+    const p = await api('GET', '/proposals/' + id);
+    _detailProposalId = p.id;
+    document.getElementById('modal-proposal-title').textContent = 'Detalhes da Proposta';
+    document.getElementById('proposal-id').value = p.id;
+
+    document.querySelectorAll('#modal-proposal-form input, #modal-proposal-form select, #modal-proposal-form textarea').forEach(el => {
+      el.disabled = true;
+    });
+    document.getElementById('btn-proposal-add-item').style.display = 'none';
+
+    loadProposalCompanies().then(() => {
+      const sel = document.getElementById('proposal-company');
+      if (p.company_id) sel.value = p.company_id;
+    });
+    document.getElementById('proposal-title').value = p.title || '';
+    document.getElementById('proposal-contact').value = p.contact_name || '';
+    document.getElementById('proposal-valid').value = p.valid_until ? p.valid_until.substring(0,10) : '';
+    document.getElementById('proposal-notes').value = p.notes || '';
+
+    const items = p.items || [];
+    const itemsTbody = document.getElementById('proposal-detail-items-tbody');
+    if (items.length > 0) {
+      let total = 0;
+      itemsTbody.innerHTML = items.map(item => {
+        const qtd = parseFloat(item.quantity) || 1;
+        const unitPrice = parseFloat(item.unit_price) || 0;
+        const itemTotal = qtd * unitPrice;
+        total += itemTotal;
+        return `<tr><td>${esc(item.description)}</td><td style="text-align:right">${qtd}</td><td style="text-align:right">${fmtCurrency(unitPrice)}</td><td style="text-align:right;font-weight:600">${fmtCurrency(itemTotal)}</td></tr>`;
+      }).join('');
+      document.getElementById('proposal-detail-total').textContent = 'Valor Total: ' + fmtCurrency(total);
+    } else {
+      itemsTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:12px">Nenhum item cadastrado</td></tr>';
+      document.getElementById('proposal-detail-total').textContent = '';
+    }
+    document.getElementById('proposal-detail-items').style.display = '';
+    document.getElementById('proposal-detail-actions').style.display = '';
+    document.getElementById('proposal-form-actions').style.display = 'none';
+
+    document.querySelectorAll('#modal-proposal-form .proposal-item-row').forEach(r => r.style.display = 'none');
+
+    openModal('modal-proposal');
+  } catch (e) { toast(e.message, 'error'); }
+  finally { hideLoader(); }
+}
+
+function editProposalFromDetail() {
+  closeModal('modal-proposal');
+  setTimeout(() => editProposal(_detailProposalId), 300);
+}
+
+async function approveProposalFromDetail() {
+  if (!confirm('Aprovar esta proposta?')) return;
+  try {
+    await api('PATCH', `/proposals/${_detailProposalId}`, { status: 'approved' });
+    toast('Proposta aprovada!', 'success');
+    closeModal('modal-proposal');
+    loadProposals();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function rejectProposalFromDetail() {
+  if (!confirm('Recusar esta proposta?')) return;
+  try {
+    await api('PATCH', `/proposals/${_detailProposalId}`, { status: 'rejected' });
+    toast('Proposta recusada', 'info');
+    closeModal('modal-proposal');
+    loadProposals();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function deleteProposalFromDetail() {
+  closeModal('modal-proposal');
+  setTimeout(() => deleteProposal(_detailProposalId), 300);
+}
+
+function resetProposalDetailMode() {
+  _detailProposalId = null;
+  document.getElementById('proposal-detail-items').style.display = 'none';
+  document.getElementById('proposal-detail-actions').style.display = 'none';
+  document.getElementById('proposal-form-actions').style.display = '';
+  document.getElementById('btn-proposal-add-item').style.display = '';
+  document.querySelectorAll('#modal-proposal-form input, #modal-proposal-form select, #modal-proposal-form textarea').forEach(el => {
+    el.disabled = false;
+  });
+  document.querySelectorAll('#modal-proposal-form .proposal-item-row').forEach(r => r.style.display = '');
 }
 
 document.getElementById('btn-new-proposal')?.addEventListener('click', () => { loadProposalCompanies().then(() => openProposalModal(null)); });
@@ -2640,22 +3132,24 @@ document.getElementById('btn-proposal-add-item')?.addEventListener('click', () =
   const row = document.createElement('div');
   row.className = 'proposal-item-row';
   row.style.cssText = 'display:flex;gap:6px';
-  row.innerHTML = '<input type="text" placeholder="Descrição" style="flex:3;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px"><input type="number" placeholder="Qtd" style="width:60px;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px" min="1" value="1"><input type="number" placeholder="Valor" style="width:100px;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px" step="0.01" min="0"><button type="button" class="btn btn-secondary" style="padding:4px 8px;font-size:12px" onclick="this.parentElement.remove()">✕</button>';
+  row.innerHTML = '<input type="text" placeholder="Descrição" style="flex:3;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px"><input type="number" placeholder="Qtd" style="width:60px;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px" min="1" value="1"><input type="number" placeholder="Valor" style="width:100px;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px" step="0.01" min="0"><button type="button" class="btn btn-secondary" style="padding:4px 8px;font-size:12px" onclick="this.parentElement.remove()">âœ•</button>';
   container.appendChild(row);
 });
 
-/* ── NOVOS MÓDULOS: PROJECTS ────────────────────────────────────────── */
+/* â”€â”€ NOVOS Mà “DULOS: PROJECTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-let projectsPage = 1;
 async function loadProjects(page) {
-  if (page) projectsPage = page;
+  if (page) pagination.projects.page = page;
   showLoader();
   try {
     const status = document.getElementById('project-filter-status')?.value || '';
-    let url = `/projects?page=${projectsPage}&limit=10`;
+    const p = pagination.projects;
+    let url = `/projects?page=${p.page}&limit=${p.limit}`;
     if (status) url += '&status=' + status;
     const res = await api('GET', url);
     state.projects = res.projects || [];
+    pagination.projects.total = res.total || 0;
+    pagination.projects.totalPages = res.totalPages || 1;
     renderProjects();
   } catch (e) { toast(e.message, 'error'); }
   finally { hideLoader(); }
@@ -2671,15 +3165,16 @@ function renderProjects() {
   const statusMap = { planning: 'Planejamento', in_progress: 'Em Andamento', completed: 'Concluído', cancelled: 'Cancelado' };
   tbody.innerHTML = list.map(p => `<tr>
     <td><strong>${esc(p.name)}</strong></td>
-    <td>${esc(p.company_name || '—')}</td>
+    <td>${esc(p.company_name || 'â€”')}</td>
     <td><span class="badge badge-${p.status}">${statusMap[p.status] || p.status}</span></td>
     <td style="text-align:right">${fmtCurrency(p.value)}</td>
-    <td>${p.start_date ? fmtDate(p.start_date) : '—'}</td>
-    <td>${p.end_date ? fmtDate(p.end_date) : '—'}</td>
+    <td>${p.start_date ? fmtDate(p.start_date) : 'â€”'}</td>
+    <td>${p.end_date ? fmtDate(p.end_date) : 'â€”'}</td>
     <td style="text-align:right;white-space:nowrap">
-      <button class="btn-icon" onclick="editProject('${p.id}')" title="Editar">✎</button>
-      <button class="btn-icon" onclick="deleteProject('${p.id}')" title="Excluir" style="color:var(--red)">✕</button>
+      <button class="btn-icon" onclick="editProject('${p.id}')" title="Editar">âœŽ</button>
+      <button class="btn-icon" onclick="deleteProject('${p.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
     </td></tr>`).join('');
+  if (pagEl) pagEl.innerHTML = paginationContainer('projects', loadProjects);
 }
 
 async function loadProjectCompanies() {
@@ -2735,31 +3230,121 @@ document.getElementById('modal-project-form')?.addEventListener('submit', async 
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* ── NOVOS MÓDULOS: TICKETS ─────────────────────────────────────────── */
+/* â”€â”€ PROJECT PHASES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+const phaseStatusMap = { pending: 'Pendente', in_progress: 'Em Andamento', completed: 'Concluído' };
+let _currentProjectId = null;
+
+async function loadProjectPhases(projectId) {
+  _currentProjectId = projectId;
+  try {
+    const project = await api('GET', '/projects/' + projectId);
+    renderPhases(project.phases || []);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function renderPhases(phases) {
+  const tbody = document.getElementById('phases-tbody');
+  if (!tbody) return;
+  if (!phases || phases.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px;font-size:13px">Nenhuma fase cadastrada</td></tr>';
+    return;
+  }
+  tbody.innerHTML = phases.map(ph => `
+    <tr>
+      <td><strong>${esc(ph.name)}</strong>${ph.description ? `<br><span style="font-size:11px;color:var(--text-muted)">${esc(ph.description)}</span>` : ''}</td>
+      <td>
+        <select class="phase-status-select" data-phase-id="${ph.id}" onchange="updatePhaseStatus('${ph.id}', this.value)" style="font-size:12px;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-input);color:var(--text-color)">
+          <option value="pending" ${ph.status === 'pending' ? 'selected' : ''}>Pendente</option>
+          <option value="in_progress" ${ph.status === 'in_progress' ? 'selected' : ''}>Em Andamento</option>
+          <option value="completed" ${ph.status === 'completed' ? 'selected' : ''}>Concluído</option>
+        </select>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;height:6px;background:var(--border-color);border-radius:3px;overflow:hidden;min-width:50px">
+            <div style="height:100%;width:${ph.progress || 0}%;background:${(ph.progress || 0) >= 100 ? 'var(--green)' : 'var(--accent)'};border-radius:3px;transition:width .3s"></div>
+          </div>
+          <span style="font-size:11px;white-space:nowrap">${ph.progress || 0}%</span>
+        </div>
+      </td>
+      <td style="font-size:12px">${ph.start_date ? fmtDate(ph.start_date) : 'â€”'}<br>${ph.end_date ? fmtDate(ph.end_date) : 'â€”'}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn-icon" onclick="deletePhase('${ph.id}')" title="Excluir fase" style="color:var(--red);font-size:14px">âœ•</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function addProjectPhase() {
+  if (!_currentProjectId) return;
+  const name = prompt('Nome da nova fase:');
+  if (!name || !name.trim()) return;
+  showLoader();
+  try {
+    await api('POST', '/projects/' + _currentProjectId + '/phases', { name: name.trim() });
+    toast('Fase adicionada!', 'success');
+    loadProjectPhases(_currentProjectId);
+  } catch (e) { toast(e.message, 'error'); }
+  finally { hideLoader(); }
+}
+
+async function updatePhaseStatus(phaseId, status) {
+  try {
+    await api('PATCH', '/projects/phases/' + phaseId, { status });
+    toast('Status atualizado', 'success');
+    if (_currentProjectId) loadProjectPhases(_currentProjectId);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function deletePhase(phaseId) {
+  if (!confirm('Excluir esta fase?')) return;
+  try {
+    await api('DELETE', '/projects/phases/' + phaseId);
+    toast('Fase excluída', 'success');
+    if (_currentProjectId) loadProjectPhases(_currentProjectId);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+document.getElementById('btn-add-phase')?.addEventListener('click', addProjectPhase);
+
+// Override openProjectModal to load phases when editing
+const _origOpenProjectModal = openProjectModal;
+openProjectModal = function(project) {
+  _origOpenProjectModal(project);
+  if (project) loadProjectPhases(project.id);
+  else {
+    _currentProjectId = null;
+    const tbody = document.getElementById('phases-tbody');
+    if (tbody) tbody.innerHTML = '';
+  }
+};
+
+/* â”€â”€ NOVOS Mà “DULOS: TICKETS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 let ticketsPage = 1;
-/* ── NOVOS MÓDULOS: RENTAL ──────────────────────────────────────────── */
+/* â”€â”€ NOVOS Mà “DULOS: RENTAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 async function loadRental() {
   showLoader();
   try {
     const util = await api('GET', '/rental/utilization');
     if (util) {
-      document.getElementById('rental-available').textContent = util.available ?? '—';
-      document.getElementById('rental-in-use').textContent = util.inUse ?? '—';
-      document.getElementById('rental-mtce').textContent = util.maintenance ?? '—';
-      document.getElementById('rental-util').textContent = (util.utilization != null ? util.utilization + '%' : '—');
+      document.getElementById('rental-available').textContent = util.available ?? 'â€”';
+      document.getElementById('rental-in-use').textContent = util.inUse ?? 'â€”';
+      document.getElementById('rental-mtce').textContent = util.maintenance ?? 'â€”';
+      document.getElementById('rental-util').textContent = (util.utilization != null ? util.utilization + '%' : 'â€”');
     }
   } catch {}
   try {
     const avail = await api('GET', '/rental/availability');
     const tb = document.getElementById('rental-tbody');
-    if (tb) tb.innerHTML = (avail || []).map(a => `<tr><td>${esc(a.equipment_name || '—')}</td><td>${a.start_date || '—'}</td><td>${a.end_date || '—'}</td><td><span class="badge badge-${a.status}">${esc(a.status)}</span></td><td style="text-align:right"><button class="btn-icon" onclick="deleteRentalBlock(${a.id})" title="Excluir" style="color:var(--red)">✕</button></td></tr>`).join('');
+    if (tb) tb.innerHTML = (avail || []).map(a => `<tr><td>${esc(a.equipment_name || 'â€”')}</td><td>${a.start_date || 'â€”'}</td><td>${a.end_date || 'â€”'}</td><td><span class="badge badge-${a.status}">${esc(a.status)}</span></td><td style="text-align:right"><button class="btn-icon" onclick="deleteRentalBlock(${a.id})" title="Excluir" style="color:var(--red)">âœ•</button></td></tr>`).join('');
   } catch {}
   try {
     const exp = await api('GET', '/rental/expiring?days=15');
     const tb2 = document.getElementById('rental-expiring-tbody');
-    if (tb2) tb2.innerHTML = (exp || []).map(c => `<tr><td>${esc(c.title)}</td><td>${esc(c.equipment_name || '—')}</td><td>${esc(c.company_name || '—')}</td><td>${c.end_date || '—'}</td></tr>`).join('');
+    if (tb2) tb2.innerHTML = (exp || []).map(c => `<tr><td>${esc(c.title)}</td><td>${esc(c.equipment_name || 'â€”')}</td><td>${esc(c.company_name || 'â€”')}</td><td>${c.end_date || 'â€”'}</td></tr>`).join('');
   } catch {}
   finally { hideLoader(); }
 }
@@ -2799,7 +3384,7 @@ document.getElementById('modal-rental-form')?.addEventListener('submit', async (
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* ── NOVOS MÓDULOS: CAMPAIGNS ───────────────────────────────────────── */
+/* â”€â”€ NOVOS Mà “DULOS: CAMPAIGNS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 let campaignsPage = 1;
 async function loadCampaigns(page) {
@@ -2826,14 +3411,14 @@ function renderCampaigns() {
   const statusMap = { draft: 'Rascunho', active: 'Ativa', paused: 'Pausada', finished: 'Concluída' };
   tbody.innerHTML = list.map(c => `<tr>
     <td><strong>${esc(c.name)}</strong></td>
-    <td>${esc(c.type || '—')}</td>
+    <td>${esc(c.type || 'â€”')}</td>
     <td><span class="badge badge-${c.status}">${statusMap[c.status] || c.status}</span></td>
-    <td>${c.start_date ? fmtDate(c.start_date) : '—'}</td>
-    <td>${c.end_date ? fmtDate(c.end_date) : '—'}</td>
+    <td>${c.start_date ? fmtDate(c.start_date) : 'â€”'}</td>
+    <td>${c.end_date ? fmtDate(c.end_date) : 'â€”'}</td>
     <td style="text-align:right">${fmtCurrency(c.budget)}</td>
     <td style="text-align:right;white-space:nowrap">
-      <button class="btn-icon" onclick="editCampaign('${c.id}')" title="Editar">✎</button>
-      <button class="btn-icon" onclick="deleteCampaign('${c.id}')" title="Excluir" style="color:var(--red)">✕</button>
+      <button class="btn-icon" onclick="editCampaign('${c.id}')" title="Editar">âœŽ</button>
+      <button class="btn-icon" onclick="deleteCampaign('${c.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
     </td></tr>`).join('');
 }
 
@@ -2882,7 +3467,7 @@ document.getElementById('modal-campaign-form')?.addEventListener('submit', async
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* ── NOVOS MÓDULOS: HUNTER ──────────────────────────────────────────── */
+/* â”€â”€ NOVOS Mà “DULOS: HUNTER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 let hunterPage = 1;
 async function loadHunter(page) {
@@ -2897,7 +3482,7 @@ async function loadHunter(page) {
   try {
     const top = await api('GET', '/hunter/top-leads?limit=10');
     const tb = document.getElementById('hunter-top-tbody');
-    if (tb) tb.innerHTML = (top || []).map(l => `<tr><td><strong>${esc(l.name)}</strong></td><td><span class="badge badge-${l.avg_score >= 70 ? 'active' : l.avg_score >= 40 ? 'in_progress' : 'pending'}">${parseFloat(l.avg_score || 0).toFixed(1)}</span></td><td>${l.enrichment_count || 0}</td><td style="text-align:right"><button class="btn-icon" onclick="navigate('leads')" title="Ver Lead">→</button></td></tr>`).join('');
+    if (tb) tb.innerHTML = (top || []).map(l => `<tr><td><strong>${esc(l.name)}</strong></td><td><span class="badge badge-${l.avg_score >= 70 ? 'active' : l.avg_score >= 40 ? 'in_progress' : 'pending'}">${parseFloat(l.avg_score || 0).toFixed(1)}</span></td><td>${l.enrichment_count || 0}</td><td style="text-align:right"><button class="btn-icon" onclick="navigate('leads')" title="Ver Lead">â†’</button></td></tr>`).join('');
   } catch {}
   finally { hideLoader(); }
 }
@@ -2910,11 +3495,11 @@ function renderHunter() {
   if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (pagEl) pagEl.innerHTML = ''; return; }
   if (empty) empty.style.display = 'none';
   tbody.innerHTML = list.map(e => `<tr>
-    <td>${esc(e.lead_name || '—')}</td>
-    <td>${esc(e.source || '—')}</td>
-    <td>${e.score != null ? e.score : '—'}</td>
-    <td>${e.created_at ? fmtDate(e.created_at) : '—'}</td>
-    <td style="text-align:right"><button class="btn-icon" onclick="deleteEnrichment('${e.id}')" title="Excluir" style="color:var(--red)">✕</button></td></tr>`).join('');
+    <td>${esc(e.lead_name || 'â€”')}</td>
+    <td>${esc(e.source || 'â€”')}</td>
+    <td>${e.score != null ? e.score : 'â€”'}</td>
+    <td>${e.created_at ? fmtDate(e.created_at) : 'â€”'}</td>
+    <td style="text-align:right"><button class="btn-icon" onclick="deleteEnrichment('${e.id}')" title="Excluir" style="color:var(--red)">âœ•</button></td></tr>`).join('');
 }
 
 async function loadEnrichmentLeads() {
@@ -2949,6 +3534,123 @@ document.getElementById('modal-enrichment-form')?.addEventListener('submit', asy
   } catch (e) { toast(e.message, 'error'); }
 });
 
+/* â”€â”€ Colaboradores / Users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+async function loadUsers() {
+  try {
+    const data = await api('GET', '/users');
+    const users = data.users || [];
+    const tbody = document.getElementById('users-tbody');
+    const empty = document.getElementById('users-empty');
+    if (!tbody) return;
+
+    const search = (document.getElementById('user-search')?.value || '').toLowerCase();
+    const filterRole = document.getElementById('user-filter-role')?.value || '';
+    const filtered = users.filter(u => {
+      const matchSearch = !search || (u.name || '').toLowerCase().includes(search) || (u.email || '').toLowerCase().includes(search);
+      const matchRole = !filterRole || u.role === filterRole;
+      return matchSearch && matchRole;
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '';
+      if (empty) empty.style.display = '';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    const roleLabels = { ceo: 'CEO', admin: 'Administrador', comercial: 'Comercial', developer: 'Developer', user: 'Usuà ¡rio' };
+    tbody.innerHTML = filtered.map(u => `
+      <tr>
+        <td><strong>${esc(u.name)}</strong></td>
+        <td>${esc(u.email)}</td>
+        <td><span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:${u.role === 'ceo' ? 'var(--accent-dim);color:var(--accent)' : u.role === 'developer' ? 'var(--purple-dim);color:var(--purple)' : u.role === 'comercial' ? 'var(--blue-dim);color:var(--blue)' : u.role === 'admin' ? 'var(--green-dim);color:var(--green)' : 'var(--bg-hover);color:var(--text-secondary)'}">${roleLabels[u.role] || u.role}</span></td>
+        <td>${esc(u.cargo) || 'â€”'}</td>
+        <td>${esc(u.funcao) || 'â€”'}</td>
+        <td>${u.active ? '<span style="color:var(--green)">â— Ativo</span>' : '<span style="color:var(--red)">â— Inativo</span>'}</td>
+        <td>${fmtDate(u.created_at)}</td>
+        <td style="text-align:right">
+          <button class="btn btn-secondary" style="padding:4px 10px;font-size:12px" onclick="editUser(${u.id})">Editar</button>
+          <button class="btn btn-secondary" style="padding:4px 10px;font-size:12px;color:var(--red)" onclick="deleteUser(${u.id}, '${esc(u.name)}')">Remover</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function editUser(id) {
+  try {
+    const data = await api('GET', `/users/${id}`);
+    const u = data.user;
+    document.getElementById('modal-user-title').textContent = 'Editar Colaborador';
+    document.getElementById('user-id').value = u.id;
+    document.getElementById('user-name-input').value = u.name || '';
+    document.getElementById('user-email-input').value = u.email || '';
+    document.getElementById('user-password-input').value = '';
+    document.getElementById('user-password-hint').style.display = '';
+    document.getElementById('user-role-input').value = u.role || 'comercial';
+    document.getElementById('user-active-input').value = u.active ? '1' : '0';
+    document.getElementById('user-cargo-input').value = u.cargo || '';
+    document.getElementById('user-funcao-input').value = u.funcao || '';
+    openModal('modal-user');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`Remover o colaborador "${name}"?`)) return;
+  try {
+    await api('DELETE', `/users/${id}`);
+    toast('Colaborador removido', 'success');
+    loadUsers();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+document.getElementById('btn-new-user')?.addEventListener('click', () => {
+  document.getElementById('modal-user-title').textContent = 'Novo Colaborador';
+  document.getElementById('user-id').value = '';
+  document.getElementById('user-name-input').value = '';
+  document.getElementById('user-email-input').value = '';
+  document.getElementById('user-password-input').value = '';
+  document.getElementById('user-password-hint').style.display = 'none';
+  document.getElementById('user-role-input').value = 'comercial';
+  document.getElementById('user-active-input').value = '1';
+  document.getElementById('user-cargo-input').value = '';
+  document.getElementById('user-funcao-input').value = '';
+  openModal('modal-user');
+});
+
+document.getElementById('modal-user-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('user-id').value;
+  const body = {
+    name: document.getElementById('user-name-input').value,
+    email: document.getElementById('user-email-input').value,
+    role: document.getElementById('user-role-input').value,
+    cargo: document.getElementById('user-cargo-input').value || null,
+    funcao: document.getElementById('user-funcao-input').value || null,
+    active: parseInt(document.getElementById('user-active-input').value),
+  };
+  const password = document.getElementById('user-password-input').value;
+  if (password) body.password = password;
+  if (!id && !password) { toast('Senha é obrigatória para novos colaboradores', 'error'); return; }
+
+  try {
+    if (id) {
+      await api('PATCH', `/users/${id}`, body);
+      toast('Colaborador atualizado', 'success');
+    } else {
+      await api('POST', '/users', body);
+      toast('Colaborador criado', 'success');
+    }
+    closeModal('modal-user');
+    loadUsers();
+  } catch (e) { toast(e.message, 'error'); }
+});
+
+document.getElementById('btn-refresh-users')?.addEventListener('click', loadUsers);
+document.getElementById('user-search')?.addEventListener('input', loadUsers);
+document.getElementById('user-filter-role')?.addEventListener('change', loadUsers);
+
 /* Override navigate to include all modules */
 const _origNavigate = navigate;
 navigate = function(page) {
@@ -2966,10 +3668,12 @@ navigate = function(page) {
   if (page === 'campaigns') loadCampaigns();
   if (page === 'followups') loadFollowups();
   if (page === 'hunter') loadHunter();
+  if (page === 'routines') loadRoutines();
+  if (page === 'users') loadUsers();
   setTimeout(() => addExportButtons(page), 100);
 };
 
-/* ── Utilities ──────────────────────────────────────────────────────────── */
+/* â”€â”€ Utilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function esc(s) {
   const div = document.createElement('div');
@@ -2978,7 +3682,7 @@ function esc(s) {
 }
 
 function fmtDate(d) {
-  if (!d) return '—';
+  if (!d) return 'â€”';
   try {
     return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(d));
   } catch { return d; }
@@ -2990,13 +3694,13 @@ function copyText(t) {
 
 function fmtCurrency(v) {
   const n = parseFloat(v);
-  if (isNaN(n)) return '—';
+  if (isNaN(n)) return 'â€”';
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
 }
 
-/* ── Event Listeners ────────────────────────────────────────────────────── */
+/* â”€â”€ Event Listeners â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-/* ── Sidebar Toggle ───────────────────────────────────────────────────────── */
+/* â”€â”€ Sidebar Toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function toggleSidebar() {
   const sidebar = document.querySelector('.sidebar');
@@ -3022,7 +3726,7 @@ document.querySelectorAll('.nav-item[data-page]').forEach(item => {
   });
 });
 
-/* ── Topbar Search → focus sidebar search ─────────────────────────────── */
+/* â”€â”€ Topbar Search â†’ focus sidebar search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const topbarSearch = document.getElementById('global-search-topbar');
 if (topbarSearch) {
   topbarSearch.addEventListener('focus', () => {
@@ -3032,7 +3736,7 @@ if (topbarSearch) {
       topbarSearch.blur();
     }
   });
-  // Keyboard shortcut: Ctrl+K → focus search
+  // Keyboard shortcut: Ctrl+K â†’ focus search
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
       e.preventDefault();
@@ -3042,7 +3746,7 @@ if (topbarSearch) {
   });
 }
 
-/* ── Dev/Suporte group toggle ──────────────────────────────────────────── */
+/* â”€â”€ Dev/Suporte group toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 on('btn-dev-suporte', 'click', () => {
   const children = document.getElementById('dev-suporte-children');
   const arrow = document.querySelector('#btn-dev-suporte .nav-group-arrow i');
@@ -3074,7 +3778,7 @@ on('login-form', 'submit', async (e) => {
   }
 });
 
-/* ── Init ───────────────────────────────────────────────────────────────── */
+/* â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 (async function init() {
   // Init AOS for scroll animations

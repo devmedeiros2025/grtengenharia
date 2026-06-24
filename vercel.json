@@ -1,12 +1,14 @@
 {
   "version": 2,
-  "public": true,
   "framework": null,
   "buildCommand": null,
   "installCommand": null,
   "outputDirectory": "public",
   "routes": [
     { "src": "/api/(.*)", "dest": "https://grtengenharia.onrender.com/api/$1" },
+    { "src": "/app.html", "dest": "/app.html" },
+    { "src": "/css/(.*)", "dest": "/css/$1" },
+    { "src": "/js/(.*)", "dest": "/js/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
   "headers": [

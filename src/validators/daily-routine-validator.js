@@ -7,6 +7,9 @@ export const createDailyRoutineSchema = z.object({
   priority: z.enum(['high', 'medium', 'low']).optional().default('medium'),
   assigned_to: z.string().optional().nullable().default(null),
   due_date: z.string().optional().nullable().default(null),
+  column_name: z.string().optional().default('pending'),
+  order_index: z.number().int().optional().default(0),
+  assigned_by: z.string().optional().nullable().default(null),
 });
 
 export const updateDailyRoutineSchema = z.object({
@@ -16,4 +19,7 @@ export const updateDailyRoutineSchema = z.object({
   priority: z.enum(['high', 'medium', 'low']).optional(),
   assigned_to: z.string().optional().nullable(),
   due_date: z.string().optional().nullable(),
+  column_name: z.string().optional(),
+  order_index: z.number().int().optional(),
+  assigned_by: z.string().optional().nullable(),
 });

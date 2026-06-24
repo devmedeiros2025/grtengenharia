@@ -37,6 +37,13 @@ export async function listInboundWebhooks() {
   return db.raw('SELECT * FROM webhook_inbound ORDER BY created_at DESC');
 }
 
+export async function updateInboundWebhook(id, data) {
+  const existing = await db.get('webhook_inbound', id);
+  if (!existing) return null;
+  await db.update('webhook_inbound', id, data);
+  return db.get('webhook_inbound', id);
+}
+
 export async function deleteInboundWebhook(id) {
   return db.delete('webhook_inbound', id);
 }
@@ -179,6 +186,13 @@ export async function createApiKey(name) {
 export async function validateApiKey(key) {
   const rows = await db.select('api_keys', { conditions: [{ field: 'key', op: 'eq', value: key }, { field: 'is_active', op: 'eq', value: 1 }] });
   return rows?.[0] || null;
+}
+
+export async function updateApiKey(id, data) {
+  const existing = await db.get('api_keys', id);
+  if (!existing) return null;
+  await db.update('api_keys', id, data);
+  return db.get('api_keys', id);
 }
 
 export async function deleteApiKey(id) {

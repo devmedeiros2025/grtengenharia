@@ -1,7 +1,7 @@
-import db from '../db/adapter.js';
+﻿import db from '../db/adapter.js';
 
 export async function calendarRoutes(app) {
-  app.get('/api/calendar', { preHandler: [app.requireAuth] }, async (request) => {
+  app.get('/api/calendar', { preHandler: [app.requireAuth], schema: { tags: ['Calendar'], summary: 'Eventos do calendário', description: 'Retorna ordens de serviço, contratos e tarefas do mês' } }, async (request) => {
     const now = new Date();
     const month = parseInt(request.query.month) || (now.getMonth() + 1);
     const year = parseInt(request.query.year) || now.getFullYear();

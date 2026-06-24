@@ -1,79 +1,147 @@
 import db from '../db/adapter.js';
 
 export async function getConversionRate() {
-  const [totalRow, convertedRow] = await Promise.all([
-    db.row('SELECT COUNT(*) as c FROM leads'),
-    db.row("SELECT COUNT(*) as c FROM leads WHERE status = 'converted'"),
+  const [total, converted] = await Promise.all([
+    db.count('leads'),
+    db.count('leads', [{ field: 'status', op: 'eq', value: 'converted' }]),
   ]);
-  const total = totalRow?.c || 1;
-  const converted = convertedRow?.c || 0;
-  return { total, converted, rate: parseFloat(((converted / total) * 100).toFixed(1)) };
+  const t = total || 1;
+  const c = converted || 0;
+  return { total: t, converted: c, rate: parseFloat(((c / t) * 100).toFixed(1)) };
 }
 
 export async function getAverageTicket() {
-  const row = await db.row("SELECT AVG(value) as avg FROM deals WHERE stage = 'closed_won'");
-  return { averageTicket: row?.avg ? parseFloat(Number(row.avg).toFixed(2)) : 0 };
+  const rows = await db.select('deals', {
+    columns: 'value',
+    conditions: [{ field: 'stage', op: 'eq', value: 'closed_won' }],
+  });
+  const values = rows.map(r => Number(r.value) || 0);
+  const avg = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+  return { averageTicket: parseFloat(avg.toFixed(2)) };
 }
 
 export async function getFleetUtilization() {
-  const [totalRow, inUseRow, availableRow, maintenanceRow] = await Promise.all([
-    db.row('SELECT COUNT(*) as c FROM equipment'),
-    db.row("SELECT COUNT(*) as c FROM equipment WHERE status = 'in_use'"),
-    db.row("SELECT COUNT(*) as c FROM equipment WHERE status = 'available'"),
-    db.row("SELECT COUNT(*) as c FROM equipment WHERE status = 'maintenance'"),
+  const [total, inUse, available, maintenance] = await Promise.all([
+    db.count('equipment'),
+    db.count('equipment', [{ field: 'status', op: 'eq', value: 'in_use' }]),
+    db.count('equipment', [{ field: 'status', op: 'eq', value: 'available' }]),
+    db.count('equipment', [{ field: 'status', op: 'eq', value: 'maintenance' }]),
   ]);
-  const total = totalRow?.c || 1;
-  const inUse = inUseRow?.c || 0;
-  const available = availableRow?.c || 0;
-  const maintenance = maintenanceRow?.c || 0;
+  const t = total || 1;
   return {
-    total, inUse, available, maintenance,
-    utilization: parseFloat(((inUse / total) * 100).toFixed(1)),
+    total: t, inUse: inUse || 0, available: available || 0, maintenance: maintenance || 0,
+    utilization: parseFloat((((inUse || 0) / t) * 100).toFixed(1)),
   };
 }
 
 export async function getLeadsBySource() {
-  return db.raw("SELECT source, COUNT(*) as count FROM leads WHERE source IS NOT NULL AND source != '' GROUP BY source ORDER BY count DESC");
+  const rows = await db.select('leads', { columns: 'source' });
+  const sourceMap = {};
+  for (const r of rows) {
+    const s = r.source;
+    if (s && s !== '') sourceMap[s] = (sourceMap[s] || 0) + 1;
+  }
+  return Object.entries(sourceMap)
+    .map(([source, count]) => ({ source, count }))
+    .sort((a, b) => b.count - a.count);
 }
 
 export async function getDealsByMonth() {
-  return db.raw(`
-    SELECT TO_CHAR(created_at, 'YYYY-MM') as month,
-           COUNT(*) as count,
-           SUM(value) as total_value
-    FROM deals
-    GROUP BY month
-    ORDER BY month ASC
-  `);
+  const rows = await db.select('deals', { columns: 'created_at, value', orderBy: ['created_at', 'asc'] });
+  const monthMap = {};
+  for (const r of rows) {
+    if (!r.created_at) continue;
+    const month = r.created_at.slice(0, 7);
+    if (!monthMap[month]) monthMap[month] = { month, count: 0, total_value: 0 };
+    monthMap[month].count++;
+    monthMap[month].total_value += (Number(r.value) || 0);
+  }
+  return Object.values(monthMap);
 }
 
 export async function getTopClients(limit = 5) {
-  return db.raw(`
-    SELECT c.id, c.name, COUNT(d.id) as deal_count, SUM(d.value) as total_value
-    FROM companies c
-    JOIN deals d ON d.company_id = c.id
-    WHERE d.stage = 'closed_won'
-    GROUP BY c.id
-    ORDER BY total_value DESC
-    LIMIT ?
-  `, [limit]);
+  const [companies, deals] = await Promise.all([
+    db.select('companies', { columns: 'id, name' }),
+    db.select('deals', { columns: 'company_id, value', conditions: [{ field: 'stage', op: 'eq', value: 'closed_won' }] }),
+  ]);
+  const companyMap = {};
+  for (const c of companies) companyMap[c.id] = { id: c.id, name: c.name, deal_count: 0, total_value: 0 };
+  for (const d of deals) {
+    if (companyMap[d.company_id]) {
+      companyMap[d.company_id].deal_count++;
+      companyMap[d.company_id].total_value += (Number(d.value) || 0);
+    }
+  }
+  return Object.values(companyMap)
+    .filter(c => c.deal_count > 0)
+    .sort((a, b) => b.total_value - a.total_value)
+    .slice(0, limit);
 }
 
 export async function getTotalCounts() {
-  const [l, d, c, e, ct, t] = await Promise.all([
-    db.row('SELECT COUNT(*) as c FROM leads'),
-    db.row('SELECT COUNT(*) as c FROM deals'),
-    db.row('SELECT COUNT(*) as c FROM companies'),
-    db.row('SELECT COUNT(*) as c FROM equipment'),
-    db.row('SELECT COUNT(*) as c FROM contracts'),
-    db.row('SELECT COUNT(*) as c FROM tasks'),
+  const [totalLeads, totalDeals, totalCompanies, totalEquipment, totalContracts, totalTasks] = await Promise.all([
+    db.count('leads'),
+    db.count('deals'),
+    db.count('companies'),
+    db.count('equipment'),
+    db.count('contracts'),
+    db.count('tasks'),
   ]);
-  return {
-    totalLeads: l?.c || 0,
-    totalDeals: d?.c || 0,
-    totalCompanies: c?.c || 0,
-    totalEquipment: e?.c || 0,
-    totalContracts: ct?.c || 0,
-    totalTasks: t?.c || 0,
-  };
+  return { totalLeads, totalDeals, totalCompanies, totalEquipment, totalContracts, totalTasks };
+}
+
+// ── Dashboard chart helpers ────────────────────────────────────────────────
+
+export async function getLeadsByMonth(months = 6) {
+  const rows = await db.select('leads', { columns: 'created_at, status', orderBy: ['created_at', 'asc'] });
+  const cutoff = new Date(); cutoff.setMonth(cutoff.getMonth() - months);
+  const monthMap = {};
+  for (const r of rows) {
+    if (!r.created_at) continue;
+    const d = new Date(r.created_at);
+    if (d >= cutoff) {
+      const m = d.toISOString().slice(0, 7);
+      monthMap[m] = (monthMap[m] || 0) + 1;
+    }
+  }
+  return Object.entries(monthMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, count]) => ({ month, count }));
+}
+
+export async function getDealsByStage() {
+  const rows = await db.select('deals', { columns: 'stage, value' });
+  const stageMap = {};
+  for (const r of rows) {
+    const s = r.stage || 'unknown';
+    if (!stageMap[s]) stageMap[s] = { stage: s, count: 0, total_value: 0 };
+    stageMap[s].count++;
+    stageMap[s].total_value += (Number(r.value) || 0);
+  }
+  return { stages: Object.values(stageMap), wonCount: rows.filter(r => r.stage === 'won').length };
+}
+
+export async function getLeadsByStatus() {
+  const rows = await db.select('leads', { columns: 'status' });
+  const statusMap = {};
+  for (const r of rows) {
+    const s = r.status || 'unknown';
+    statusMap[s] = (statusMap[s] || 0) + 1;
+  }
+  return Object.entries(statusMap).map(([status, count]) => ({ status, count }));
+}
+
+export async function getFunnel() {
+  const [total_leads, converted_leads, won_deals] = await Promise.all([
+    db.count('leads'),
+    db.count('leads', [{ field: 'status', op: 'eq', value: 'converted' }]),
+    db.count('deals', [{ field: 'stage', op: 'eq', value: 'won' }]),
+  ]);
+  return { total_leads, converted_leads, won_deals };
+}
+
+export async function getPipelineTotal() {
+  const rows = await db.select('deals', { columns: 'value' });
+  const total = rows.reduce((acc, r) => acc + (Number(r.value) || 0), 0);
+  return { pipeline_total: parseFloat(total.toFixed(2)) };
 }

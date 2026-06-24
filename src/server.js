@@ -3,8 +3,10 @@ import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
 import multipart from '@fastify/multipart';
+import { randomUUID } from 'node:crypto';
 import { config } from './config.js';
 import { logger } from './lib/logger.js';
+import { AppError } from './lib/errors.js';
 import { requireAuth } from './middleware/auth.js';
 import { authRoutes } from './routes/auth.js';
 import { leadRoutes } from './routes/leads.js';
@@ -31,6 +33,9 @@ import projectRoutes from './routes/projects.js';
 import rentalRoutes from './routes/rental.js';
 import campaignRoutes from './routes/campaigns.js';
 import hunterRoutes from './routes/hunter.js';
+import { userRoutes } from './routes/users.js';
+import { activityLogRoutes } from './routes/activity-logs.js';
+import { orcamentoRoutes } from './routes/orcamentos.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -41,6 +46,15 @@ async function buildApp() {
   const app = Fastify({
     logger: false,
     bodyLimit: 1048576, // 1MB
+  });
+
+  // ── Correlation ID (x-request-id) ───────────────────────────────────────
+  app.addHook('onRequest', async (request, reply) => {
+    const requestId = request.headers['x-request-id']
+      || request.headers['x-cloud-trace-id']
+      || crypto.randomUUID();
+    reply.header('x-request-id', requestId);
+    request.requestId = requestId;
   });
 
   // ── Plugins ──────────────────────────────────────────────────────────────
@@ -93,6 +107,10 @@ async function buildApp() {
         { name: 'Invoices', description: 'Faturamento' },
         { name: 'Rental', description: 'Locação de equipamentos' },
         { name: 'Campaigns', description: 'Campanhas de marketing' },
+        { name: 'Users', description: 'Colaboradores e usuários' },
+        { name: 'Activity Logs', description: 'Histórico de atividades' },
+        { name: 'Orçamentos', description: 'Orçamento de obras com SINAPI e BDI' },
+        { name: 'SINAPI', description: 'Tabela SINAPI de insumos e composições' },
         { name: 'Notifications', description: 'Notificações' },
       ],
       components: {
@@ -135,6 +153,9 @@ async function buildApp() {
     if (request.url.startsWith('/api/')) {
       return reply.code(404).send({ error: 'Rota não encontrada' });
     }
+    if (request.url === '/app.html' || request.url.startsWith('/app.html?')) {
+      return reply.sendFile('app.html');
+    }
     return reply.sendFile('index.html');
   });
 
@@ -163,14 +184,32 @@ async function buildApp() {
   await app.register(rentalRoutes);
   await app.register(campaignRoutes);
   await app.register(hunterRoutes);
+  await app.register(userRoutes);
+  await app.register(activityLogRoutes);
+  await app.register(orcamentoRoutes);
 
   // ── Error handler ────────────────────────────────────────────────────────
 
   app.setErrorHandler((error, request, reply) => {
-    logger.error(`[${request.method} ${request.url}] ${error.message}`);
-    if (error.statusCode === 429) {
-      return reply.code(429).send({ error: 'Muitas requisições. Tente novamente em instantes.' });
+    const reqLogger = logger.child({ requestId: request.requestId });
+    reqLogger.error(`${request.method} ${request.url} — ${error.message}`, {
+      stack: config.nodeEnv !== 'production' ? error.stack : undefined,
+    });
+
+    // Erro tipado (AppError)
+    if (error instanceof AppError) {
+      return reply.code(error.statusCode).send({
+        error: error.message,
+        code: error.code,
+        ...(error.details ? { details: error.details } : {}),
+      });
     }
+
+    // Rate limit do Fastify
+    if (error.statusCode === 429) {
+      return reply.code(429).send({ error: 'Muitas requisições. Tente novamente em instantes.', code: 'RATE_LIMIT' });
+    }
+
     return reply.code(error.statusCode || 500).send({
       error: config.nodeEnv === 'production' ? 'Erro interno do servidor' : error.message,
     });
@@ -180,6 +219,19 @@ async function buildApp() {
 }
 
 async function start() {
+  // ── Validação de env vars obrigatórias ──────────────────────────────────
+  if (!process.env.JWT_SECRET) {
+    logger.error('JWT_SECRET não configurado. Defina JWT_SECRET no .env');
+    process.exit(1);
+  }
+
+  if (config.nodeEnv === 'production') {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      logger.error('Em produção, SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórios');
+      process.exit(1);
+    }
+  }
+
   const { hasSupabase } = await import('./db/supabase.js');
 
   if (hasSupabase()) {
@@ -199,7 +251,6 @@ async function start() {
     logger.info(`Login: POST /api/auth/login`);
     logger.info(`Inbound Webhook: POST /api/webhooks/inbound/:token`);
     logger.info(`API Leads: GET/POST/PATCH /api/leads`);
-    logger.info(`Settings: GET/POST /api/settings/webhooks/*`);
     logger.info(`Health: GET /health`);
     logger.info(`Swagger: GET /docs`);
     logger.info(`Search: GET /api/search?q=`);
@@ -208,6 +259,21 @@ async function start() {
     logger.error('Failed to start server:', err);
     process.exit(1);
   }
+
+  // ── Graceful Shutdown ─────────────────────────────────────────────────
+  const shutdown = async (signal) => {
+    logger.info(`${signal} received. Shutting down gracefully...`);
+    try {
+      await app.close();
+      logger.info('Server closed.');
+      process.exit(0);
+    } catch (err) {
+      logger.error('Error during shutdown:', err);
+      process.exit(1);
+    }
+  };
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
 start();

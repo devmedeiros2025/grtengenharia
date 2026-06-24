@@ -13,7 +13,7 @@ import * as wh from '../services/webhook-service.js';
  *   Ou formato n8n padrão
  */
 export async function inboundRoutes(app) {
-  app.post('/api/webhooks/inbound/:token', async (request, reply) => {
+  app.post('/api/webhooks/inbound/:token', { schema: { tags: ['Webhooks'], summary: 'Receber lead via webhook', description: 'Endpoint publico para receber leads de fontes externas (n8n, formularios)' } }, async (request, reply) => {
     const { token } = request.params;
 
     // Valida token

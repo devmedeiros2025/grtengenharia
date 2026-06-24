@@ -24,11 +24,11 @@ export async function getById(id) {
   return campaign;
 }
 
-export async function create({ name, type, description, start_date, end_date, budget, status, notes }) {
+export async function create({ name, type, status, segment, subject, content, scheduled_at }) {
   const result = await db.create('campaigns', {
-    name, type: type || 'email', description: description || null,
-    start_date: start_date || null, end_date: end_date || null,
-    budget: budget || 0, status: status || 'draft', notes: notes || null,
+    name, type: type || 'email', status: status || 'draft',
+    segment: segment || null, subject: subject || null,
+    content: content || null, scheduled_at: scheduled_at || null,
   });
   return getById(result.id);
 }
@@ -41,18 +41,15 @@ export async function update(id, data) {
 }
 
 export async function delete_(id) {
-  return db.transaction(async (supabase) => {
-    await supabase.from('campaign_targets').delete().eq('campaign_id', id);
-    const { error } = await supabase.from('campaigns').delete().eq('id', id);
-    if (error) throw new Error(error.message);
-    return true;
-  });
+  await db.exec('DELETE FROM campaign_targets WHERE campaign_id = ?', [id]);
+  const result = await db.delete('campaigns', id);
+  return result;
 }
 
-export async function addTarget(campaign_id, { name, email, phone, company_id }) {
+export async function addTarget(campaign_id, { email, lead_id, company_id }) {
   return db.create('campaign_targets', {
-    campaign_id, name: name || null, email: email || null,
-    phone: phone || null, company_id: company_id || null,
+    campaign_id, email: email || null,
+    lead_id: lead_id || null, company_id: company_id || null,
   });
 }
 

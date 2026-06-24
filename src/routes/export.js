@@ -7,6 +7,7 @@ export async function exportRoutes(app) {
   // Export leads as CSV
   app.get('/api/leads/export', {
     preHandler: [app.requireAuth],
+    schema: { tags: ['Export'], summary: 'Exportar leads CSV', description: 'Exporta leads para arquivo CSV' },
   }, async (request, reply) => {
     const { status, source, search } = request.query;
     const result = await leadService.listLeads({ status, source, search, page: 1, limit: 10000 });
@@ -26,6 +27,7 @@ export async function exportRoutes(app) {
   // Export companies as CSV
   app.get('/api/companies/export', {
     preHandler: [app.requireAuth],
+    schema: { tags: ['Export'], summary: 'Exportar empresas CSV', description: 'Exporta empresas para arquivo CSV' },
   }, async (request, reply) => {
     const result = await companyService.listCompanies({ page: 1, limit: 10000 });
     const companies = result.companies || [];
@@ -44,6 +46,7 @@ export async function exportRoutes(app) {
   // Export deals as CSV
   app.get('/api/deals/export', {
     preHandler: [app.requireAuth],
+    schema: { tags: ['Export'], summary: 'Exportar negócios CSV', description: 'Exporta negócios para arquivo CSV' },
   }, async (request, reply) => {
     const result = await dealService.listDeals({ page: 1, limit: 10000 });
     const deals = result.deals || [];

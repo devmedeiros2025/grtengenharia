@@ -1,10 +1,10 @@
 import db from '../db/adapter.js';
-import { getSupabase } from '../db/supabase.js';
+import { ValidationError } from '../lib/errors.js';
 export async function createLead(data) {
   const { name, email, phone, company, source = 'api', campaign = null, message = null, metadata = '{}' } = data;
 
   if (!name || name.trim().length === 0) {
-    throw new Error('Nome é obrigatório');
+    throw new ValidationError('Nome é obrigatório');
   }
 
   const result = await db.create('leads', {
@@ -107,10 +107,7 @@ export async function deleteLead(id) {
 }
 
 export async function getLeadsStats() {
-  const sb = getSupabase();
-  const { data: all } = await sb.from('leads').select('status, created_at');
-
-  const rows = all || [];
+  const rows = await db.select('leads', { columns: 'status, created_at' });
   const total = rows.length;
 
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -123,6 +120,119 @@ export async function getLeadsStats() {
   }
 
   return { total, today, byStatus };
+}
+
+// ── Kanban status constants ────────────────────────────────────────────────
+export const KANBAN_STATUSES = [
+  'novo_lead',
+  'em_tentativa',
+  'em_qualificacao',
+  'reuniao_agendada',
+  'proposta_enviada',
+  'contrato_fechamento',
+  'ganho',
+  'perdido',
+  'arquivado',
+];
+
+// Status terminais (não podem sair)
+const TERMINAL = ['ganho', 'perdido', 'arquivado'];
+
+// Mapa de transições permitidas
+const TRANSITIONS = {
+  novo_lead: ['em_tentativa', 'em_qualificacao', 'arquivado'],
+  em_tentativa: ['em_qualificacao', 'novo_lead', 'arquivado'],
+  em_qualificacao: ['reuniao_agendada', 'perdido', 'arquivado'],
+  reuniao_agendada: ['proposta_enviada', 'em_qualificacao', 'perdido'],
+  proposta_enviada: ['contrato_fechamento', 'em_tentativa', 'perdido'],
+  contrato_fechamento: ['ganho', 'perdido', 'arquivado'],
+  ganho: [],
+  perdido: [],
+  arquivado: [],
+};
+
+/**
+ * Valida e executa transição de status kanban
+ */
+export async function transitionLead(id, toStatus) {
+  const lead = await getLeadById(id);
+  if (!lead) throw new Error('Lead não encontrado');
+
+  // Normaliza status legado (ex: "new" → "novo_lead")
+  const from = KANBAN_STATUSES.includes(lead.status) ? lead.status : 'novo_lead';
+
+  // Status inválido
+  if (!KANBAN_STATUSES.includes(toStatus)) {
+    throw new Error(`Status inválido: ${toStatus}`);
+  }
+
+  // Verifica se é terminal
+  if (TERMINAL.includes(from)) {
+    throw new ValidationError(`Lead está em status final "${from}". Não pode ser alterado.`);
+  }
+
+  // Verifica transição permitida
+  const allowed = TRANSITIONS[from] || [];
+  if (!allowed.includes(toStatus)) {
+    throw new ValidationError(`Transição inválida: "${from}" → "${toStatus}"`);
+  }
+
+  // Validações específicas
+  if (toStatus === 'reuniao_agendada' && !lead.appointment_date) {
+    throw new ValidationError('Para mover para "Reunião Agendada", preencha a data de agendamento (appointment_date)');
+  }
+  if (toStatus === 'proposta_enviada' && (!lead.proposal_value || Number(lead.proposal_value) <= 0)) {
+    throw new ValidationError('Para mover para "Proposta Enviada", preencha o valor da proposta (proposal_value)');
+  }
+  if (toStatus === 'perdido' && !lead.lost_reason) {
+    throw new ValidationError('Para mover para "Perdido", informe o motivo da perda (lost_reason)');
+  }
+
+  const updateData = { status: toStatus, stage_entered_at: new Date().toISOString() };
+
+  // Se move para ganho, registra closed_at
+  if (toStatus === 'ganho') {
+    updateData.closed_at = new Date().toISOString();
+  }
+
+  await db.update('leads', id, updateData);
+  return getLeadById(id);
+}
+
+/**
+ * Retorna leads agrupados por status kanban
+ */
+export async function getLeadsKanban() {
+  const rows = await db.select('leads', { orderBy: ['stage_entered_at', 'desc'] });
+  const grouped = {};
+  for (const s of KANBAN_STATUSES) grouped[s] = [];
+  for (const r of rows) {
+    const st = r.status && KANBAN_STATUSES.includes(r.status) ? r.status : 'novo_lead';
+    // Calcula dias na etapa
+    const slaDays = r.stage_entered_at
+      ? Math.floor((Date.now() - new Date(r.stage_entered_at).getTime()) / (1000 * 60 * 60 * 24))
+      : 0;
+    grouped[st].push({ ...formatLead(r), sla_days: slaDays });
+  }
+  return KANBAN_STATUSES.map(s => ({
+    status: s,
+    leads: grouped[s],
+    count: grouped[s].length,
+  }));
+}
+
+// ── SLA: retorna leads em alerta (em_tentativa ou proposta_enviada parados >5 dias úteis)
+export async function getSlaAlerts() {
+  const rows = await db.select('leads', {
+    conditions: [
+      { field: 'status', op: 'in', value: ['em_tentativa', 'proposta_enviada'] },
+    ],
+  });
+  const now = Date.now();
+  const msPerBusinessDay = 5 * 24 * 60 * 60 * 1000; // ~5 dias
+  return rows
+    .filter(r => r.stage_entered_at && (now - new Date(r.stage_entered_at).getTime()) > msPerBusinessDay)
+    .map(r => ({ id: r.id, name: r.name, status: r.status, sla_days: Math.floor((now - new Date(r.stage_entered_at).getTime()) / (1000 * 60 * 60 * 24)) }));
 }
 
 function formatLead(row) {

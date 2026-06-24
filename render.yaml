@@ -17,7 +17,7 @@ services:
       - key: DB_PATH
         value: /data/crm.db
       - key: CORS_ORIGIN
-        value: "*"
+        value: "https://public-jade-five.vercel.app,https://grtengenharia.vercel.app"
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY

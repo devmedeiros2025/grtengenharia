@@ -1,9 +1,10 @@
-import * as bi from '../services/bi-service.js';
+﻿import * as bi from '../services/bi-service.js';
 import db from '../db/adapter.js';
 
 export async function dashboardRoutes(app) {
   app.get('/api/dashboard/charts', {
     preHandler: [app.requireAuth],
+    schema: { tags: ['Dashboard'], summary: 'Gráficos do dashboard', description: 'Retorna dados para gráficos do dashboard (leads por mês, negócios por estágio, funil, etc.)' },
   }, async () => {
     const [leadsByMonth, dealsByStageResult, leadsByStatus, funnel, pipelineTotal, fleetUtilization, leadsBySource, topClients] = await Promise.all([
       bi.getLeadsByMonth(6),
@@ -30,6 +31,7 @@ export async function dashboardRoutes(app) {
 
   app.get('/api/dashboard/summary', {
     preHandler: [app.requireAuth],
+    schema: { tags: ['Dashboard'], summary: 'Resumo do dashboard', description: 'Retorna totais e métricas do mês atual' },
   }, async () => {
     const [totalLeads, totalDeals, totalCompanies, totalEquipment, totalContracts, totalInvoices] = await Promise.all([
       db.count('leads'),
@@ -55,6 +57,7 @@ export async function dashboardRoutes(app) {
 
   app.get('/api/dashboard/funnel', {
     preHandler: [app.requireAuth],
+    schema: { tags: ['Dashboard'], summary: 'Funil de vendas', description: 'Retorna dados do funil de vendas com taxas de conversão' },
   }, async () => {
     const [visitors, totalLeads, qualifiedLeads, proposalsSent, contractsWon] = await Promise.all([
       db.count('leads', [{ field: 'source', op: 'in', value: ['meta_ads', 'google_ads', 'landing_page', 'organic'] }]),
@@ -86,6 +89,7 @@ export async function dashboardRoutes(app) {
 
   app.get('/api/dashboard/activity', {
     preHandler: [app.requireAuth],
+    schema: { tags: ['Dashboard'], summary: 'Atividades recentes', description: 'Retorna leads, negócios, contratos e propostas recentes' },
   }, async () => {
     const [recentLeads, recentDeals, expiringContracts, pendingProposals] = await Promise.all([
       db.select('leads', {
@@ -137,6 +141,7 @@ export async function dashboardRoutes(app) {
 
   app.get('/api/dashboard/marketing', {
     preHandler: [app.requireAuth],
+    schema: { tags: ['Dashboard'], summary: 'Painel de marketing', description: 'Retorna leads por fonte e campanhas recentes' },
   }, async () => {
     const [leadsBySource, campaigns] = await Promise.all([
       bi.getLeadsBySource(),

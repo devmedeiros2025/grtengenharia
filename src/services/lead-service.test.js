@@ -1,12 +1,15 @@
 import { describe, it, after } from 'node:test';
 import assert from 'node:assert';
 import { unlinkSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const testDbPath = join(__dirname, '..', '..', 'data', 'crm-test.db');
+const testName = basename(fileURLToPath(import.meta.url), '.test.js');
+const testDbPath = join(__dirname, '..', '..', 'data', `crm-test-${testName}.db`);
 
+// Signal to adapter that we're in test mode (forces local SQLite, bypasses Supabase)
+process.env.TEST = 'true';
 // Override DB path BEFORE any imports that use it
 process.env.DB_PATH = testDbPath;
 

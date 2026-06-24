@@ -8,3 +8,8 @@ data/*.db-shm
 Thumbs.db
 
 .vercel
+.playwright-mcp/
+squads/
+uploads/
+server.err
+content.json

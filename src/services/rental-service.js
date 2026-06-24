@@ -17,6 +17,13 @@ export async function blockDates(equipment_id, start_date, end_date, status = 'r
   });
 }
 
+export async function updateBlock(id, data) {
+  const existing = await db.get('rental_availability', id);
+  if (!existing) return null;
+  await db.update('rental_availability', id, data);
+  return db.get('rental_availability', id);
+}
+
 export async function removeBlock(id) {
   return db.delete('rental_availability', id);
 }

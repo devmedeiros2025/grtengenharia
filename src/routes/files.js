@@ -4,6 +4,7 @@ export async function fileRoutes(app) {
   // Upload file — entity IDs via query params (lead_id, company_id, deal_id)
   app.post('/api/upload', {
     preHandler: [app.requireAuth],
+    schema: { tags: ['Files'], summary: 'Upload de arquivo', description: 'Faz upload de um arquivo e associa a uma entidade' },
   }, async (request, reply) => {
     const data = await request.file();
     if (!data) return reply.code(400).send({ error: 'Nenhum arquivo enviado' });
@@ -27,6 +28,7 @@ export async function fileRoutes(app) {
   // List files for an entity
   app.get('/api/files', {
     preHandler: [app.requireAuth],
+    schema: { tags: ['Files'], summary: 'Listar arquivos', description: 'Retorna arquivos associados a uma entidade' },
   }, async (request) => {
     return fileService.listFiles({
       leadId: request.query.lead_id,
@@ -39,6 +41,7 @@ export async function fileRoutes(app) {
   // Download file
   app.get('/api/files/:id/download', {
     preHandler: [app.requireAuth],
+    schema: { tags: ['Files'], summary: 'Download de arquivo', description: 'Faz download de um arquivo pelo ID' },
   }, async (request, reply) => {
     const file = await fileService.getFile(Number(request.params.id));
     if (!file) return reply.code(404).send({ error: 'Arquivo não encontrado' });
@@ -54,6 +57,7 @@ export async function fileRoutes(app) {
   // Delete file
   app.delete('/api/files/:id', {
     preHandler: [app.requireAuth],
+    schema: { tags: ['Files'], summary: 'Excluir arquivo', description: 'Remove um arquivo do sistema' },
   }, async (request, reply) => {
     const ok = await fileService.deleteFile(Number(request.params.id));
     if (!ok) return reply.code(404).send({ error: 'Arquivo não encontrado' });

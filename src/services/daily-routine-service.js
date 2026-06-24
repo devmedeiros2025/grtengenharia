@@ -25,6 +25,9 @@ export async function createDailyRoutine(data) {
     priority: data.priority || 'medium',
     assigned_to: data.assigned_to || null,
     due_date: data.due_date || null,
+    column_name: data.column_name || 'todo',
+    order_index: data.order_index || 0,
+    assigned_by: data.assigned_by || null,
   });
 }
 

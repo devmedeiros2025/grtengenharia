@@ -2,32 +2,43 @@ import db from '../db/adapter.js';
 
 export async function listCompanies(filters = {}) {
   const conditions = [];
-  if (filters.search) {
-    conditions.push({ field: 'name', op: 'like', value: filters.search });
-  }
   if (filters.status) {
     conditions.push({ field: 'status', op: 'eq', value: filters.status });
   }
   const page = Number(filters.page) || 1;
   const limit = Number(filters.limit) || 50;
 
+  // Multi-field search via raw SQL OR
+  if (filters.search) {
+    const q = `%${filters.search}%`;
+    const where = [];
+    const params = [q, q, q];
+    where.push('(name LIKE ? OR email LIKE ? OR cnpj LIKE ?)');
+    if (filters.status) { where.push('status = ?'); params.push(filters.status); }
+
+    const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+    const countRow = await db.row(`SELECT COUNT(*) as total FROM companies ${whereClause}`, params);
+    const total = countRow?.total || 0;
+    const offset = (page - 1) * limit;
+    const rows = await db.raw(
+      `SELECT * FROM companies ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [...params, limit, offset]
+    );
+
+    return {
+      companies: rows,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
   const result = await db.paginate('companies', {
     conditions: conditions.length > 0 ? conditions : null,
     page, limit,
     orderBy: ['created_at', 'desc'],
   });
-
-  // Apply OR search for email and cnpj since adapter only handles single-field conditions
-  if (filters.search) {
-    const q = filters.search.toLowerCase();
-    result.data = result.data.filter(c =>
-      (c.name || '').toLowerCase().includes(q) ||
-      (c.email || '').toLowerCase().includes(q) ||
-      (c.cnpj || '').toLowerCase().includes(q)
-    );
-    result.total = result.data.length;
-    result.totalPages = Math.ceil(result.total / limit);
-  }
 
   return { companies: result.data, total: result.total, page: result.page, limit: result.limit, totalPages: result.totalPages };
 }
