@@ -2,7 +2,7 @@ services:
   - type: web
     name: crm-grt
     env: node
-    repo: https://github.com/aldeiaup/grtengenharia
+    repo: https://github.com/devmedeiros2025/grtengenharia
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
