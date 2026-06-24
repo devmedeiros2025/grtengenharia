@@ -1,15 +1,15 @@
-﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   GRT CRM â€” Frontend Application
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+?/* ═══════════════════════════════════════════════════════════════════════════
+   GRT CRM — Frontend Application
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 const API = (function() {
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return 'http://localhost:3002';
   }
-  return '/api'; // Vercel proxy ou produção
+  return '/api'; // Vercel proxy ou produ��o
 })();
 
-/* â”€â”€ Safe DOM helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Safe DOM helpers ────────────────────────────────────────────────────── */
 function on(id, event, fn) {
   const el = document.getElementById(id);
   if (el) el.addEventListener(event, fn);
@@ -32,7 +32,7 @@ let state = {
   routines: [],
 };
 
-/* â”€â”€ HTTP helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── HTTP helpers ────────────────────────────────────────────────────────── */
 
 let isRefreshing = false;
 
@@ -72,12 +72,12 @@ async function api(method, path, body) {
         isRefreshing = false;
         localStorage.removeItem('grt_refresh_token');
         logout();
-        throw new Error('Sessão expirada. Faça login novamente.');
+        throw new Error('Sess�o expirada. Fa�a login novamente.');
       }
       isRefreshing = false;
     } else if (!refreshToken) {
       logout();
-      throw new Error('Sessão expirada. Faça login novamente.');
+      throw new Error('Sess�o expirada. Fa�a login novamente.');
     }
   }
 
@@ -86,7 +86,7 @@ async function api(method, path, body) {
   return data;
 }
 
-/* â”€â”€ Toast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Toast ───────────────────────────────────────────────────────────────── */
 
 function toast(msg, type = 'info') {
   const container = document.getElementById('toast-container') || document.body;
@@ -111,7 +111,7 @@ function toast(msg, type = 'info') {
   }
 }
 
-/* â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Auth ────────────────────────────────────────────────────────────────── */
 
 async function login(username, password) {
   const data = await api('POST', '/auth/login', { username, password });
@@ -130,7 +130,7 @@ function logout() {
   showLogin();
 }
 
-/* â”€â”€ Navigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Navigation ──────────────────────────────────────────────────────────── */
 
 function navigate(page) {
   const sidebar = document.getElementById('sidebar');
@@ -166,7 +166,7 @@ function showNewPage(page) {
   if (typeof gsap !== 'undefined') {
     gsap.fromTo(pg, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' });
   }
-  const titles = { dashboard: 'Dashboard', deals: 'Pipeline', kanban: 'Kanban Comercial', leads: 'Leads', companies: 'Empresas', tasks: 'Tarefas', routines: 'Rotinas Dià ¡rias', equipment: 'Equipamentos', 'service-orders': 'Ordens de Serviço', contracts: 'Contratos', calendar: 'Calendà ¡rio', webhooks: 'Webhooks', apikeys: 'API Keys', logs: 'Atividades', bi: 'BI Analytics', invoices: 'Faturamento', proposals: 'Propostas', projects: 'Obras & Projetos', rental: 'Locação', campaigns: 'Campanhas', hunter: 'Hunter', users: 'Colaboradores' };
+  const titles = { dashboard: 'Dashboard', deals: 'Pipeline', kanban: 'Kanban Comercial', leads: 'Leads', companies: 'Empresas', tasks: 'Tarefas', routines: 'Rotinas Diárias', equipment: 'Equipamentos', 'service-orders': 'Ordens de Serviço', contracts: 'Contratos', calendar: 'Calendário', webhooks: 'Webhooks', apikeys: 'API Keys', logs: 'Atividades', bi: 'BI Analytics', invoices: 'Faturamento', proposals: 'Propostas', projects: 'Obras & Projetos', rental: 'Locação', campaigns: 'Campanhas', hunter: 'Hunter', users: 'Colaboradores' };
   document.getElementById('page-title').textContent = titles[page] || page;
   // load data
   if (page === 'dashboard') loadDashboard();
@@ -181,7 +181,7 @@ function showNewPage(page) {
   if (page === 'logs') loadLogs();
 }
 
-/* â”€â”€ UI show/hide â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── UI show/hide ────────────────────────────────────────────────────────── */
 
 function showLogin() {
   document.getElementById('page-login').style.display = 'flex';
@@ -201,7 +201,7 @@ function showApp() {
   }
   // Aplica role-based visibility na sidebar
   applyRoleFilter();
-  // Navega para pà ¡gina inicial conforme role
+  // Navega para p� �gina inicial conforme role
   const role = state.user?.role || '';
   navigate(role === 'comercial' ? 'kanban' : 'dashboard');
 }
@@ -209,20 +209,20 @@ function showApp() {
 function applyRoleFilter() {
   const role = state.user?.role || '';
   
-  // CEO e Developer vêem TUDO â€” sem filtro
+  // CEO e Developer v�em TUDO — sem filtro
   if (!role || role === 'ceo' || role === 'developer') {
     document.querySelectorAll('[data-role]').forEach(el => el.style.display = '');
     return;
   }
   
-  // Demais roles só veem itens com data-role contendo a role
+  // Demais roles s� veem itens com data-role contendo a role
   document.querySelectorAll('[data-role]').forEach(el => {
     const roles = (el.dataset.role || '').split(',').map(r => r.trim());
     el.style.display = roles.includes(role) ? '' : 'none';
   });
 }
 
-/* â”€â”€ Modal helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Modal helpers ───────────────────────────────────────────────────────── */
 
 function openModal(id) {
   const el = document.getElementById(id);
@@ -259,7 +259,7 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', (e) => { if (e.target === m) closeModal(m.id); });
 });
 
-/* â”€â”€ LEADS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── LEADS ───────────────────────────────────────────────────────────────── */
 
 async function loadLeads() {
   try {
@@ -293,15 +293,15 @@ function renderLeads() {
   tbody.innerHTML = filtered.map(l => `
     <tr>
       <td><strong>${esc(l.name)}</strong></td>
-      <td>${esc(l.company || 'â€”')}</td>
-      <td>${esc(l.email || 'â€”')}</td>
-      <td>${esc(l.phone || 'â€”')}</td>
+      <td>${esc(l.company || '—')}</td>
+      <td>${esc(l.email || '—')}</td>
+      <td>${esc(l.phone || '—')}</td>
       <td><span class="badge badge-${l.status}">${statusLabel(l.status)}</span></td>
-      <td>${esc(l.source || 'â€”')}</td>
+      <td>${esc(l.source || '—')}</td>
       <td>${fmtDate(l.created_at)}</td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-icon" onclick="editLead('${l.id}')" title="Editar">âœŽ</button>
-        <button class="btn-icon" onclick="deleteLead('${l.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+        <button class="btn-icon" onclick="editLead('${l.id}')" title="Editar">✎</button>
+        <button class="btn-icon" onclick="deleteLead('${l.id}')" title="Excluir" style="color:var(--red)">✕</button>
       </td>
     </tr>
   `).join('');
@@ -316,10 +316,10 @@ async function loadDashboard() {
   try {
     // Stats
     const stats = await api('GET', '/leads/stats/summary');
-    document.getElementById('stat-total').textContent = stats.total ?? 'â€”';
-    document.getElementById('stat-new').textContent = stats.byStatus?.new ?? stats.new ?? 'â€”';
-    document.getElementById('stat-converted').textContent = stats.byStatus?.converted ?? stats.converted ?? 'â€”';
-    document.getElementById('stat-lost').textContent = stats.byStatus?.lost ?? stats.lost ?? 'â€”';
+    document.getElementById('stat-total').textContent = stats.total ?? '—';
+    document.getElementById('stat-new').textContent = stats.byStatus?.new ?? stats.new ?? '—';
+    document.getElementById('stat-converted').textContent = stats.byStatus?.converted ?? stats.converted ?? '—';
+    document.getElementById('stat-lost').textContent = stats.byStatus?.lost ?? stats.lost ?? '—';
     document.getElementById('lead-count-badge').textContent = stats.total ?? 0;
 
     // Deals stats
@@ -337,7 +337,7 @@ async function loadDashboard() {
       const compRes = await api('GET', '/companies');
       state.companies = Array.isArray(compRes) ? compRes : (compRes.companies || []);
       document.getElementById('stat-companies').textContent = state.companies.length;
-    } catch { document.getElementById('stat-companies').textContent = 'â€”'; }
+    } catch { document.getElementById('stat-companies').textContent = '—'; }
 
     // Tasks pending
     try {
@@ -345,7 +345,7 @@ async function loadDashboard() {
       const pending = state.tasks.filter(t => t.status !== 'done').length;
       document.getElementById('stat-tasks-pending').textContent = pending;
       document.getElementById('task-count-badge').textContent = pending;
-    } catch { document.getElementById('stat-tasks-pending').textContent = 'â€”'; }
+    } catch { document.getElementById('stat-tasks-pending').textContent = '—'; }
 
   } catch (e) { /* silently fail on dashboard load */ }
 }
@@ -374,7 +374,7 @@ async function deleteLead(id) {
   if (!confirm('Excluir este lead permanentemente?')) return;
   try {
     await api('DELETE', `/leads/${id}`);
-    toast('Lead excluído', 'success');
+    toast('Lead exclu�do', 'success');
     loadLeads();
     loadDashboard();
   } catch (e) { toast(e.message, 'error'); }
@@ -412,9 +412,9 @@ on('lead-search', 'input', renderLeads);
 on('lead-filter-status', 'change', renderLeads);
 on('btn-refresh-leads', 'click', loadLeads);
 
-/* â”€â”€ COMPANIES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── COMPANIES ───────────────────────────────────────────────────────────── */
 
-/* â”€â”€ Pagination state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Pagination state ────────────────────────────────────────────────────── */
 
 const pagination = {
   companies: { page: 1, limit: 10, total: 0, totalPages: 0 },
@@ -434,18 +434,18 @@ function paginationContainer(key, loadFn) {
     `<button class="page-btn${active ? ' active' : ''}" onclick="${loadFn.name}(${page})" ${page < 1 || page > p.totalPages ? 'disabled' : ''}>${esc(label)}</button>`;
   return `
     <div class="pagination">
-      ${btn(p.page - 1, 'â€¹ Anterior')}
+      ${btn(p.page - 1, '‹ Anterior')}
       ${btn(1, '1')}
-      ${p.totalPages > 1 && p.page > 3 ? '<span class="page-info">â€¦</span>' : ''}
+      ${p.totalPages > 1 && p.page > 3 ? '<span class="page-info">…</span>' : ''}
       ${p.page > 2 && p.page < p.totalPages ? btn(p.page, p.page) : ''}
-      ${p.totalPages > 1 && p.page < p.totalPages - 1 ? '<span class="page-info">â€¦</span>' : ''}
+      ${p.totalPages > 1 && p.page < p.totalPages - 1 ? '<span class="page-info">…</span>' : ''}
       ${p.totalPages > 1 ? btn(p.totalPages, p.totalPages, p.page === p.totalPages) : ''}
-      ${btn(p.page + 1, 'Próximo â€º')}
-      <span class="page-info">Pà ¡gina ${p.page} de ${p.totalPages} (${p.total} itens)</span>
+      ${btn(p.page + 1, 'Pr�ximo ›')}
+      <span class="page-info">P� �gina ${p.page} de ${p.totalPages} (${p.total} itens)</span>
     </div>`;
 }
 
-/* â”€â”€ Loader â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Loader ──────────────────────────────────────────────────────────────── */
 
 function showLoader() {
   document.getElementById('app-loader').style.display = 'flex';
@@ -455,7 +455,7 @@ function hideLoader() {
   document.getElementById('app-loader').style.display = 'none';
 }
 
-/* â”€â”€ Dark Mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Dark Mode ──────────────────────────────────────────────────────────── */
 
 function initTheme() {
   const saved = localStorage.getItem('grt_theme');
@@ -486,7 +486,7 @@ function toggleTheme() {
 document.addEventListener('DOMContentLoaded', initTheme);
 document.getElementById('btn-theme')?.addEventListener('click', toggleTheme);
 
-/* â”€â”€ COMPANIES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── COMPANIES ───────────────────────────────────────────────────────────── */
 
 let companiesPage = 1;
 
@@ -530,14 +530,14 @@ function renderCompanies() {
   tbody.innerHTML = filtered.map(c => `
     <tr>
       <td><strong>${esc(c.name)}</strong></td>
-      <td>${esc(c.email || 'â€”')}</td>
-      <td>${esc(c.phone || 'â€”')}</td>
-      <td>${esc(c.cnpj ? c.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : 'â€”')}</td>
-      <td>${esc(c.city || 'â€”')}</td>
+      <td>${esc(c.email || '—')}</td>
+      <td>${esc(c.phone || '—')}</td>
+      <td>${esc(c.cnpj ? c.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : '—')}</td>
+      <td>${esc(c.city || '—')}</td>
       <td><span class="badge badge-${c.active !== false ? 'active' : 'inactive'}">${c.active !== false ? 'Ativa' : 'Inativa'}</span></td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-icon" onclick="editCompany('${c.id}')" title="Editar">âœŽ</button>
-        <button class="btn-icon" onclick="deleteCompany('${c.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+        <button class="btn-icon" onclick="editCompany('${c.id}')" title="Editar">✎</button>
+        <button class="btn-icon" onclick="deleteCompany('${c.id}')" title="Excluir" style="color:var(--red)">✕</button>
       </td>
     </tr>
   `).join('');
@@ -572,7 +572,7 @@ async function deleteCompany(id) {
   if (!confirm('Excluir esta empresa permanentemente?')) return;
   try {
     await api('DELETE', `/companies/${id}`);
-    toast('Empresa excluída', 'success');
+    toast('Empresa exclu�da', 'success');
     loadCompanies();
     loadDashboard();
   } catch (e) { toast(e.message, 'error'); }
@@ -613,14 +613,14 @@ on('company-search', 'input', renderCompanies);
 on('company-filter-status', 'change', renderCompanies);
 on('btn-refresh-companies', 'click', loadCompanies);
 
-/* â”€â”€ DEALS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── DEALS ────────────────────────────────────────────────────────────────── */
 
 let dealsPage = 1;
 let dealStages = [
   { key: 'lead_in', label: 'Lead In', color: '#3b82f6' },
   { key: 'qualified', label: 'Qualificado', color: '#8b5cf6' },
   { key: 'proposal', label: 'Proposta', color: '#f59e0b' },
-  { key: 'negotiation', label: 'Negociação', color: '#f97316' },
+  { key: 'negotiation', label: 'Negocia��o', color: '#f97316' },
   { key: 'closed_won', label: 'Ganho', color: '#22c55e' },
   { key: 'closed_lost', label: 'Perdido', color: '#ef4444' },
 ];
@@ -679,7 +679,7 @@ function renderPipeline() {
           <span class="pipeline-count">${deals.length}</span>
         </div>
         <div class="pipeline-col-body" ondrop="onDealDrop(event)" ondragover="onDragOver(event)">
-          ${deals.length === 0 ? '<div class="pipeline-empty-col">Arraste negócios para cà ¡</div>' : ''}
+          ${deals.length === 0 ? '<div class="pipeline-empty-col">Arraste neg�cios para c� �</div>' : ''}
           ${deals.map(d => `
             <div class="deal-card" draggable="true" ondragstart="onDealDragStart(event, '${d.id}')" onclick="editDeal('${d.id}')">
               <div class="deal-card-title">${esc(d.title)}</div>
@@ -687,7 +687,7 @@ function renderPipeline() {
               ${d.company_name ? `<div class="deal-card-company">${esc(d.company_name)}</div>` : ''}
               ${d.contact_name ? `<div class="deal-card-contact">${esc(d.contact_name)}</div>` : ''}
               <div class="deal-card-actions">
-                <button class="btn-icon-sm" onclick="event.stopPropagation();deleteDeal('${d.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+                <button class="btn-icon-sm" onclick="event.stopPropagation();deleteDeal('${d.id}')" title="Excluir" style="color:var(--red)">✕</button>
               </div>
             </div>
           `).join('')}
@@ -736,7 +736,7 @@ async function onDealDrop(e) {
 }
 
 function openDealModal(deal) {
-  document.getElementById('modal-deal-title').textContent = deal ? 'Editar Negócio' : 'Novo Negócio';
+  document.getElementById('modal-deal-title').textContent = deal ? 'Editar Neg�cio' : 'Novo Neg�cio';
   document.getElementById('deal-id').value = deal ? deal.id : '';
   document.getElementById('deal-title').value = deal ? (deal.title || '') : '';
   document.getElementById('deal-value').value = deal ? (deal.value || '') : '';
@@ -771,10 +771,10 @@ function editDeal(id) {
 }
 
 async function deleteDeal(id) {
-  if (!confirm('Excluir este negócio permanentemente?')) return;
+  if (!confirm('Excluir este neg�cio permanentemente?')) return;
   try {
     await api('DELETE', `/deals/${id}`);
-    toast('Negócio excluído', 'success');
+    toast('Neg�cio exclu�do', 'success');
     loadDeals();
     loadDashboard();
   } catch (e) { toast(e.message, 'error'); }
@@ -805,10 +805,10 @@ on('modal-deal-form', 'submit', async (e) => {
   try {
     if (id) {
       await api('PATCH', `/deals/${id}`, body);
-      toast('Negócio atualizado', 'success');
+      toast('Neg�cio atualizado', 'success');
     } else {
       await api('POST', '/deals', body);
-      toast('Negócio criado', 'success');
+      toast('Neg�cio criado', 'success');
     }
     closeModal('modal-deal');
     loadDeals();
@@ -816,7 +816,7 @@ on('modal-deal-form', 'submit', async (e) => {
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* â”€â”€ TASKS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── TASKS ────────────────────────────────────────────────────────────────── */
 
 async function loadTasks(page) {
   if (page) pagination.tasks.page = page;
@@ -862,10 +862,10 @@ function renderTasks() {
       </td>
       <td><span class="badge badge-${t.priority || 'medium'}">${priorityLabel(t.priority)}</span></td>
       <td><span class="badge badge-${t.status}">${taskStatusLabel(t.status)}</span></td>
-      <td>${t.due_date ? fmtDate(t.due_date) : 'â€”'}</td>
+      <td>${t.due_date ? fmtDate(t.due_date) : '—'}</td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-icon" onclick="editTask('${t.id}')" title="Editar">âœŽ</button>
-        <button class="btn-icon" onclick="deleteTask('${t.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+        <button class="btn-icon" onclick="editTask('${t.id}')" title="Editar">✎</button>
+        <button class="btn-icon" onclick="deleteTask('${t.id}')" title="Excluir" style="color:var(--red)">✕</button>
       </td>
     </tr>
   `).join('');
@@ -876,12 +876,12 @@ function renderTasks() {
 }
 
 function priorityLabel(p) {
-  const m = { high: 'Alta', medium: 'Média', low: 'Baixa' };
-  return m[p] || p || 'Média';
+  const m = { high: 'Alta', medium: 'M�dia', low: 'Baixa' };
+  return m[p] || p || 'M�dia';
 }
 
 function taskStatusLabel(s) {
-  const m = { pending: 'Pendente', in_progress: 'Em andamento', done: 'Concluída' };
+  const m = { pending: 'Pendente', in_progress: 'Em andamento', done: 'Conclu�da' };
   return m[s] || s || 'Pendente';
 }
 
@@ -913,7 +913,7 @@ async function deleteTask(id) {
   if (!confirm('Excluir esta tarefa?')) return;
   try {
     await api('DELETE', `/tasks/${id}`);
-    toast('Tarefa excluída', 'success');
+    toast('Tarefa exclu�da', 'success');
     loadTasks();
     loadDashboard();
   } catch (e) { toast(e.message, 'error'); }
@@ -949,7 +949,7 @@ on('task-filter-status', 'change', renderTasks);
 on('task-filter-priority', 'change', renderTasks);
 on('btn-refresh-tasks', 'click', loadTasks);
 
-/* â”€â”€ ROTINAS DIà RIAS / KANBAN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── ROTINAS DI� �RIAS / KANBAN ────────────────────────────────────────────── */
 
 async function loadRoutines() {
   try {
@@ -986,14 +986,14 @@ function renderRoutines() {
         <div class="kanban-card-title">${esc(r.title)}</div>
         ${r.description ? `<div class="kanban-card-desc">${esc(r.description.substring(0, 100))}</div>` : ''}
         <div class="kanban-card-meta">
-          <span class="kanban-card-assignee">ðŸ‘¤ ${esc(r.assigned_to || 'â€”')}</span>
-          <span class="kanban-card-due ${isOverdue(r.due_date) && r.status !== 'done' ? 'overdue' : ''}">ðŸ“… ${formatDateKanban(r.due_date)}</span>
+          <span class="kanban-card-assignee">👤 ${esc(r.assigned_to || '—')}</span>
+          <span class="kanban-card-due ${isOverdue(r.due_date) && r.status !== 'done' ? 'overdue' : ''}">📅 ${formatDateKanban(r.due_date)}</span>
         </div>
         <div style="margin-top:6px;display:flex;gap:4px;justify-content:space-between;align-items:center">
           <span class="badge badge-${r.priority || 'medium'}">${routinePriorityLabel(r.priority)}</span>
           <span>
-            <button class="btn-icon-sm" onclick="event.stopPropagation();editRoutine('${r.id}')" title="Editar">âœŽ</button>
-            <button class="btn-icon-sm" onclick="event.stopPropagation();deleteRoutine('${r.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+            <button class="btn-icon-sm" onclick="event.stopPropagation();editRoutine('${r.id}')" title="Editar">✎</button>
+            <button class="btn-icon-sm" onclick="event.stopPropagation();deleteRoutine('${r.id}')" title="Excluir" style="color:var(--red)">✕</button>
           </span>
         </div>
       </div>
@@ -1056,7 +1056,7 @@ async function deleteRoutine(id) {
   if (!confirm('Excluir esta tarefa?')) return;
   try {
     await api('DELETE', `/api/daily-routines/${id}`);
-    toast('Tarefa excluída', 'success');
+    toast('Tarefa exclu�da', 'success');
     loadRoutines();
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -1074,7 +1074,7 @@ async function loadUsersForRoutines() {
     }
     if (selectFilter) {
       const cv = selectFilter.value;
-      selectFilter.innerHTML = '<option value="">Todos os usuà ¡rios</option>' +
+      selectFilter.innerHTML = '<option value="">Todos os usu� �rios</option>' +
         users.map(u => `<option value="${esc(u.name || u.email)}">${esc(u.name || u.email)}</option>`).join('');
       selectFilter.value = cv;
     }
@@ -1111,12 +1111,12 @@ on('modal-routine-form', 'submit', async (e) => {
 });
 
 function routinePriorityLabel(p) {
-  const m = { high: 'Alta', medium: 'Média', low: 'Baixa' };
-  return m[p] || p || 'Média';
+  const m = { high: 'Alta', medium: 'M�dia', low: 'Baixa' };
+  return m[p] || p || 'M�dia';
 }
 
 function routineStatusLabel(s) {
-  const m = { pending: 'Pendente', in_progress: 'Em Andamento', done: 'Concluída' };
+  const m = { pending: 'Pendente', in_progress: 'Em Andamento', done: 'Conclu�da' };
   return m[s] || s || 'Pendente';
 }
 
@@ -1134,7 +1134,7 @@ function isOverdue(d) {
   return due < today;
 }
 
-/* â”€â”€ WEBHOOKS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── WEBHOOKS ────────────────────────────────────────────────────────────── */
 
 async function loadWebhooks() {
   try {
@@ -1167,9 +1167,9 @@ function renderInbounds() {
           <div class="meta">Criado ${fmtDate(w.created_at)}</div>
         </div>
         <div class="webhook-actions">
-          <button class="btn-icon" onclick="editInbound('${w.id}')" title="Editar">âœŽ</button>
-          <button class="btn-icon" onclick="copyText('${url}')" title="Copiar URL">ðŸ“‹</button>
-          <button class="btn-icon" onclick="deleteInbound('${w.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+          <button class="btn-icon" onclick="editInbound('${w.id}')" title="Editar">✎</button>
+          <button class="btn-icon" onclick="copyText('${url}')" title="Copiar URL">📋</button>
+          <button class="btn-icon" onclick="deleteInbound('${w.id}')" title="Excluir" style="color:var(--red)">✕</button>
         </div>
       </div>
     `;
@@ -1194,8 +1194,8 @@ function renderOutbounds() {
         <div class="meta">Criado ${fmtDate(w.created_at)}</div>
       </div>
       <div class="webhook-actions">
-        <button class="btn-icon" onclick="editOutbound('${w.id}')" title="Editar">âœŽ</button>
-        <button class="btn-icon" onclick="deleteOutbound('${w.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+        <button class="btn-icon" onclick="editOutbound('${w.id}')" title="Editar">✎</button>
+        <button class="btn-icon" onclick="deleteOutbound('${w.id}')" title="Excluir" style="color:var(--red)">✕</button>
       </div>
     </div>
   `).join('');
@@ -1215,7 +1215,7 @@ async function deleteInbound(id) {
   if (!confirm('Excluir este webhook inbound?')) return;
   try {
     await api('DELETE', `/settings/webhooks/inbound/${id}`);
-    toast('Webhook excluído', 'success');
+    toast('Webhook exclu�do', 'success');
     loadWebhooks();
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -1237,7 +1237,7 @@ async function deleteOutbound(id) {
   if (!confirm('Excluir este webhook outbound?')) return;
   try {
     await api('DELETE', `/settings/webhooks/outbound/${id}`);
-    toast('Webhook excluído', 'success');
+    toast('Webhook exclu�do', 'success');
     loadWebhooks();
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -1293,7 +1293,7 @@ on('modal-outbound-form', 'submit', async (e) => {
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Tabs ────────────────────────────────────────────────────────────────── */
 
 document.querySelectorAll('.tabs .tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -1305,7 +1305,7 @@ document.querySelectorAll('.tabs .tab').forEach(tab => {
   });
 });
 
-/* â”€â”€ API KEYS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── API KEYS ────────────────────────────────────────────────────────────── */
 
 async function loadApiKeys() {
   try {
@@ -1330,9 +1330,9 @@ function renderApiKeys() {
       <td><span class="badge badge-${k.active ? 'active' : 'inactive'}">${k.active ? 'Ativa' : 'Inativa'}</span></td>
       <td>${fmtDate(k.created_at)}</td>
       <td style="text-align:right">
-        <button class="btn-icon" onclick="editApiKey('${k.id}')" title="Editar">âœŽ</button>
-        <button class="btn-icon" onclick="toggleApiKey('${k.id}')" title="${k.active ? 'Desativar' : 'Ativar'}">${k.active ? 'âŠ˜' : 'âœ“'}</button>
-        <button class="btn-icon" onclick="deleteApiKey('${k.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+        <button class="btn-icon" onclick="editApiKey('${k.id}')" title="Editar">✎</button>
+        <button class="btn-icon" onclick="toggleApiKey('${k.id}')" title="${k.active ? 'Desativar' : 'Ativar'}">${k.active ? '⊘' : '✓'}</button>
+        <button class="btn-icon" onclick="deleteApiKey('${k.id}')" title="Excluir" style="color:var(--red)">✕</button>
       </td>
     </tr>
   `).join('');
@@ -1350,7 +1350,7 @@ async function deleteApiKey(id) {
   if (!confirm('Excluir esta API key?')) return;
   try {
     await api('DELETE', `/settings/api-keys/${id}`);
-    toast('API key excluída', 'success');
+    toast('API key exclu�da', 'success');
     loadApiKeys();
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -1389,7 +1389,7 @@ on('btn-copy-key', 'click', () => {
   });
 });
 
-/* â”€â”€ LOGS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── LOGS ───────────────────────────────────────────────────────────────── */
 
 async function loadLogs() {
   try {
@@ -1476,7 +1476,7 @@ function renderLogs() {
                     <span style="color:var(--text-muted)">${esc(l.entity_type || '')}</span>
                     <span style="font-weight:600;color:var(--accent)">${esc(l.entity_name || '')}</span>
                   </div>
-                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${esc(l.details || '')} Â· ${fmtDate(l.created_at)}</div>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${esc(l.details || '')} · ${fmtDate(l.created_at)}</div>
                 </div>
               </div>
             `;
@@ -1492,13 +1492,13 @@ document.getElementById('logs-filter-type')?.addEventListener('change', renderLo
 
 on('btn-refresh-logs', 'click', loadLogs);
 
-/* â”€â”€ KANBAN COMERCIAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── KANBAN COMERCIAL ──────────────────────────────────────────────────── */
 
 const KANBAN_LABELS = {
   novo_lead: { label: 'Novo Lead', icon: 'fa-solid fa-star', color: '#f5a623' },
   em_tentativa: { label: 'Em Tentativa', icon: 'fa-solid fa-phone', color: '#3b82f6' },
-  em_qualificacao: { label: 'Em Qualificação', icon: 'fa-solid fa-filter', color: '#8b5cf6' },
-  reuniao_agendada: { label: 'Reunião Agendada', icon: 'fa-solid fa-calendar-check', color: '#06b6d4' },
+  em_qualificacao: { label: 'Em Qualifica��o', icon: 'fa-solid fa-filter', color: '#8b5cf6' },
+  reuniao_agendada: { label: 'Reuni�o Agendada', icon: 'fa-solid fa-calendar-check', color: '#06b6d4' },
   proposta_enviada: { label: 'Proposta Enviada', icon: 'fa-solid fa-file-invoice', color: '#ec4899' },
   contrato_fechamento: { label: 'Contrato/Fechamento', icon: 'fa-solid fa-file-signature', color: '#f97316' },
   ganho: { label: 'Ganho', icon: 'fa-solid fa-trophy', color: '#10b981' },
@@ -1525,7 +1525,7 @@ async function loadSlaAlerts() {
     if (alerts.length === 0) { container.style.display = 'none'; return; }
     container.style.display = 'block';
     container.innerHTML = alerts.map(a =>
-      `<div class="kanban-alert"><i class="fa-solid fa-clock"></i> Lead <strong>${esc(a.name)}</strong> em "${KANBAN_LABELS[a.status]?.label || a.status}" hà ¡ <strong>${a.sla_days} dias</strong> sem atividade</div>`
+      `<div class="kanban-alert"><i class="fa-solid fa-clock"></i> Lead <strong>${esc(a.name)}</strong> em "${KANBAN_LABELS[a.status]?.label || a.status}" h� � <strong>${a.sla_days} dias</strong> sem atividade</div>`
     ).join('');
   } catch {}
 }
@@ -1582,7 +1582,7 @@ function renderKanbanCard(lead, isTerminal) {
   `;
 }
 
-/* â”€â”€ Drag & Drop Kanban â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Drag & Drop Kanban ───────────────────────────────────────────────── */
 
 let dragSrcId = null;
 
@@ -1654,7 +1654,7 @@ async function onDrop(e) {
   if (card && card.dataset.status === toStatus) return;
 
   try {
-    // Tenta transição; se backend rejeitar, mostra toast com erro
+    // Tenta transi��o; se backend rejeitar, mostra toast com erro
     await api('PATCH', `/leads/${leadId}/transition`, { status: toStatus });
     toast('Lead movido!', 'success');
     loadKanban();
@@ -1752,7 +1752,7 @@ on('modal-transition-form', 'submit', async (e) => {
 
 on('btn-kanban-refresh', 'click', loadKanban);
 
-/* â”€â”€ FASE 3 â€” EQUIPMENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── FASE 3 — EQUIPMENT ──────────────────────────────────────────────── */
 
 async function loadEquipment(page) {
   if (page) pagination.equipment.page = page;
@@ -1785,15 +1785,15 @@ function renderEquipment() {
   tbody.innerHTML = list.map(e => `
     <tr>
       <td><strong>${esc(e.name)}</strong></td>
-      <td>${esc(e.type || 'â€”')}</td>
+      <td>${esc(e.type || '—')}</td>
       <td>${esc(e.brand || '')} ${esc(e.model || '')}</td>
-      <td>${esc(e.plate || 'â€”')}</td>
+      <td>${esc(e.plate || '—')}</td>
       <td><span class="badge badge-${e.status}">${statusMap[e.status] || e.status}</span></td>
-      <td style="text-align:right">${e.daily_rate ? fmtCurrency(e.daily_rate) + '/dia' : 'â€”'}</td>
-      <td style="text-align:right">${e.monthly_rate ? fmtCurrency(e.monthly_rate) + '/mês' : 'â€”'}</td>
+      <td style="text-align:right">${e.daily_rate ? fmtCurrency(e.daily_rate) + '/dia' : '—'}</td>
+      <td style="text-align:right">${e.monthly_rate ? fmtCurrency(e.monthly_rate) + '/mês' : '—'}</td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-icon" onclick="editEquipment('${e.id}')" title="Editar">âœŽ</button>
-        <button class="btn-icon" onclick="deleteEquipment('${e.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+        <button class="btn-icon" onclick="editEquipment('${e.id}')" title="Editar">✎</button>
+        <button class="btn-icon" onclick="deleteEquipment('${e.id}')" title="Excluir" style="color:var(--red)">✕</button>
       </td>
     </tr>
   `).join('');
@@ -1823,7 +1823,7 @@ function editEquipment(id) {
 
 async function deleteEquipment(id) {
   if (!confirm('Excluir este equipamento?')) return;
-  try { await api('DELETE', `/equipment/${id}`); toast('Excluído', 'success'); loadEquipment(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/equipment/${id}`); toast('Exclu�do', 'success'); loadEquipment(); } catch (e) { toast(e.message, 'error'); }
 }
 
 document.getElementById('btn-new-equipment')?.addEventListener('click', () => openEquipmentModal(null));
@@ -1852,7 +1852,7 @@ document.getElementById('modal-equipment-form')?.addEventListener('submit', asyn
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* â”€â”€ FASE 3 â€” SERVICE ORDERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── FASE 3 — SERVICE ORDERS ─────────────────────────────────────────── */
 
 async function loadServiceOrders(page) {
   if (page) pagination['service-orders'].page = page;
@@ -1883,20 +1883,20 @@ function renderServiceOrders() {
   const list = state.orders || [];
   if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (paginationEl) paginationEl.innerHTML = ''; return; }
   if (empty) empty.style.display = 'none';
-  const statusMap = { open: 'Aberta', in_progress: 'Em Andamento', closed: 'Concluída', cancelled: 'Cancelada' };
-  const priorityMap = { high: 'Alta', medium: 'Média', low: 'Baixa' };
+  const statusMap = { open: 'Aberta', in_progress: 'Em Andamento', closed: 'Conclu�da', cancelled: 'Cancelada' };
+  const priorityMap = { high: 'Alta', medium: 'M�dia', low: 'Baixa' };
   tbody.innerHTML = list.map(o => `
     <tr>
       <td><strong>${esc(o.title)}</strong></td>
-      <td>${esc(o.equipment_name || 'â€”')}</td>
-      <td>${esc(o.client_name || 'â€”')}</td>
+      <td>${esc(o.equipment_name || '—')}</td>
+      <td>${esc(o.client_name || '—')}</td>
       <td><span class="badge badge-${o.status}">${statusMap[o.status] || o.status}</span></td>
       <td><span class="badge badge-${o.priority || 'medium'}">${priorityMap[o.priority] || o.priority}</span></td>
-      <td>${esc(o.assigned_to || 'â€”')}</td>
-      <td style="text-align:right">${o.value ? fmtCurrency(o.value) : 'â€”'}</td>
+      <td>${esc(o.assigned_to || '—')}</td>
+      <td style="text-align:right">${o.value ? fmtCurrency(o.value) : '—'}</td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-icon" onclick="editServiceOrder('${o.id}')" title="Editar">âœŽ</button>
-        <button class="btn-icon" onclick="deleteServiceOrder('${o.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+        <button class="btn-icon" onclick="editServiceOrder('${o.id}')" title="Editar">✎</button>
+        <button class="btn-icon" onclick="deleteServiceOrder('${o.id}')" title="Excluir" style="color:var(--red)">✕</button>
       </td>
     </tr>
   `).join('');
@@ -1943,7 +1943,7 @@ function editServiceOrder(id) {
 
 async function deleteServiceOrder(id) {
   if (!confirm('Excluir esta OS?')) return;
-  try { await api('DELETE', `/service-orders/${id}`); toast('Excluída', 'success'); loadServiceOrders(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/service-orders/${id}`); toast('Exclu�da', 'success'); loadServiceOrders(); } catch (e) { toast(e.message, 'error'); }
 }
 
 document.getElementById('btn-new-so')?.addEventListener('click', () => { loadSODropdowns().then(() => openSOModal(null)); });
@@ -1971,7 +1971,7 @@ document.getElementById('modal-so-form')?.addEventListener('submit', async (e) =
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* â”€â”€ FASE 3 â€” CONTRACTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── FASE 3 — CONTRACTS ──────────────────────────────────────────────── */
 
 async function loadContracts(page) {
   if (page) pagination.contracts.page = page;
@@ -2001,19 +2001,19 @@ function renderContracts() {
   if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (paginationEl) paginationEl.innerHTML = ''; return; }
   if (empty) empty.style.display = 'none';
   const statusMap = { draft: 'Rascunho', active: 'Ativo', expired: 'Expirado', terminated: 'Encerrado' };
-  const typeMap = { rental: 'Locação', service: 'Serviço' };
+  const typeMap = { rental: 'Locação', service: 'Servi�o' };
   tbody.innerHTML = list.map(c => `
     <tr>
       <td><strong>${esc(c.title)}</strong></td>
-      <td>${esc(c.company_name || 'â€”')}</td>
-      <td>${esc(c.equipment_name || 'â€”')}</td>
+      <td>${esc(c.company_name || '—')}</td>
+      <td>${esc(c.equipment_name || '—')}</td>
       <td>${typeMap[c.type] || c.type}</td>
-      <td style="text-align:right">${c.value ? fmtCurrency(c.value) : 'â€”'}</td>
-      <td style="font-size:12px">${c.start_date ? fmtDate(c.start_date) : 'â€”'} â€” ${c.end_date ? fmtDate(c.end_date) : 'â€”'}</td>
+      <td style="text-align:right">${c.value ? fmtCurrency(c.value) : '—'}</td>
+      <td style="font-size:12px">${c.start_date ? fmtDate(c.start_date) : '—'} — ${c.end_date ? fmtDate(c.end_date) : '—'}</td>
       <td><span class="badge badge-${c.status}">${statusMap[c.status] || c.status}</span></td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-icon" onclick="editContract('${c.id}')" title="Editar">âœŽ</button>
-        <button class="btn-icon" onclick="deleteContract('${c.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+        <button class="btn-icon" onclick="editContract('${c.id}')" title="Editar">✎</button>
+        <button class="btn-icon" onclick="deleteContract('${c.id}')" title="Excluir" style="color:var(--red)">✕</button>
       </td>
     </tr>
   `).join('');
@@ -2057,7 +2057,7 @@ function editContract(id) {
 
 async function deleteContract(id) {
   if (!confirm('Excluir este contrato?')) return;
-  try { await api('DELETE', `/contracts/${id}`); toast('Excluído', 'success'); loadContracts(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/contracts/${id}`); toast('Exclu�do', 'success'); loadContracts(); } catch (e) { toast(e.message, 'error'); }
 }
 
 document.getElementById('btn-new-contract')?.addEventListener('click', () => { loadContractDropdowns().then(() => openContractModal(null)); });
@@ -2084,7 +2084,7 @@ document.getElementById('modal-contract-form')?.addEventListener('submit', async
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* â”€â”€ FASE 2 â€” CHARTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── FASE 2 — CHARTS ───────────────────────────────────────────────────── */
 
 let chartsInitialized = false;
 let chartInstances = {};
@@ -2156,7 +2156,7 @@ function renderCharts(data) {
   }
 }
 
-/* â”€â”€ Dashboard Summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Dashboard Summary ──────────────────────────────────────────────────── */
 
 function renderDashboardSummary(data) {
   if (!data) return;
@@ -2166,21 +2166,21 @@ function renderDashboardSummary(data) {
   // Update stat cards
   if (totals) {
     const el = (id) => document.getElementById(id);
-    if (el('stat-total')) el('stat-total').textContent = totals.totalLeads ?? 'â€”';
-    if (el('stat-companies')) el('stat-companies').textContent = totals.totalCompanies ?? 'â€”';
-    if (el('stat-tasks-pending')) el('stat-tasks-pending').textContent = totals.totalEquipment ?? 'â€”';
+    if (el('stat-total')) el('stat-total').textContent = totals.totalLeads ?? '—';
+    if (el('stat-companies')) el('stat-companies').textContent = totals.totalCompanies ?? '—';
+    if (el('stat-tasks-pending')) el('stat-tasks-pending').textContent = totals.totalEquipment ?? '—';
   }
   
   if (this_month) {
     const el = (id) => document.getElementById(id);
-    if (el('stat-new')) el('stat-new').textContent = this_month.newLeadsThisMonth ?? 'â€”';
-    if (el('stat-converted')) el('stat-converted').textContent = this_month.activeContracts ?? 'â€”';
-    if (el('stat-lost')) el('stat-lost').textContent = this_month.pendingInvoices ?? 'â€”';
-    if (el('stat-deals-won')) el('stat-deals-won').textContent = this_month.activeDeals ?? 'â€”';
+    if (el('stat-new')) el('stat-new').textContent = this_month.newLeadsThisMonth ?? '—';
+    if (el('stat-converted')) el('stat-converted').textContent = this_month.activeContracts ?? '—';
+    if (el('stat-lost')) el('stat-lost').textContent = this_month.pendingInvoices ?? '—';
+    if (el('stat-deals-won')) el('stat-deals-won').textContent = this_month.activeDeals ?? '—';
   }
 }
 
-/* â”€â”€ Funnel Visualization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Funnel Visualization ───────────────────────────────────────────────── */
 
 function renderFunnel(data) {
   const container = document.getElementById('funnel-container');
@@ -2219,7 +2219,7 @@ function renderFunnel(data) {
   container.innerHTML = html;
 }
 
-/* â”€â”€ Activity Rendering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Activity Rendering ─────────────────────────────────────────────────── */
 
 function renderActivity(data) {
   if (!data) return;
@@ -2234,7 +2234,7 @@ function renderActivity(data) {
         <div class="activity-item">
           <div>
             <div class="activity-item-name">${esc(l.name)}</div>
-            <div class="activity-item-detail">${esc(l.company || l.source || 'â€”')}</div>
+            <div class="activity-item-detail">${esc(l.company || l.source || '—')}</div>
           </div>
           <span class="activity-item-badge badge-${l.status}">${statusLabel(l.status)}</span>
         </div>
@@ -2252,7 +2252,7 @@ function renderActivity(data) {
         <div class="activity-item">
           <div>
             <div class="activity-item-name">${esc(c.title)}</div>
-            <div class="activity-item-detail">${esc(c.company_name || 'â€”')} â€¢ Vence: ${fmtDate(c.end_date)}</div>
+            <div class="activity-item-detail">${esc(c.company_name || '—')} • Vence: ${fmtDate(c.end_date)}</div>
           </div>
           <span class="activity-item-badge badge-active">Ativo</span>
         </div>
@@ -2270,7 +2270,7 @@ function renderActivity(data) {
         <div class="activity-item">
           <div>
             <div class="activity-item-name">${esc(p.title)}</div>
-            <div class="activity-item-detail">${esc(p.company_name || 'â€”')} â€¢ ${fmtCurrency(p.value)}</div>
+            <div class="activity-item-detail">${esc(p.company_name || '—')} • ${fmtCurrency(p.value)}</div>
           </div>
           <span class="activity-item-badge badge-${p.status}">${statusLabel(p.status)}</span>
         </div>
@@ -2279,7 +2279,7 @@ function renderActivity(data) {
   }
 }
 
-/* â”€â”€ Marketing Rendering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Marketing Rendering ────────────────────────────────────────────────── */
 
 function renderMarketing(data) {
   if (!data) return;
@@ -2318,7 +2318,7 @@ function renderMarketing(data) {
         <div class="campaign-item">
           <div>
             <div style="font-weight:500">${esc(c.name)}</div>
-            <div style="font-size:11px;color:var(--text-muted)">${esc(c.type)} â€¢ ${c.sent_count || 0} enviados</div>
+            <div style="font-size:11px;color:var(--text-muted)">${esc(c.type)} • ${c.sent_count || 0} enviados</div>
           </div>
           <span class="activity-item-badge badge-${c.status}">${statusLabel(c.status)}</span>
         </div>
@@ -2327,7 +2327,7 @@ function renderMarketing(data) {
   }
 }
 
-/* â”€â”€ Fleet Utilization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Fleet Utilization ──────────────────────────────────────────────────── */
 
 function renderFleetUtilization(data) {
   const container = document.getElementById('dash-fleet');
@@ -2370,14 +2370,14 @@ function renderFleetUtilization(data) {
   `;
 }
 
-/* â”€â”€ Top Clients â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Top Clients ────────────────────────────────────────────────────────── */
 
 function renderTopClients(clients) {
   const tbody = document.getElementById('dash-top-clients');
   if (!tbody || !clients) return;
   
   if (clients.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:20px">Nenhum cliente com negócios fechados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:20px">Nenhum cliente com neg�cios fechados</td></tr>';
     return;
   }
   
@@ -2390,7 +2390,7 @@ function renderTopClients(clients) {
   `).join('');
 }
 
-/* â”€â”€ FASE 2 â€” NOTIFICATIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── FASE 2 — NOTIFICATIONS ────────────────────────────────────────────── */
 
 let notifInterval = null;
 
@@ -2418,7 +2418,7 @@ async function loadUnreadCount() {
 function renderNotifications() {
   const list = document.getElementById('notif-list');
   if (!state.notifications || state.notifications.length === 0) {
-    list.innerHTML = '<div class="notif-empty">Nenhuma notificação</div>';
+    list.innerHTML = '<div class="notif-empty">Nenhuma notifica��o</div>';
     return;
   }
   list.innerHTML = state.notifications.map(n => `
@@ -2447,7 +2447,7 @@ document.getElementById('btn-notif-read-all')?.addEventListener('click', async (
     await api('POST', '/notifications/read-all');
     loadNotifications();
     loadUnreadCount();
-    toast('Notificações marcadas como lidas', 'success');
+    toast('Notifica��es marcadas como lidas', 'success');
   } catch (e) { toast(e.message, 'error'); }
 });
 
@@ -2460,7 +2460,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-/* â”€â”€ FASE 2 â€” UPLOAD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── FASE 2 — UPLOAD ──────────────────────────────────────────────────── */
 
 async function uploadFile(entityType, entityId, fileInput) {
   const file = fileInput.files[0];
@@ -2472,7 +2472,7 @@ async function uploadFile(entityType, entityId, fileInput) {
 
   const headers = {};
   if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
-  // Note: Don't set Content-Type for multipart â€” fetch sets it automatically with boundary
+  // Note: Don't set Content-Type for multipart — fetch sets it automatically with boundary
 
   showLoader();
   try {
@@ -2506,8 +2506,8 @@ async function loadFiles(entityType, entityId) {
       <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-light)">
         <span style="font-size:13px">${esc(f.original_name)}</span>
         <div style="display:flex;gap:8px">
-          <a href="/api/files/${f.id}/download" class="btn-link" style="font-size:12px" target="_blank" download>â¬‡</a>
-          <button class="btn-link" style="font-size:12px;color:var(--red)" onclick="deleteFile(${f.id},'${entityType}',${entityId})">âœ•</button>
+          <a href="/api/files/${f.id}/download" class="btn-link" style="font-size:12px" target="_blank" download>⬇</a>
+          <button class="btn-link" style="font-size:12px;color:var(--red)" onclick="deleteFile(${f.id},'${entityType}',${entityId})">✕</button>
         </div>
       </div>
     `).join('');
@@ -2517,12 +2517,12 @@ async function loadFiles(entityType, entityId) {
 async function deleteFile(id, entityType, entityId) {
   try {
     await api('DELETE', `/files/${id}`);
-    toast('Arquivo excluído', 'success');
+    toast('Arquivo exclu�do', 'success');
     loadFiles(entityType, entityId);
   } catch (e) { toast(e.message, 'error'); }
 }
 
-/* â”€â”€ FASE 2 â€” EXPORT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── FASE 2 — EXPORT ──────────────────────────────────────────────────── */
 
 function exportCsv(endpoint) {
   const token = state.token;
@@ -2544,7 +2544,7 @@ function exportCsv(endpoint) {
     .catch(e => toast(e.message, 'error'));
 }
 
-/* â”€â”€ FASE 2 â€” LOAD DASHBOARD CHARTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── FASE 2 — LOAD DASHBOARD CHARTS ───────────────────────────────────── */
 
 // Augment loadDashboard to also load charts and new dashboard data
 const _origLoadDashboard = loadDashboard;
@@ -2581,7 +2581,7 @@ loadDashboard = async function() {
   loadUnreadCount();
 };
 
-/* â”€â”€ FASE 2 â€” EXPORT BUTTONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€--- */
+/* ── FASE 2 — EXPORT BUTTONS ─────────────────────────────────────────--- */
 
 // Add export buttons to page headers after navigation
 function addExportButtons(page) {
@@ -2597,7 +2597,7 @@ function addExportButtons(page) {
   if (header.querySelector('.btn-export')) return;
   const btn = document.createElement('button');
   btn.className = 'btn btn-secondary btn-export';
-  btn.textContent = 'ðŸ“¥ CSV';
+  btn.textContent = '📥 CSV';
   btn.style.marginLeft = '8px';
   btn.onclick = () => exportCsv(exportMap[page]);
   const actionGroup = header.querySelector('div:last-child') || header.lastElementChild;
@@ -2606,7 +2606,7 @@ function addExportButtons(page) {
   }
 }
 
-/* â”€â”€ FASE 4 â€” GLOBAL SEARCH â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── FASE 4 — GLOBAL SEARCH ─────────────────────────────────────────── */
 
 let searchTimeout;
 
@@ -2642,7 +2642,7 @@ document.addEventListener('click', (e) => {
   if (el && !e.target.closest('.sidebar-search')) el.style.display = 'none';
 });
 
-/* â”€â”€ FASE 4 â€” CALENDAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── FASE 4 — CALENDAR ────────────────────────────────────────────── */
 
 let calendarMonth = new Date().getMonth() + 1;
 let calendarYear = new Date().getFullYear();
@@ -2657,7 +2657,7 @@ async function loadCalendar() {
 }
 
 function renderCalendar(events) {
-  const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const monthNames = ['Janeiro','Fevereiro','Mar�o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   document.getElementById('calendar-month-label').textContent = `${monthNames[calendarMonth - 1]} ${calendarYear}`;
 
   const firstDay = new Date(calendarYear, calendarMonth - 1, 1).getDay();
@@ -2675,7 +2675,7 @@ function renderCalendar(events) {
     }
   }
 
-  const typeIcon = { service_order: 'ðŸ”§', contract: 'ðŸ“„', task: 'â˜' };
+  const typeIcon = { service_order: '🔧', contract: '📄', task: '☐' };
   const statusColor = { open: '#f59e0b', in_progress: '#3b82f6', closed: '#10b981', cancelled: '#ef4444', active: '#10b981', ended: '#6b7280', pending: '#f59e0b', done: '#10b981' };
 
   let cells = '';
@@ -2692,7 +2692,7 @@ function renderCalendar(events) {
 
     for (const ev of dayEvents.slice(0, 3)) {
       cells += `<div style="font-size:10px;padding:1px 4px;margin-bottom:1px;border-radius:3px;background:${statusColor[ev.status] || '#6b7280'}20;color:${statusColor[ev.status] || '#6b7280'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(ev.title)}">
-        ${typeIcon[ev.type] || 'â€¢'} ${esc(ev.title.substring(0, 20))}
+        ${typeIcon[ev.type] || '•'} ${esc(ev.title.substring(0, 20))}
       </div>`;
     }
     if (dayEvents.length > 3) {
@@ -2724,16 +2724,16 @@ document.getElementById('btn-cal-prev')?.addEventListener('click', () => { calen
 document.getElementById('btn-cal-next')?.addEventListener('click', () => { calendarMonth++; if (calendarMonth > 12) { calendarMonth = 1; calendarYear++; } loadCalendar(); });
 document.getElementById('btn-cal-today')?.addEventListener('click', () => { const d = new Date(); calendarMonth = d.getMonth() + 1; calendarYear = d.getFullYear(); loadCalendar(); });
 
-/* â”€â”€ NOVOS Mà “DULOS: BI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── NOVOS M� �DULOS: BI ──────────────────────────────────────────────── */
 
 async function loadBI() {
   showLoader();
   try {
     const kpis = await api('GET', '/bi/kpis');
-    document.getElementById('bi-conversion').textContent = kpis.conversionRate != null ? kpis.conversionRate + '%' : 'â€”';
-    document.getElementById('bi-avg-ticket').textContent = kpis.avgTicket != null ? fmtCurrency(kpis.avgTicket) : 'â€”';
-    document.getElementById('bi-fleet').textContent = kpis.fleetUtilization != null ? kpis.fleetUtilization + '%' : 'â€”';
-    document.getElementById('bi-recurrence').textContent = kpis.recurrenceRate != null ? kpis.recurrenceRate + '%' : 'â€”';
+    document.getElementById('bi-conversion').textContent = kpis.conversionRate != null ? kpis.conversionRate + '%' : '—';
+    document.getElementById('bi-avg-ticket').textContent = kpis.avgTicket != null ? fmtCurrency(kpis.avgTicket) : '—';
+    document.getElementById('bi-fleet').textContent = kpis.fleetUtilization != null ? kpis.fleetUtilization + '%' : '—';
+    document.getElementById('bi-recurrence').textContent = kpis.recurrenceRate != null ? kpis.recurrenceRate + '%' : '—';
   } catch {}
   try { renderBICharts(); } catch {}
   try {
@@ -2757,14 +2757,14 @@ async function renderBICharts() {
     const deals = await api('GET', '/bi/deals-by-month');
     const dlEl = document.getElementById('chart-bi-deals');
     if (dlEl && deals && deals.length > 0) {
-      new Chart(dlEl, { type: 'bar', data: { labels: deals.map(r => r.month), datasets: [{ label: 'Negócios', data: deals.map(r => r.count), backgroundColor: 'rgba(59, 130, 246, 0.6)', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
+      new Chart(dlEl, { type: 'bar', data: { labels: deals.map(r => r.month), datasets: [{ label: 'Neg�cios', data: deals.map(r => r.count), backgroundColor: 'rgba(59, 130, 246, 0.6)', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
     }
   } catch {}
 }
 
 document.getElementById('btn-refresh-bi')?.addEventListener('click', loadBI);
 
-/* â”€â”€ NOVOS Mà “DULOS: INVOICES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── NOVOS M� �DULOS: INVOICES ────────────────────────────────────────── */
 
 async function loadInvoices(page) {
   if (page) pagination.invoices.page = page;
@@ -2805,16 +2805,16 @@ function renderInvoices() {
   if (empty) empty.style.display = 'none';
   const statusMap = { pending: 'Pendente', paid: 'Pago', overdue: 'Vencido', cancelled: 'Cancelado' };
   tbody.innerHTML = list.map(i => `<tr>
-    <td>${esc(i.nf_number || 'â€”')}</td>
-    <td>${esc(i.company_name || 'â€”')}</td>
-    <td>${esc(i.description || 'â€”')}</td>
+    <td>${esc(i.nf_number || '—')}</td>
+    <td>${esc(i.company_name || '—')}</td>
+    <td>${esc(i.description || '—')}</td>
     <td style="text-align:right">${fmtCurrency(i.value)}</td>
-    <td>${i.due_date ? fmtDate(i.due_date) : 'â€”'}</td>
+    <td>${i.due_date ? fmtDate(i.due_date) : '—'}</td>
     <td><span class="badge badge-${i.status}">${statusMap[i.status] || i.status}</span></td>
     <td style="text-align:right;white-space:nowrap">
-      <button class="btn-icon" onclick="showInvoiceDetail('${i.id}')" title="Detalhes">ðŸ“‹</button>
-      <button class="btn-icon" onclick="editInvoice('${i.id}')" title="Editar">âœŽ</button>
-      <button class="btn-icon" onclick="deleteInvoice('${i.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+      <button class="btn-icon" onclick="showInvoiceDetail('${i.id}')" title="Detalhes">📋</button>
+      <button class="btn-icon" onclick="editInvoice('${i.id}')" title="Editar">✎</button>
+      <button class="btn-icon" onclick="deleteInvoice('${i.id}')" title="Excluir" style="color:var(--red)">✕</button>
     </td></tr>`).join('');
   if (paginationEl) paginationEl.innerHTML = paginationContainer('invoices', loadInvoices);
 }
@@ -2846,7 +2846,7 @@ function editInvoice(id) {
 
 async function deleteInvoice(id) {
   if (!confirm('Excluir esta fatura?')) return;
-  try { await api('DELETE', `/invoices/${id}`); toast('Excluída', 'success'); loadInvoices(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/invoices/${id}`); toast('Exclu�da', 'success'); loadInvoices(); } catch (e) { toast(e.message, 'error'); }
 }
 
 let _detailInvoiceId = null;
@@ -2859,9 +2859,9 @@ async function showInvoiceDetail(id) {
     document.getElementById('modal-invoice-title').textContent = 'Detalhes da Fatura';
     document.getElementById('invoice-id').value = inv.id;
 
-    document.getElementById('invoice-detail-number').textContent = esc(inv.invoice_number || 'â€”');
-    document.getElementById('invoice-detail-issue').textContent = inv.issue_date ? fmtDate(inv.issue_date) : 'â€”';
-    document.getElementById('invoice-detail-payment').textContent = inv.payment_date ? fmtDate(inv.payment_date) : 'â€”';
+    document.getElementById('invoice-detail-number').textContent = esc(inv.invoice_number || '—');
+    document.getElementById('invoice-detail-issue').textContent = inv.issue_date ? fmtDate(inv.issue_date) : '—';
+    document.getElementById('invoice-detail-payment').textContent = inv.payment_date ? fmtDate(inv.payment_date) : '—';
 
     if (inv.contract_id) {
       document.getElementById('invoice-detail-contract-row').style.display = '';
@@ -2938,7 +2938,7 @@ document.getElementById('modal-invoice-form')?.addEventListener('submit', async 
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* â”€â”€ NOVOS Mà “DULOS: PROPOSALS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── NOVOS M� �DULOS: PROPOSALS ───────────────────────────────────────── */
 
 async function loadProposals(page) {
   if (page) pagination.proposals.page = page;
@@ -2967,15 +2967,15 @@ function renderProposals() {
   const statusMap = { draft: 'Rascunho', sent: 'Enviada', approved: 'Aprovada', rejected: 'Rejeitada' };
   tbody.innerHTML = list.map(p => `<tr>
     <td><strong>${esc(p.title)}</strong></td>
-    <td>${esc(p.company_name || 'â€”')}</td>
-    <td>${esc(p.contact_name || 'â€”')}</td>
+    <td>${esc(p.company_name || '—')}</td>
+    <td>${esc(p.contact_name || '—')}</td>
     <td style="text-align:right">${fmtCurrency(p.value)}</td>
-    <td>${p.valid_until ? fmtDate(p.valid_until) : 'â€”'}</td>
+    <td>${p.valid_until ? fmtDate(p.valid_until) : '—'}</td>
     <td><span class="badge badge-${p.status}">${statusMap[p.status] || p.status}</span></td>
     <td style="text-align:right;white-space:nowrap">
-      <button class="btn-icon" onclick="showProposalDetail('${p.id}')" title="Detalhes">ðŸ“‹</button>
-      <button class="btn-icon" onclick="editProposal('${p.id}')" title="Editar">âœŽ</button>
-      <button class="btn-icon" onclick="deleteProposal('${p.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+      <button class="btn-icon" onclick="showProposalDetail('${p.id}')" title="Detalhes">📋</button>
+      <button class="btn-icon" onclick="editProposal('${p.id}')" title="Editar">✎</button>
+      <button class="btn-icon" onclick="deleteProposal('${p.id}')" title="Excluir" style="color:var(--red)">✕</button>
     </td></tr>`).join('');
   if (pagEl) pagEl.innerHTML = paginationContainer('proposals', loadProposals);
 }
@@ -3006,7 +3006,7 @@ function editProposal(id) {
 
 async function deleteProposal(id) {
   if (!confirm('Excluir esta proposta?')) return;
-  try { await api('DELETE', `/proposals/${id}`); toast('Excluída', 'success'); loadProposals(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/proposals/${id}`); toast('Exclu�da', 'success'); loadProposals(); } catch (e) { toast(e.message, 'error'); }
 }
 
 let _detailProposalId = null;
@@ -3132,11 +3132,11 @@ document.getElementById('btn-proposal-add-item')?.addEventListener('click', () =
   const row = document.createElement('div');
   row.className = 'proposal-item-row';
   row.style.cssText = 'display:flex;gap:6px';
-  row.innerHTML = '<input type="text" placeholder="Descrição" style="flex:3;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px"><input type="number" placeholder="Qtd" style="width:60px;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px" min="1" value="1"><input type="number" placeholder="Valor" style="width:100px;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px" step="0.01" min="0"><button type="button" class="btn btn-secondary" style="padding:4px 8px;font-size:12px" onclick="this.parentElement.remove()">âœ•</button>';
+  row.innerHTML = '<input type="text" placeholder="Descri��o" style="flex:3;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px"><input type="number" placeholder="Qtd" style="width:60px;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px" min="1" value="1"><input type="number" placeholder="Valor" style="width:100px;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px" step="0.01" min="0"><button type="button" class="btn btn-secondary" style="padding:4px 8px;font-size:12px" onclick="this.parentElement.remove()">✕</button>';
   container.appendChild(row);
 });
 
-/* â”€â”€ NOVOS Mà “DULOS: PROJECTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── NOVOS M� �DULOS: PROJECTS ────────────────────────────────────────── */
 
 async function loadProjects(page) {
   if (page) pagination.projects.page = page;
@@ -3162,17 +3162,17 @@ function renderProjects() {
   const list = state.projects || [];
   if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (pagEl) pagEl.innerHTML = ''; return; }
   if (empty) empty.style.display = 'none';
-  const statusMap = { planning: 'Planejamento', in_progress: 'Em Andamento', completed: 'Concluído', cancelled: 'Cancelado' };
+  const statusMap = { planning: 'Planejamento', in_progress: 'Em Andamento', completed: 'Conclu�do', cancelled: 'Cancelado' };
   tbody.innerHTML = list.map(p => `<tr>
     <td><strong>${esc(p.name)}</strong></td>
-    <td>${esc(p.company_name || 'â€”')}</td>
+    <td>${esc(p.company_name || '—')}</td>
     <td><span class="badge badge-${p.status}">${statusMap[p.status] || p.status}</span></td>
     <td style="text-align:right">${fmtCurrency(p.value)}</td>
-    <td>${p.start_date ? fmtDate(p.start_date) : 'â€”'}</td>
-    <td>${p.end_date ? fmtDate(p.end_date) : 'â€”'}</td>
+    <td>${p.start_date ? fmtDate(p.start_date) : '—'}</td>
+    <td>${p.end_date ? fmtDate(p.end_date) : '—'}</td>
     <td style="text-align:right;white-space:nowrap">
-      <button class="btn-icon" onclick="editProject('${p.id}')" title="Editar">âœŽ</button>
-      <button class="btn-icon" onclick="deleteProject('${p.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+      <button class="btn-icon" onclick="editProject('${p.id}')" title="Editar">✎</button>
+      <button class="btn-icon" onclick="deleteProject('${p.id}')" title="Excluir" style="color:var(--red)">✕</button>
     </td></tr>`).join('');
   if (pagEl) pagEl.innerHTML = paginationContainer('projects', loadProjects);
 }
@@ -3205,7 +3205,7 @@ function editProject(id) {
 
 async function deleteProject(id) {
   if (!confirm('Excluir esta obra?')) return;
-  try { await api('DELETE', `/projects/${id}`); toast('Excluída', 'success'); loadProjects(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/projects/${id}`); toast('Exclu�da', 'success'); loadProjects(); } catch (e) { toast(e.message, 'error'); }
 }
 
 document.getElementById('btn-new-project')?.addEventListener('click', () => { loadProjectCompanies().then(() => openProjectModal(null)); });
@@ -3230,9 +3230,9 @@ document.getElementById('modal-project-form')?.addEventListener('submit', async 
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* â”€â”€ PROJECT PHASES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── PROJECT PHASES ─────────────────────────────────────────────────── */
 
-const phaseStatusMap = { pending: 'Pendente', in_progress: 'Em Andamento', completed: 'Concluído' };
+const phaseStatusMap = { pending: 'Pendente', in_progress: 'Em Andamento', completed: 'Conclu�do' };
 let _currentProjectId = null;
 
 async function loadProjectPhases(projectId) {
@@ -3257,7 +3257,7 @@ function renderPhases(phases) {
         <select class="phase-status-select" data-phase-id="${ph.id}" onchange="updatePhaseStatus('${ph.id}', this.value)" style="font-size:12px;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-input);color:var(--text-color)">
           <option value="pending" ${ph.status === 'pending' ? 'selected' : ''}>Pendente</option>
           <option value="in_progress" ${ph.status === 'in_progress' ? 'selected' : ''}>Em Andamento</option>
-          <option value="completed" ${ph.status === 'completed' ? 'selected' : ''}>Concluído</option>
+          <option value="completed" ${ph.status === 'completed' ? 'selected' : ''}>Conclu�do</option>
         </select>
       </td>
       <td>
@@ -3268,9 +3268,9 @@ function renderPhases(phases) {
           <span style="font-size:11px;white-space:nowrap">${ph.progress || 0}%</span>
         </div>
       </td>
-      <td style="font-size:12px">${ph.start_date ? fmtDate(ph.start_date) : 'â€”'}<br>${ph.end_date ? fmtDate(ph.end_date) : 'â€”'}</td>
+      <td style="font-size:12px">${ph.start_date ? fmtDate(ph.start_date) : '—'}<br>${ph.end_date ? fmtDate(ph.end_date) : '—'}</td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn-icon" onclick="deletePhase('${ph.id}')" title="Excluir fase" style="color:var(--red);font-size:14px">âœ•</button>
+        <button class="btn-icon" onclick="deletePhase('${ph.id}')" title="Excluir fase" style="color:var(--red);font-size:14px">✕</button>
       </td>
     </tr>
   `).join('');
@@ -3301,7 +3301,7 @@ async function deletePhase(phaseId) {
   if (!confirm('Excluir esta fase?')) return;
   try {
     await api('DELETE', '/projects/phases/' + phaseId);
-    toast('Fase excluída', 'success');
+    toast('Fase exclu�da', 'success');
     if (_currentProjectId) loadProjectPhases(_currentProjectId);
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -3320,38 +3320,38 @@ openProjectModal = function(project) {
   }
 };
 
-/* â”€â”€ NOVOS Mà “DULOS: TICKETS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── NOVOS M� �DULOS: TICKETS ─────────────────────────────────────────── */
 
 let ticketsPage = 1;
-/* â”€â”€ NOVOS Mà “DULOS: RENTAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── NOVOS M� �DULOS: RENTAL ──────────────────────────────────────────── */
 
 async function loadRental() {
   showLoader();
   try {
     const util = await api('GET', '/rental/utilization');
     if (util) {
-      document.getElementById('rental-available').textContent = util.available ?? 'â€”';
-      document.getElementById('rental-in-use').textContent = util.inUse ?? 'â€”';
-      document.getElementById('rental-mtce').textContent = util.maintenance ?? 'â€”';
-      document.getElementById('rental-util').textContent = (util.utilization != null ? util.utilization + '%' : 'â€”');
+      document.getElementById('rental-available').textContent = util.available ?? '—';
+      document.getElementById('rental-in-use').textContent = util.inUse ?? '—';
+      document.getElementById('rental-mtce').textContent = util.maintenance ?? '—';
+      document.getElementById('rental-util').textContent = (util.utilization != null ? util.utilization + '%' : '—');
     }
   } catch {}
   try {
     const avail = await api('GET', '/rental/availability');
     const tb = document.getElementById('rental-tbody');
-    if (tb) tb.innerHTML = (avail || []).map(a => `<tr><td>${esc(a.equipment_name || 'â€”')}</td><td>${a.start_date || 'â€”'}</td><td>${a.end_date || 'â€”'}</td><td><span class="badge badge-${a.status}">${esc(a.status)}</span></td><td style="text-align:right"><button class="btn-icon" onclick="deleteRentalBlock(${a.id})" title="Excluir" style="color:var(--red)">âœ•</button></td></tr>`).join('');
+    if (tb) tb.innerHTML = (avail || []).map(a => `<tr><td>${esc(a.equipment_name || '—')}</td><td>${a.start_date || '—'}</td><td>${a.end_date || '—'}</td><td><span class="badge badge-${a.status}">${esc(a.status)}</span></td><td style="text-align:right"><button class="btn-icon" onclick="deleteRentalBlock(${a.id})" title="Excluir" style="color:var(--red)">✕</button></td></tr>`).join('');
   } catch {}
   try {
     const exp = await api('GET', '/rental/expiring?days=15');
     const tb2 = document.getElementById('rental-expiring-tbody');
-    if (tb2) tb2.innerHTML = (exp || []).map(c => `<tr><td>${esc(c.title)}</td><td>${esc(c.equipment_name || 'â€”')}</td><td>${esc(c.company_name || 'â€”')}</td><td>${c.end_date || 'â€”'}</td></tr>`).join('');
+    if (tb2) tb2.innerHTML = (exp || []).map(c => `<tr><td>${esc(c.title)}</td><td>${esc(c.equipment_name || '—')}</td><td>${esc(c.company_name || '—')}</td><td>${c.end_date || '—'}</td></tr>`).join('');
   } catch {}
   finally { hideLoader(); }
 }
 
 async function deleteRentalBlock(id) {
   if (!confirm('Excluir este bloqueio?')) return;
-  try { await api('DELETE', `/rental/availability/${id}`); toast('Excluído', 'success'); loadRental(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/rental/availability/${id}`); toast('Exclu�do', 'success'); loadRental(); } catch (e) { toast(e.message, 'error'); }
 }
 
 async function loadRentalDropdowns() {
@@ -3384,7 +3384,7 @@ document.getElementById('modal-rental-form')?.addEventListener('submit', async (
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* â”€â”€ NOVOS Mà “DULOS: CAMPAIGNS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── NOVOS M� �DULOS: CAMPAIGNS ───────────────────────────────────────── */
 
 let campaignsPage = 1;
 async function loadCampaigns(page) {
@@ -3408,17 +3408,17 @@ function renderCampaigns() {
   const list = state.campaigns || [];
   if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (pagEl) pagEl.innerHTML = ''; return; }
   if (empty) empty.style.display = 'none';
-  const statusMap = { draft: 'Rascunho', active: 'Ativa', paused: 'Pausada', finished: 'Concluída' };
+  const statusMap = { draft: 'Rascunho', active: 'Ativa', paused: 'Pausada', finished: 'Conclu�da' };
   tbody.innerHTML = list.map(c => `<tr>
     <td><strong>${esc(c.name)}</strong></td>
-    <td>${esc(c.type || 'â€”')}</td>
+    <td>${esc(c.type || '—')}</td>
     <td><span class="badge badge-${c.status}">${statusMap[c.status] || c.status}</span></td>
-    <td>${c.start_date ? fmtDate(c.start_date) : 'â€”'}</td>
-    <td>${c.end_date ? fmtDate(c.end_date) : 'â€”'}</td>
+    <td>${c.start_date ? fmtDate(c.start_date) : '—'}</td>
+    <td>${c.end_date ? fmtDate(c.end_date) : '—'}</td>
     <td style="text-align:right">${fmtCurrency(c.budget)}</td>
     <td style="text-align:right;white-space:nowrap">
-      <button class="btn-icon" onclick="editCampaign('${c.id}')" title="Editar">âœŽ</button>
-      <button class="btn-icon" onclick="deleteCampaign('${c.id}')" title="Excluir" style="color:var(--red)">âœ•</button>
+      <button class="btn-icon" onclick="editCampaign('${c.id}')" title="Editar">✎</button>
+      <button class="btn-icon" onclick="deleteCampaign('${c.id}')" title="Excluir" style="color:var(--red)">✕</button>
     </td></tr>`).join('');
 }
 
@@ -3442,7 +3442,7 @@ function editCampaign(id) {
 
 async function deleteCampaign(id) {
   if (!confirm('Excluir esta campanha?')) return;
-  try { await api('DELETE', `/campaigns/${id}`); toast('Excluída', 'success'); loadCampaigns(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/campaigns/${id}`); toast('Exclu�da', 'success'); loadCampaigns(); } catch (e) { toast(e.message, 'error'); }
 }
 
 document.getElementById('btn-new-campaign')?.addEventListener('click', () => openCampaignModal(null));
@@ -3467,7 +3467,7 @@ document.getElementById('modal-campaign-form')?.addEventListener('submit', async
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* â”€â”€ NOVOS Mà “DULOS: HUNTER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── NOVOS M� �DULOS: HUNTER ──────────────────────────────────────────── */
 
 let hunterPage = 1;
 async function loadHunter(page) {
@@ -3482,7 +3482,7 @@ async function loadHunter(page) {
   try {
     const top = await api('GET', '/hunter/top-leads?limit=10');
     const tb = document.getElementById('hunter-top-tbody');
-    if (tb) tb.innerHTML = (top || []).map(l => `<tr><td><strong>${esc(l.name)}</strong></td><td><span class="badge badge-${l.avg_score >= 70 ? 'active' : l.avg_score >= 40 ? 'in_progress' : 'pending'}">${parseFloat(l.avg_score || 0).toFixed(1)}</span></td><td>${l.enrichment_count || 0}</td><td style="text-align:right"><button class="btn-icon" onclick="navigate('leads')" title="Ver Lead">â†’</button></td></tr>`).join('');
+    if (tb) tb.innerHTML = (top || []).map(l => `<tr><td><strong>${esc(l.name)}</strong></td><td><span class="badge badge-${l.avg_score >= 70 ? 'active' : l.avg_score >= 40 ? 'in_progress' : 'pending'}">${parseFloat(l.avg_score || 0).toFixed(1)}</span></td><td>${l.enrichment_count || 0}</td><td style="text-align:right"><button class="btn-icon" onclick="navigate('leads')" title="Ver Lead">→</button></td></tr>`).join('');
   } catch {}
   finally { hideLoader(); }
 }
@@ -3495,11 +3495,11 @@ function renderHunter() {
   if (list.length === 0) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; if (pagEl) pagEl.innerHTML = ''; return; }
   if (empty) empty.style.display = 'none';
   tbody.innerHTML = list.map(e => `<tr>
-    <td>${esc(e.lead_name || 'â€”')}</td>
-    <td>${esc(e.source || 'â€”')}</td>
-    <td>${e.score != null ? e.score : 'â€”'}</td>
-    <td>${e.created_at ? fmtDate(e.created_at) : 'â€”'}</td>
-    <td style="text-align:right"><button class="btn-icon" onclick="deleteEnrichment('${e.id}')" title="Excluir" style="color:var(--red)">âœ•</button></td></tr>`).join('');
+    <td>${esc(e.lead_name || '—')}</td>
+    <td>${esc(e.source || '—')}</td>
+    <td>${e.score != null ? e.score : '—'}</td>
+    <td>${e.created_at ? fmtDate(e.created_at) : '—'}</td>
+    <td style="text-align:right"><button class="btn-icon" onclick="deleteEnrichment('${e.id}')" title="Excluir" style="color:var(--red)">✕</button></td></tr>`).join('');
 }
 
 async function loadEnrichmentLeads() {
@@ -3512,7 +3512,7 @@ async function loadEnrichmentLeads() {
 
 async function deleteEnrichment(id) {
   if (!confirm('Excluir este enriquecimento?')) return;
-  try { await api('DELETE', `/hunter/enrichments/${id}`); toast('Excluído', 'success'); loadHunter(); } catch (e) { toast(e.message, 'error'); }
+  try { await api('DELETE', `/hunter/enrichments/${id}`); toast('Exclu�do', 'success'); loadHunter(); } catch (e) { toast(e.message, 'error'); }
 }
 
 document.getElementById('btn-new-enrichment')?.addEventListener('click', () => { loadEnrichmentLeads().then(() => openModal('modal-enrichment')); });
@@ -3534,7 +3534,7 @@ document.getElementById('modal-enrichment-form')?.addEventListener('submit', asy
   } catch (e) { toast(e.message, 'error'); }
 });
 
-/* â”€â”€ Colaboradores / Users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Colaboradores / Users ────────────────────────────────────────────────── */
 
 async function loadUsers() {
   try {
@@ -3559,15 +3559,15 @@ async function loadUsers() {
     }
     if (empty) empty.style.display = 'none';
 
-    const roleLabels = { ceo: 'CEO', admin: 'Administrador', comercial: 'Comercial', developer: 'Developer', user: 'Usuà ¡rio' };
+    const roleLabels = { ceo: 'CEO', admin: 'Administrador', comercial: 'Comercial', developer: 'Developer', user: 'Usu� �rio' };
     tbody.innerHTML = filtered.map(u => `
       <tr>
         <td><strong>${esc(u.name)}</strong></td>
         <td>${esc(u.email)}</td>
         <td><span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:${u.role === 'ceo' ? 'var(--accent-dim);color:var(--accent)' : u.role === 'developer' ? 'var(--purple-dim);color:var(--purple)' : u.role === 'comercial' ? 'var(--blue-dim);color:var(--blue)' : u.role === 'admin' ? 'var(--green-dim);color:var(--green)' : 'var(--bg-hover);color:var(--text-secondary)'}">${roleLabels[u.role] || u.role}</span></td>
-        <td>${esc(u.cargo) || 'â€”'}</td>
-        <td>${esc(u.funcao) || 'â€”'}</td>
-        <td>${u.active ? '<span style="color:var(--green)">â— Ativo</span>' : '<span style="color:var(--red)">â— Inativo</span>'}</td>
+        <td>${esc(u.cargo) || '—'}</td>
+        <td>${esc(u.funcao) || '—'}</td>
+        <td>${u.active ? '<span style="color:var(--green)">● Ativo</span>' : '<span style="color:var(--red)">● Inativo</span>'}</td>
         <td>${fmtDate(u.created_at)}</td>
         <td style="text-align:right">
           <button class="btn btn-secondary" style="padding:4px 10px;font-size:12px" onclick="editUser(${u.id})">Editar</button>
@@ -3632,7 +3632,7 @@ document.getElementById('modal-user-form')?.addEventListener('submit', async (e)
   };
   const password = document.getElementById('user-password-input').value;
   if (password) body.password = password;
-  if (!id && !password) { toast('Senha é obrigatória para novos colaboradores', 'error'); return; }
+  if (!id && !password) { toast('Senha � obrigat�ria para novos colaboradores', 'error'); return; }
 
   try {
     if (id) {
@@ -3673,7 +3673,7 @@ navigate = function(page) {
   setTimeout(() => addExportButtons(page), 100);
 };
 
-/* â”€â”€ Utilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Utilities ──────────────────────────────────────────────────────────── */
 
 function esc(s) {
   const div = document.createElement('div');
@@ -3682,7 +3682,7 @@ function esc(s) {
 }
 
 function fmtDate(d) {
-  if (!d) return 'â€”';
+  if (!d) return '—';
   try {
     return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(d));
   } catch { return d; }
@@ -3694,13 +3694,13 @@ function copyText(t) {
 
 function fmtCurrency(v) {
   const n = parseFloat(v);
-  if (isNaN(n)) return 'â€”';
+  if (isNaN(n)) return '—';
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
 }
 
-/* â”€â”€ Event Listeners â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Event Listeners ────────────────────────────────────────────────────── */
 
-/* â”€â”€ Sidebar Toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Sidebar Toggle ───────────────────────────────────────────────────────── */
 
 function toggleSidebar() {
   const sidebar = document.querySelector('.sidebar');
@@ -3726,7 +3726,7 @@ document.querySelectorAll('.nav-item[data-page]').forEach(item => {
   });
 });
 
-/* â”€â”€ Topbar Search â†’ focus sidebar search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Topbar Search → focus sidebar search ─────────────────────────────── */
 const topbarSearch = document.getElementById('global-search-topbar');
 if (topbarSearch) {
   topbarSearch.addEventListener('focus', () => {
@@ -3736,7 +3736,7 @@ if (topbarSearch) {
       topbarSearch.blur();
     }
   });
-  // Keyboard shortcut: Ctrl+K â†’ focus search
+  // Keyboard shortcut: Ctrl+K → focus search
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
       e.preventDefault();
@@ -3746,7 +3746,7 @@ if (topbarSearch) {
   });
 }
 
-/* â”€â”€ Dev/Suporte group toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Dev/Suporte group toggle ──────────────────────────────────────────── */
 on('btn-dev-suporte', 'click', () => {
   const children = document.getElementById('dev-suporte-children');
   const arrow = document.querySelector('#btn-dev-suporte .nav-group-arrow i');
@@ -3778,7 +3778,7 @@ on('login-form', 'submit', async (e) => {
   }
 });
 
-/* â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Init ───────────────────────────────────────────────────────────────── */
 
 (async function init() {
   // Init AOS for scroll animations

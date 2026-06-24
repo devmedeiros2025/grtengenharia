@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -18,7 +18,7 @@
 </head>
 <body>
 
-<!-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ LOGIN (split-screen) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+<!-- ──────────── LOGIN (split-screen) ──────────── -->
 <div id="page-login" class="login-page">
   <div class="login-brand">
     <div class="login-brand-content">
@@ -41,7 +41,7 @@
         </div>
         <div class="form-group">
           <label>Senha</label>
-          <input type="password" id="login-pass" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" autocomplete="current-password">
+          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px">Entrar</button>
       </form>
@@ -49,7 +49,7 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ APP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+<!-- ──────────── APP ──────────── -->
 <div id="page-app" class="app" style="display:none">
 
   <!-- Sidebar -->
@@ -64,48 +64,44 @@
       <div id="search-results" style="display:none;position:fixed;top:auto;left:16px;width:calc(var(--sidebar-w) - 32px);background:#1a1d27;border:1px solid rgba(255,255,255,0.1);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.3);z-index:100;max-height:300px;overflow-y:auto;margin-top:4px;color:#e8eaed"></div>
     </div>
     <nav class="sidebar-nav">
-      <button class="nav-item active" data-page="dashboard" data-role="ceo,admin,comercial,developer" data-tooltip="Dashboard"><span class="icon nav-icon"><i class="fa-solid fa-chart-pie"></i></span><span class="nav-label">Dashboard</span></button>
+      <button class="nav-item active" data-page="dashboard" data-role="ceo,admin,comercial,developer"><span class="icon nav-icon"><i class="fa-solid fa-chart-pie"></i></span> Dashboard</button>
       
       <div class="nav-divider" data-role="ceo,comercial"></div>
       <div class="nav-section-label" data-role="ceo,comercial">Comercial</div>
-      <button class="nav-item" data-page="deals" data-role="ceo,comercial" data-tooltip="Pipeline"><span class="icon nav-icon"><i class="fa-solid fa-bullseye"></i></span><span class="nav-label">Pipeline</span></button>
-      <button class="nav-item" data-page="kanban" data-role="ceo,comercial" data-tooltip="Kanban Comercial"><span class="icon nav-icon"><i class="fa-solid fa-columns"></i></span><span class="nav-label">Kanban Comercial</span></button>
-      <button class="nav-item" data-page="leads" data-role="ceo,comercial" data-tooltip="Leads"><span class="icon nav-icon"><i class="fa-solid fa-user-plus"></i></span><span class="nav-label">Leads</span> <span id="lead-count-badge" class="badge">0</span></button>
-      <button class="nav-item" data-page="tasks" data-role="ceo,comercial" data-tooltip="Tarefas"><span class="icon nav-icon"><i class="fa-solid fa-check-square"></i></span><span class="nav-label">Tarefas</span> <span id="task-count-badge" class="badge">0</span></button>
-      <button class="nav-item" data-page="routines" data-role="ceo,admin,developer,comercial" data-tooltip="Rotinas Diárias"><span class="icon nav-icon"><i class="fa-solid fa-clipboard-list"></i></span><span class="nav-label">Rotinas Diárias</span></button>
-      <button class="nav-item" data-page="contracts" data-role="ceo,comercial" data-tooltip="Contratos"><span class="icon nav-icon"><i class="fa-solid fa-file-contract"></i></span><span class="nav-label">Contratos</span></button>
-      <button class="nav-item" data-page="companies" data-role="ceo,comercial" data-tooltip="Empresas"><span class="icon nav-icon"><i class="fa-solid fa-building"></i></span><span class="nav-label">Empresas</span></button>
+      <button class="nav-item" data-page="deals" data-role="ceo,comercial"><span class="icon nav-icon"><i class="fa-solid fa-bullseye"></i></span> Pipeline</button>
+      <button class="nav-item" data-page="kanban" data-role="ceo,comercial"><span class="icon nav-icon"><i class="fa-solid fa-columns"></i></span> Kanban Comercial</button>
+      <button class="nav-item" data-page="leads" data-role="ceo,comercial"><span class="icon nav-icon"><i class="fa-solid fa-user-plus"></i></span> Leads <span id="lead-count-badge" class="badge">0</span></button>
+      <button class="nav-item" data-page="tasks" data-role="ceo,comercial"><span class="icon nav-icon"><i class="fa-solid fa-check-square"></i></span> Tarefas <span id="task-count-badge" class="badge">0</span></button>
+      <button class="nav-item" data-page="contracts" data-role="ceo,comercial"><span class="icon nav-icon"><i class="fa-solid fa-file-contract"></i></span> Contratos</button>
+      <button class="nav-item" data-page="companies" data-role="ceo,comercial"><span class="icon nav-icon"><i class="fa-solid fa-building"></i></span> Empresas</button>
 
       <div class="nav-divider" data-role="ceo,admin"></div>
       <div class="nav-section-label" data-role="ceo,admin">Administrativo</div>
-      <button class="nav-item" data-page="bi" data-role="ceo,admin" data-tooltip="BI Analytics"><span class="icon nav-icon"><i class="fa-solid fa-chart-line"></i></span><span class="nav-label">BI Analytics</span></button>
-      <button class="nav-item" data-page="invoices" data-role="ceo,admin" data-tooltip="Faturamento"><span class="icon nav-icon"><i class="fa-solid fa-dollar-sign"></i></span><span class="nav-label">Faturamento</span></button>
-      <button class="nav-item" data-page="proposals" data-role="ceo,admin" data-tooltip="Propostas"><span class="icon nav-icon"><i class="fa-solid fa-file-pen"></i></span><span class="nav-label">Propostas</span></button>
-      <button class="nav-item" data-page="projects" data-role="ceo,admin" data-tooltip="Obras"><span class="icon nav-icon"><i class="fa-solid fa-helmet-safety"></i></span><span class="nav-label">Obras</span></button>
-      <button class="nav-item" data-page="orcamentos" data-role="ceo,admin" data-tooltip="Orçamentos"><span class="icon nav-icon"><i class="fa-solid fa-calculator"></i></span><span class="nav-label">Orçamentos</span></button>
-      <button class="nav-item" data-page="sinapi" data-role="ceo,admin,developer" data-tooltip="SINAPI"><span class="icon nav-icon"><i class="fa-solid fa-table-list"></i></span><span class="nav-label">SINAPI</span></button>
-      <button class="nav-item" data-page="rental" data-role="ceo,admin" data-tooltip="Locação"><span class="icon nav-icon"><i class="fa-solid fa-calendar-check"></i></span><span class="nav-label">Locação</span></button>
-      <button class="nav-item" data-page="equipment" data-role="ceo,admin" data-tooltip="Equipamentos"><span class="icon nav-icon"><i class="fa-solid fa-cogs"></i></span><span class="nav-label">Equipamentos</span></button>
-      <button class="nav-item" data-page="service-orders" data-role="ceo,admin" data-tooltip="Ordens de Serviço"><span class="icon nav-icon"><i class="fa-solid fa-file-signature"></i></span><span class="nav-label">OS</span></button>
+      <button class="nav-item" data-page="bi" data-role="ceo,admin"><span class="icon nav-icon"><i class="fa-solid fa-chart-line"></i></span> BI Analytics</button>
+      <button class="nav-item" data-page="invoices" data-role="ceo,admin"><span class="icon nav-icon"><i class="fa-solid fa-dollar-sign"></i></span> Faturamento</button>
+      <button class="nav-item" data-page="proposals" data-role="ceo,admin"><span class="icon nav-icon"><i class="fa-solid fa-file-pen"></i></span> Propostas</button>
+      <button class="nav-item" data-page="projects" data-role="ceo,admin"><span class="icon nav-icon"><i class="fa-solid fa-helmet-safety"></i></span> Obras</button>
+      <button class="nav-item" data-page="rental" data-role="ceo,admin"><span class="icon nav-icon"><i class="fa-solid fa-calendar-check"></i></span> Locação</button>
+      <button class="nav-item" data-page="equipment" data-role="ceo,admin"><span class="icon nav-icon"><i class="fa-solid fa-cogs"></i></span> Equipamentos</button>
+      <button class="nav-item" data-page="service-orders" data-role="ceo,admin"><span class="icon nav-icon"><i class="fa-solid fa-file-signature"></i></span> OS</button>
 
       <div class="nav-divider" data-role="ceo,comercial"></div>
       <div class="nav-section-label" data-role="ceo,comercial">Marketing</div>
-      <button class="nav-item" data-page="campaigns" data-role="ceo,comercial" data-tooltip="Campanhas"><span class="icon nav-icon"><i class="fa-solid fa-bullhorn"></i></span><span class="nav-label">Campanhas</span></button>
+      <button class="nav-item" data-page="campaigns" data-role="ceo,comercial"><span class="icon nav-icon"><i class="fa-solid fa-bullhorn"></i></span> Campanhas</button>
 
       <div class="nav-divider" data-role="ceo,developer"></div>
       <div class="nav-section-label" data-role="ceo,developer">Dev/Suporte</div>
-      <button class="nav-item" data-page="users" data-role="ceo,developer" data-tooltip="Colaboradores"><span class="icon nav-icon"><i class="fa-solid fa-users-gear"></i></span><span class="nav-label">Colaboradores</span></button>
-      <button class="nav-item" data-page="hunter" data-role="ceo,developer" data-tooltip="Hunter"><span class="icon nav-icon"><i class="fa-solid fa-crosshairs"></i></span><span class="nav-label">Hunter</span></button>
-      <button class="nav-item" data-page="webhooks" data-role="ceo,developer" data-tooltip="Webhooks"><span class="icon nav-icon"><i class="fa-solid fa-code-branch"></i></span><span class="nav-label">Webhooks</span></button>
-      <button class="nav-item" data-page="apikeys" data-role="ceo,developer" data-tooltip="API Keys"><span class="icon nav-icon"><i class="fa-solid fa-key"></i></span><span class="nav-label">API Keys</span></button>
-      <button class="nav-item" data-page="logs" data-role="ceo,developer" data-tooltip="Atividades"><span class="icon nav-icon"><i class="fa-solid fa-list"></i></span><span class="nav-label">Atividades</span></button>
+      <button class="nav-item" data-page="hunter" data-role="ceo,developer"><span class="icon nav-icon"><i class="fa-solid fa-crosshairs"></i></span> Hunter</button>
+      <button class="nav-item" data-page="webhooks" data-role="ceo,developer"><span class="icon nav-icon"><i class="fa-solid fa-code-branch"></i></span> Webhooks</button>
+      <button class="nav-item" data-page="apikeys" data-role="ceo,developer"><span class="icon nav-icon"><i class="fa-solid fa-key"></i></span> API Keys</button>
+      <button class="nav-item" data-page="logs" data-role="ceo,developer"><span class="icon nav-icon"><i class="fa-solid fa-list"></i></span> Logs</button>
 
       <div class="nav-divider" data-role="ceo"></div>
-      <button class="nav-item" data-page="calendar" data-role="ceo" data-tooltip="Calendário"><span class="icon nav-icon"><i class="fa-solid fa-calendar"></i></span><span class="nav-label">Calendário</span></button>
+      <button class="nav-item" data-page="calendar" data-role="ceo"><span class="icon nav-icon"><i class="fa-solid fa-calendar"></i></span> Calendário</button>
     </nav>
     <div class="sidebar-footer">
-      <button class="theme-toggle" id="btn-theme"><span class="icon toggle-icon" id="theme-icon"><i class="fa-solid fa-moon"></i></span><span class="nav-label" id="theme-label">Modo Escuro</span></button>
-      <button class="nav-item" id="btn-logout" data-tooltip="Sair"><span class="icon"><i class="fa-solid fa-right-from-bracket"></i></span><span class="nav-label">Sair</span></button>
+      <button class="theme-toggle" id="btn-theme"><span class="icon toggle-icon" id="theme-icon"><i class="fa-solid fa-moon"></i></span> <span id="theme-label">Modo Escuro</span></button>
+      <button class="nav-item" id="btn-logout"><span class="icon"><i class="fa-solid fa-right-from-bracket"></i></span> Sair</button>
     </div>
   </aside>
 
@@ -140,7 +136,7 @@
 
     <div class="content">
 
-      <!-- â•â• DASHBOARD â•â• -->
+      <!-- ══ DASHBOARD ══ -->
       <section id="page-dashboard" class="page active">
         <!-- Quick Access Cards -->
         <div class="dashboard-quick-cards" id="dash-quick-cards">
@@ -199,14 +195,14 @@
 
         <!-- Summary Cards -->
         <div class="stats-grid" id="dash-stats" style="margin-bottom:20px">
-          <div class="stat-card blue"><div class="stat-label">Total Leads</div><div class="stat-value" id="stat-total">â€”</div><div class="stat-sub">no sistema</div></div>
-          <div class="stat-card accent"><div class="stat-label">Este Mês</div><div class="stat-value" id="stat-new">â€”</div><div class="stat-sub">leads novos</div></div>
-          <div class="stat-card green"><div class="stat-label">Contratos Ativos</div><div class="stat-value" id="stat-converted">â€”</div><div class="stat-sub">locações em andamento</div></div>
-          <div class="stat-card red"><div class="stat-label">Faturas Pendentes</div><div class="stat-value" id="stat-lost">â€”</div><div class="stat-sub">aguardando pagamento</div></div>
-          <div class="stat-card purple"><div class="stat-label">Deals Ativos</div><div class="stat-value" id="stat-deals-won">â€”</div><div class="stat-sub">no pipeline</div></div>
-          <div class="stat-card orange"><div class="stat-label">Pipeline Total</div><div class="stat-value" id="stat-deals-value">â€”</div><div class="stat-sub">valor em negociação</div></div>
-          <div class="stat-card cyan"><div class="stat-label">Empresas</div><div class="stat-value" id="stat-companies">â€”</div><div class="stat-sub">cadastradas</div></div>
-          <div class="stat-card teal"><div class="stat-label">Frota</div><div class="stat-value" id="stat-tasks-pending">â€”</div><div class="stat-sub">equipamentos</div></div>
+          <div class="stat-card blue"><div class="stat-label">Total Leads</div><div class="stat-value" id="stat-total">—</div><div class="stat-sub">no sistema</div></div>
+          <div class="stat-card accent"><div class="stat-label">Este Mês</div><div class="stat-value" id="stat-new">—</div><div class="stat-sub">leads novos</div></div>
+          <div class="stat-card green"><div class="stat-label">Contratos Ativos</div><div class="stat-value" id="stat-converted">—</div><div class="stat-sub">locações em andamento</div></div>
+          <div class="stat-card red"><div class="stat-label">Faturas Pendentes</div><div class="stat-value" id="stat-lost">—</div><div class="stat-sub">aguardando pagamento</div></div>
+          <div class="stat-card purple"><div class="stat-label">Deals Ativos</div><div class="stat-value" id="stat-deals-won">—</div><div class="stat-sub">no pipeline</div></div>
+          <div class="stat-card orange"><div class="stat-label">Pipeline Total</div><div class="stat-value" id="stat-deals-value">—</div><div class="stat-sub">valor em negociação</div></div>
+          <div class="stat-card cyan"><div class="stat-label">Empresas</div><div class="stat-value" id="stat-companies">—</div><div class="stat-sub">cadastradas</div></div>
+          <div class="stat-card teal"><div class="stat-label">Frota</div><div class="stat-value" id="stat-tasks-pending">—</div><div class="stat-sub">equipamentos</div></div>
         </div>
 
         <!-- Charts Row -->
@@ -284,7 +280,7 @@
         </div>
       </section>
 
-      <!-- â•â• PIPELINE / DEALS â•â• -->
+      <!-- ══ PIPELINE / DEALS ══ -->
       <section id="page-deals" class="page">
         <div class="page-header">
           <div>
@@ -296,12 +292,12 @@
         <div class="pipeline" id="pipeline-container"></div>
         <div id="deals-pagination"></div>
         <div class="empty" id="deals-empty" style="display:none">
-          <div class="empty-icon">â—‰</div>
+          <div class="empty-icon">◉</div>
           <p>Nenhum negócio no pipeline.<br>Crie um novo negócio para começar.</p>
         </div>
       </section>
 
-      <!-- â•â• COMPANIES â•â• -->
+      <!-- ══ COMPANIES ══ -->
       <section id="page-companies" class="page">
         <div class="page-header">
           <div>
@@ -319,17 +315,9 @@
             <button class="btn btn-secondary" id="btn-refresh-companies">Atualizar</button>
           </div>
         </div>
-        <div class="table-wrap" style="margin-top:16px">
-          <table>
-            <thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>CNPJ</th><th>Cidade</th><th>Status</th><th style="text-align:right">Ações</th></tr></thead>
-            <tbody id="companies-tbody"></tbody>
-          </table>
-        </div>
-        <div id="companies-pagination"></div>
-        <div class="empty" id="companies-empty" style="display:none"><div class="empty-icon">🏢</div><p>Nenhuma empresa cadastrada.</p></div>
       </section>
       
-      <!-- â•â• EQUIPMENT â•â• -->
+      <!-- ══ EQUIPMENT ══ -->
       <section id="page-equipment" class="page">
         <div class="page-header">
           <div><h3>Equipamentos</h3><p>Gerencie máquinas e equipamentos</p></div>
@@ -338,10 +326,10 @@
             <select id="equipment-filter-status" style="width:auto">
               <option value="">Todos</option>
               <option value="available">Disponível</option>
-              <option value="rented">Alugado</option>
+              <option value="in_use">Em Uso</option>
               <option value="maintenance">Manutenção</option>
             </select>
-            <button class="btn btn-secondary" id="btn-refresh-equipment">âŸ³</button>
+            <button class="btn btn-secondary" id="btn-refresh-equipment">⟳</button>
             <button class="btn btn-primary" id="btn-new-equipment">+ Novo Equipamento</button>
           </div>
         </div>
@@ -352,15 +340,14 @@
           </table>
         </div>
         <div id="equipment-pagination"></div>
-        <div class="empty" id="equipment-empty" style="display:none"><div class="empty-icon">âš™</div><p>Nenhum equipamento cadastrado.</p></div>
+        <div class="empty" id="equipment-empty" style="display:none"><div class="empty-icon">⚙</div><p>Nenhum equipamento cadastrado.</p></div>
       </section>
 
-      <!-- â•â• SERVICE ORDERS â•â• -->
+      <!-- ══ SERVICE ORDERS ══ -->
       <section id="page-service-orders" class="page">
         <div class="page-header">
           <div><h3>Ordens de Serviço</h3><p>Gerencie OS de manutenção e serviços</p></div>
           <div class="action-bar">
-            <input type="text" id="so-search" placeholder="Buscar OS..." style="width:200px">
             <select id="so-filter-status" style="width:auto">
               <option value="">Todos Status</option>
               <option value="open">Aberta</option>
@@ -374,7 +361,7 @@
               <option value="medium">Média</option>
               <option value="low">Baixa</option>
             </select>
-            <button class="btn btn-secondary" id="btn-refresh-so">âŸ³</button>
+            <button class="btn btn-secondary" id="btn-refresh-so">⟳</button>
             <button class="btn btn-primary" id="btn-new-so">+ Nova OS</button>
           </div>
         </div>
@@ -385,22 +372,21 @@
           </table>
         </div>
         <div id="so-pagination"></div>
-        <div class="empty" id="so-empty" style="display:none"><div class="empty-icon">ðŸ“‹</div><p>Nenhuma OS cadastrada.</p></div>
+        <div class="empty" id="so-empty" style="display:none"><div class="empty-icon">📋</div><p>Nenhuma OS cadastrada.</p></div>
       </section>
 
-      <!-- â•â• CONTRACTS â•â• -->
+      <!-- ══ CONTRACTS ══ -->
       <section id="page-contracts" class="page">
         <div class="page-header">
           <div><h3>Contratos</h3><p>Gerencie contratos de locação e serviços</p></div>
           <div class="action-bar">
-            <input type="text" id="contract-search" placeholder="Buscar contrato..." style="width:200px">
             <select id="contract-filter-status" style="width:auto">
               <option value="">Todos</option>
               <option value="active">Ativo</option>
               <option value="ended">Encerrado</option>
               <option value="cancelled">Cancelado</option>
             </select>
-            <button class="btn btn-secondary" id="btn-refresh-contracts">âŸ³</button>
+            <button class="btn btn-secondary" id="btn-refresh-contracts">⟳</button>
             <button class="btn btn-primary" id="btn-new-contract">+ Novo Contrato</button>
           </div>
         </div>
@@ -411,10 +397,10 @@
           </table>
         </div>
         <div id="contracts-pagination"></div>
-        <div class="empty" id="contracts-empty" style="display:none"><div class="empty-icon">ðŸ“„</div><p>Nenhum contrato cadastrado.</p></div>
+        <div class="empty" id="contracts-empty" style="display:none"><div class="empty-icon">📄</div><p>Nenhum contrato cadastrado.</p></div>
       </section>
 
-      <!-- â•â• CALENDAR â•â• -->
+      <!-- ══ CALENDAR ══ -->
       <section id="page-calendar" class="page">
         <div class="page-header">
           <div>
@@ -422,9 +408,9 @@
             <p>OS, contratos e tarefas no mês</p>
           </div>
           <div class="action-bar">
-            <button class="btn btn-secondary" id="btn-cal-prev">â—€</button>
+            <button class="btn btn-secondary" id="btn-cal-prev">◀</button>
             <span id="calendar-month-label" style="font-weight:600;min-width:160px;text-align:center">Maio 2026</span>
-            <button class="btn btn-secondary" id="btn-cal-next">â–¶</button>
+            <button class="btn btn-secondary" id="btn-cal-next">▶</button>
             <button class="btn btn-secondary" id="btn-cal-today">Hoje</button>
           </div>
         </div>
@@ -447,12 +433,12 @@
         <div id="calendar-legend" style="margin-top:12px;display:flex;gap:16px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap"></div>
       </section>
 
-      <!-- â•â• KANBAN COMERCIAL â•â• -->
+      <!-- ══ KANBAN COMERCIAL ══ -->
       <section id="page-kanban" class="page">
         <div class="page-header">
           <div><h3>Kanban Comercial</h3><p>Pipeline de vendas com gestão visual de leads</p></div>
           <div class="action-bar">
-            <button class="btn btn-secondary" id="btn-kanban-refresh">âŸ³ Atualizar</button>
+            <button class="btn btn-secondary" id="btn-kanban-refresh">⟳ Atualizar</button>
           </div>
         </div>
         <div id="kanban-alerts" style="display:none;margin-bottom:12px"></div>
@@ -463,7 +449,7 @@
         </div>
       </section>
 
-      <!-- â•â• LEADS â•â• -->
+      <!-- ══ LEADS ══ -->
       <section id="page-leads" class="page">
         <div class="page-header">
           <div><h3>Leads</h3><p>Gerencie leads recebidos</p></div>
@@ -476,7 +462,7 @@
               <option value="converted">Convertido</option>
               <option value="lost">Perdido</option>
             </select>
-            <button class="btn btn-secondary" id="btn-refresh-leads">âŸ³</button>
+            <button class="btn btn-secondary" id="btn-refresh-leads">⟳</button>
             <button class="btn btn-primary" id="btn-new-lead">+ Novo Lead</button>
           </div>
         </div>
@@ -487,10 +473,10 @@
           </table>
         </div>
         <div id="leads-pagination"></div>
-        <div class="empty" id="leads-empty" style="display:none"><div class="empty-icon">â—Ž</div><p>Nenhum lead encontrado.</p></div>
+        <div class="empty" id="leads-empty" style="display:none"><div class="empty-icon">◎</div><p>Nenhum lead encontrado.</p></div>
       </section>
 
-      <!-- â•â• TASKS â•â• -->
+      <!-- ══ TASKS ══ -->
       <section id="page-tasks" class="page">
         <div class="page-header">
           <div><h3>Tarefas</h3><p>Gerencie tarefas e atividades</p></div>
@@ -507,7 +493,7 @@
               <option value="medium">Média</option>
               <option value="low">Baixa</option>
             </select>
-            <button class="btn btn-secondary" id="btn-refresh-tasks">âŸ³</button>
+            <button class="btn btn-secondary" id="btn-refresh-tasks">⟳</button>
             <button class="btn btn-primary" id="btn-new-task">+ Nova Tarefa</button>
           </div>
         </div>
@@ -517,47 +503,10 @@
             <tbody id="tasks-tbody"></tbody>
           </table>
         </div>
-        <div class="empty" id="tasks-empty" style="display:none"><div class="empty-icon">â˜</div><p>Nenhuma tarefa encontrada.</p></div>
+        <div class="empty" id="tasks-empty" style="display:none"><div class="empty-icon">☐</div><p>Nenhuma tarefa encontrada.</p></div>
       </section>
 
-      <!-- â•â• ROTINAS DIà RIAS (KANBAN) â•â• -->
-      <section id="page-routines" class="page">
-        <div class="page-header">
-          <div><h3>Rotinas Diárias</h3><p>Kanban de tarefas por usuário</p></div>
-          <div class="action-bar">
-            <select id="routine-filter-user" style="width:auto;min-width:160px">
-              <option value="">Todos os usuários</option>
-            </select>
-            <button class="btn btn-secondary" id="btn-refresh-routines">âŸ³</button>
-            <button class="btn btn-primary" id="btn-new-routine">+ Nova Tarefa</button>
-          </div>
-        </div>
-        <div class="kanban-board" id="routines-kanban" style="margin-top:16px">
-          <div class="kanban-column" data-column="pending">
-            <div class="kanban-header pending-header">
-              <span class="kanban-header-title">ðŸ“‹ Pendente</span>
-              <span class="kanban-count" id="count-pending">0</span>
-            </div>
-            <div class="kanban-body" id="kanban-pending" ondrop="dropRoutine(event)" ondragover="allowDrop(event)"></div>
-          </div>
-          <div class="kanban-column" data-column="in_progress">
-            <div class="kanban-header progress-header">
-              <span class="kanban-header-title">âš™ï¸ Em Andamento</span>
-              <span class="kanban-count" id="count-progress">0</span>
-            </div>
-            <div class="kanban-body" id="kanban-progress" ondrop="dropRoutine(event)" ondragover="allowDrop(event)"></div>
-          </div>
-          <div class="kanban-column" data-column="done">
-            <div class="kanban-header done-header">
-              <span class="kanban-header-title">âœ… Concluído</span>
-              <span class="kanban-count" id="count-done">0</span>
-            </div>
-            <div class="kanban-body" id="kanban-done" ondrop="dropRoutine(event)" ondragover="allowDrop(event)"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- â•â• WEBHOOKS â•â• -->
+      <!-- ══ WEBHOOKS ══ -->
       <section id="page-webhooks" class="page">
         <div class="page-header">
           <div><h3>Webhooks</h3><p>Gerencie webhooks inbound e outbound</p></div>
@@ -570,17 +519,17 @@
           </div>
           <div id="tab-inbound" style="margin-top:12px">
             <div id="inbound-list"></div>
-            <div class="empty" id="inbound-empty" style="display:none"><div class="empty-icon">â†¯</div><p>Nenhum webhook inbound configurado.</p></div>
+            <div class="empty" id="inbound-empty" style="display:none"><div class="empty-icon">↯</div><p>Nenhum webhook inbound configurado.</p></div>
           </div>
           <div id="tab-outbound" style="display:none;margin-top:12px">
             <button class="btn btn-primary" id="btn-new-outbound" style="margin-bottom:12px">+ Novo Outbound</button>
             <div id="outbound-list"></div>
-            <div class="empty" id="outbound-empty" style="display:none"><div class="empty-icon">â†¯</div><p>Nenhum webhook outbound configurado.</p></div>
+            <div class="empty" id="outbound-empty" style="display:none"><div class="empty-icon">↯</div><p>Nenhum webhook outbound configurado.</p></div>
           </div>
         </div>
       </section>
 
-      <!-- â•â• API KEYS â•â• -->
+      <!-- ══ API KEYS ══ -->
       <section id="page-apikeys" class="page">
         <div class="page-header">
           <div><h3>API Keys</h3><p>Gerencie chaves de API para integrações</p></div>
@@ -592,38 +541,30 @@
             <tbody id="apikeys-tbody"></tbody>
           </table>
         </div>
-        <div class="empty" id="apikeys-empty" style="display:none"><div class="empty-icon">âš·</div><p>Nenhuma API key cadastrada.</p></div>
+        <div class="empty" id="apikeys-empty" style="display:none"><div class="empty-icon">⚷</div><p>Nenhuma API key cadastrada.</p></div>
       </section>
 
-      <!-- â•â• LOGS â•â• -->
+      <!-- ══ LOGS ══ -->
       <section id="page-logs" class="page">
         <div class="page-header">
-          <div><h3>Atividades</h3><p>Histórico de ações por colaborador</p></div>
-          <div class="action-bar">
-            <select id="logs-filter-type" style="width:auto">
-              <option value="">Todas as Ações</option>
-              <option value="create">Criações</option>
-              <option value="update">Atualizações</option>
-              <option value="delete">Remoções</option>
-            </select>
-            <button class="btn btn-secondary" id="btn-refresh-logs">âŸ³ Atualizar</button>
-          </div>
+          <div><h3>Logs</h3><p>Histórico de eventos dos webhooks</p></div>
+          <button class="btn btn-secondary" id="btn-refresh-logs">⟳ Atualizar</button>
         </div>
-        <div id="logs-users-grid" style="margin-top:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px"></div>
-        <div class="empty" id="logs-empty" style="display:none"><div class="empty-icon">â—ˆ</div><p>Nenhuma atividade registrada.</p></div>
+        <div id="logs-list" style="margin-top:16px"></div>
+        <div class="empty" id="logs-empty" style="display:none"><div class="empty-icon">◈</div><p>Nenhum log encontrado.</p></div>
       </section>
 
-      <!-- â•â• BI ANALYTICS â•â• -->
+      <!-- ══ BI ANALYTICS ══ -->
       <section id="page-bi" class="page">
         <div class="page-header">
           <div><h3>BI Analytics</h3><p>Indicadores e KPIs do CRM</p></div>
-          <button class="btn btn-secondary" id="btn-refresh-bi">âŸ³ Atualizar</button>
+          <button class="btn btn-secondary" id="btn-refresh-bi">⟳ Atualizar</button>
         </div>
         <div class="stats-grid" id="bi-stats">
-          <div class="stat-card purple"><div class="stat-label">Taxa Conversão</div><div class="stat-value" id="bi-conversion">â€”</div><div class="stat-sub">leads â†’ negócio</div></div>
-          <div class="stat-card blue"><div class="stat-label">Ticket Médio</div><div class="stat-value" id="bi-avg-ticket">â€”</div><div class="stat-sub">por negócio fechado</div></div>
-          <div class="stat-card cyan"><div class="stat-label">Utilização Frota</div><div class="stat-value" id="bi-fleet">â€”</div><div class="stat-sub">equipamentos em uso</div></div>
-          <div class="stat-card green"><div class="stat-label">Taxa Recorrência</div><div class="stat-value" id="bi-recurrence">â€”</div><div class="stat-sub">clientes recorrentes</div></div>
+          <div class="stat-card purple"><div class="stat-label">Taxa Conversão</div><div class="stat-value" id="bi-conversion">—</div><div class="stat-sub">leads → negócio</div></div>
+          <div class="stat-card blue"><div class="stat-label">Ticket Médio</div><div class="stat-value" id="bi-avg-ticket">—</div><div class="stat-sub">por negócio fechado</div></div>
+          <div class="stat-card cyan"><div class="stat-label">Utilização Frota</div><div class="stat-value" id="bi-fleet">—</div><div class="stat-sub">equipamentos em uso</div></div>
+          <div class="stat-card green"><div class="stat-label">Taxa Recorrência</div><div class="stat-value" id="bi-recurrence">—</div><div class="stat-sub">clientes recorrentes</div></div>
         </div>
         <div class="charts-row" style="margin-bottom:16px">
           <div class="card"><div class="card-header"><span class="card-title">Leads por Origem</span></div><div style="padding:16px;height:220px"><canvas id="chart-bi-source"></canvas></div></div>
@@ -635,7 +576,7 @@
         </div>
       </section>
 
-      <!-- â•â• INVOICES / FATURAMENTO â•â• -->
+      <!-- ══ INVOICES / FATURAMENTO ══ -->
       <section id="page-invoices" class="page">
         <div class="page-header">
           <div><h3>Faturamento</h3><p>Notas fiscais e recebimentos</p></div>
@@ -647,22 +588,22 @@
               <option value="overdue">Vencido</option>
               <option value="cancelled">Cancelado</option>
             </select>
-            <button class="btn btn-secondary" id="btn-refresh-invoices">âŸ³</button>
+            <button class="btn btn-secondary" id="btn-refresh-invoices">⟳</button>
             <button class="btn btn-primary" id="btn-new-invoice">+ Nova Fatura</button>
           </div>
         </div>
         <div class="stats-grid" style="margin-bottom:16px">
-          <div class="stat-card green"><div class="stat-label">Recebido</div><div class="stat-value" id="inv-received">â€”</div></div>
-          <div class="stat-card orange"><div class="stat-label">Pendente</div><div class="stat-value" id="inv-pending">â€”</div></div>
-          <div class="stat-card red"><div class="stat-label">Vencido</div><div class="stat-value" id="inv-overdue">â€”</div></div>
-          <div class="stat-card blue"><div class="stat-label">Total</div><div class="stat-value" id="inv-total">â€”</div></div>
+          <div class="stat-card green"><div class="stat-label">Recebido</div><div class="stat-value" id="inv-received">—</div></div>
+          <div class="stat-card orange"><div class="stat-label">Pendente</div><div class="stat-value" id="inv-pending">—</div></div>
+          <div class="stat-card red"><div class="stat-label">Vencido</div><div class="stat-value" id="inv-overdue">—</div></div>
+          <div class="stat-card blue"><div class="stat-label">Total</div><div class="stat-value" id="inv-total">—</div></div>
         </div>
         <div class="table-wrap"><table><thead><tr><th>NF</th><th>Cliente</th><th>Descrição</th><th style="text-align:right">Valor</th><th>Vencimento</th><th>Status</th><th style="text-align:right">Ações</th></tr></thead><tbody id="invoices-tbody"></tbody></table></div>
         <div id="invoices-pagination"></div>
-        <div class="empty" id="invoices-empty" style="display:none"><div class="empty-icon">ðŸ’°</div><p>Nenhuma fatura cadastrada.</p></div>
+        <div class="empty" id="invoices-empty" style="display:none"><div class="empty-icon">💰</div><p>Nenhuma fatura cadastrada.</p></div>
       </section>
 
-      <!-- â•â• PROPOSALS â•â• -->
+      <!-- ══ PROPOSALS ══ -->
       <section id="page-proposals" class="page">
         <div class="page-header">
           <div><h3>Propostas</h3><p>Propostas comerciais e orçamentos</p></div>
@@ -674,16 +615,16 @@
               <option value="approved">Aprovada</option>
               <option value="rejected">Rejeitada</option>
             </select>
-            <button class="btn btn-secondary" id="btn-refresh-proposals">âŸ³</button>
+            <button class="btn btn-secondary" id="btn-refresh-proposals">⟳</button>
             <button class="btn btn-primary" id="btn-new-proposal">+ Nova Proposta</button>
           </div>
         </div>
         <div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Título</th><th>Cliente</th><th>Contato</th><th style="text-align:right">Valor</th><th>Validade</th><th>Status</th><th style="text-align:right">Ações</th></tr></thead><tbody id="proposals-tbody"></tbody></table></div>
         <div id="proposals-pagination"></div>
-        <div class="empty" id="proposals-empty" style="display:none"><div class="empty-icon">ðŸ“</div><p>Nenhuma proposta cadastrada.</p></div>
+        <div class="empty" id="proposals-empty" style="display:none"><div class="empty-icon">📝</div><p>Nenhuma proposta cadastrada.</p></div>
       </section>
 
-      <!-- â•â• PROJECTS / OBRAS â•â• -->
+      <!-- ══ PROJECTS / OBRAS ══ -->
       <section id="page-projects" class="page">
         <div class="page-header">
           <div><h3>Obras & Projetos</h3><p>Gerencie obras, projetos e fases</p></div>
@@ -695,99 +636,29 @@
               <option value="completed">Concluído</option>
               <option value="cancelled">Cancelado</option>
             </select>
-            <button class="btn btn-secondary" id="btn-refresh-projects">âŸ³</button>
+            <button class="btn btn-secondary" id="btn-refresh-projects">⟳</button>
             <button class="btn btn-primary" id="btn-new-project">+ Nova Obra</button>
           </div>
         </div>
         <div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Nome</th><th>Cliente</th><th>Status</th><th style="text-align:right">Valor</th><th>Início</th><th>Término</th><th style="text-align:right">Ações</th></tr></thead><tbody id="projects-tbody"></tbody></table></div>
         <div id="projects-pagination"></div>
-        <div class="empty" id="projects-empty" style="display:none"><div class="empty-icon">ðŸ—</div><p>Nenhuma obra cadastrada.</p></div>
+        <div class="empty" id="projects-empty" style="display:none"><div class="empty-icon">🏗</div><p>Nenhuma obra cadastrada.</p></div>
       </section>
 
-      </div>
-      </section>
-
-      <!-- ── ORÇAMENTOS ── -->
-      <section id="page-orcamentos" class="page">
-        <div class="page-header">
-          <div><h3>Orçamentos</h3><p>Gerencie orçamentos de obras e serviços</p></div>
-          <div class="action-bar">
-            <input type="text" id="orcamento-search" placeholder="Buscar orçamento..." style="width:200px">
-            <select id="orcamento-filter-status" style="width:auto">
-              <option value="">Todos Status</option>
-              <option value="draft">Rascunho</option>
-              <option value="sent">Enviado</option>
-              <option value="approved">Aprovado</option>
-              <option value="rejected">Recusado</option>
-            </select>
-            <button class="btn btn-secondary" id="btn-refresh-orcamentos">⟳</button>
-            <button class="btn btn-primary" id="btn-new-orcamento">+ Novo Orçamento</button>
-          </div>
-        </div>
-        <div class="table-wrap" style="margin-top:16px">
-          <table>
-            <thead><tr><th>ID</th><th>Cliente</th><th>Título</th><th style="text-align:right">Valor</th><th>Status</th><th>Data</th><th style="text-align:right">Ações</th></tr></thead>
-            <tbody id="orcamentos-tbody"></tbody>
-          </table>
-        </div>
-        <div id="orcamentos-pagination"></div>
-        <div class="empty" id="orcamentos-empty" style="display:none"><div class="empty-icon">📋</div><p>Nenhum orçamento cadastrado.</p></div>
-      </section>
-
-      <!-- ── SINAPI ── -->
-      <section id="page-sinapi" class="page">
-        <div class="page-header">
-          <div><h3>SINAPI</h3><p>Tabela de referência de insumos e composições</p></div>
-        </div>
-        <div class="tabs">
-          <button class="tab active" data-tab="sinapi-insumos">Insumos</button>
-          <button class="tab" data-tab="sinapi-composicoes">Composições</button>
-        </div>
-        <div id="tab-sinapi-insumos" style="margin-top:12px">
-          <div class="action-bar" style="margin-bottom:12px">
-            <input type="text" id="sinapi-insumo-search" placeholder="Buscar insumo..." style="width:200px">
-            <button class="btn btn-secondary" id="btn-refresh-sinapi-insumos">⟳</button>
-            <button class="btn btn-primary" id="btn-new-sinapi-insumo">+ Novo Insumo</button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Código</th><th>Descrição</th><th>Un.</th><th style="text-align:right">Preço s/ deson.</th><th style="text-align:right">Preço c/ deson.</th><th>Fonte</th><th style="text-align:right">Ações</th></tr></thead>
-              <tbody id="sinapi-insumos-tbody"></tbody>
-            </table>
-          </div>
-          <div id="sinapi-insumos-pagination"></div>
-          <div class="empty" id="sinapi-insumos-empty" style="display:none"><div class="empty-icon">📦</div><p>Nenhum insumo cadastrado.</p></div>
-        </div>
-        <div id="tab-sinapi-composicoes" style="display:none;margin-top:12px">
-          <div class="action-bar" style="margin-bottom:12px">
-            <input type="text" id="sinapi-comp-search" placeholder="Buscar composição..." style="width:200px">
-            <button class="btn btn-secondary" id="btn-refresh-sinapi-composicoes">⟳</button>
-            <button class="btn btn-primary" id="btn-new-sinapi-composicao">+ Nova Composição</button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Código</th><th>Descrição</th><th>Un.</th><th>Itens</th><th style="text-align:right">Valor Total</th><th style="text-align:right">Ações</th></tr></thead>
-              <tbody id="sinapi-composicoes-tbody"></tbody>
-            </table>
-          </div>
-          <div id="sinapi-composicoes-pagination"></div>
-          <div class="empty" id="sinapi-composicoes-empty" style="display:none"><div class="empty-icon">🔧</div><p>Nenhuma composição cadastrada.</p></div>
-        </div>
-      </section>
-
-      <!-- ── RENTAL / LOCAÇÃO ── -->
+      <!-- ══ RENTAL / LOCAÇÃO ══ -->
+      <section id="page-rental" class="page">
         <div class="page-header">
           <div><h3>Locação</h3><p>Disponibilidade de equipamentos e contratos</p></div>
           <div class="action-bar">
-            <button class="btn btn-secondary" id="btn-refresh-rental">âŸ³</button>
+            <button class="btn btn-secondary" id="btn-refresh-rental">⟳</button>
             <button class="btn btn-primary" id="btn-new-rental-block">+ Bloquear Datas</button>
           </div>
         </div>
         <div class="stats-grid" style="margin-bottom:16px">
-          <div class="stat-card green"><div class="stat-label">Disponível</div><div class="stat-value" id="rental-available">â€”</div></div>
-          <div class="stat-card orange"><div class="stat-label">Em Uso</div><div class="stat-value" id="rental-in-use">â€”</div></div>
-          <div class="stat-card red"><div class="stat-label">Manutenção</div><div class="stat-value" id="rental-mtce">â€”</div></div>
-          <div class="stat-card blue"><div class="stat-label">Utilização</div><div class="stat-value" id="rental-util">â€”</div></div>
+          <div class="stat-card green"><div class="stat-label">Disponível</div><div class="stat-value" id="rental-available">—</div></div>
+          <div class="stat-card orange"><div class="stat-label">Em Uso</div><div class="stat-value" id="rental-in-use">—</div></div>
+          <div class="stat-card red"><div class="stat-label">Manutenção</div><div class="stat-value" id="rental-mtce">—</div></div>
+          <div class="stat-card blue"><div class="stat-label">Utilização</div><div class="stat-value" id="rental-util">—</div></div>
         </div>
         <div class="card" style="margin-bottom:16px">
           <div class="card-header"><span class="card-title">Disponibilidade</span></div>
@@ -799,7 +670,7 @@
         </div>
       </section>
 
-      <!-- â•â• CAMPAIGNS â•â• -->
+      <!-- ══ CAMPAIGNS ══ -->
       <section id="page-campaigns" class="page">
         <div class="page-header">
           <div><h3>Campanhas</h3><p>Marketing e disparos</p></div>
@@ -811,21 +682,21 @@
               <option value="paused">Pausada</option>
               <option value="finished">Concluída</option>
             </select>
-            <button class="btn btn-secondary" id="btn-refresh-campaigns">âŸ³</button>
+            <button class="btn btn-secondary" id="btn-refresh-campaigns">⟳</button>
             <button class="btn btn-primary" id="btn-new-campaign">+ Nova Campanha</button>
           </div>
         </div>
         <div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Nome</th><th>Tipo</th><th>Status</th><th>Início</th><th>Fim</th><th style="text-align:right">Orçamento</th><th style="text-align:right">Ações</th></tr></thead><tbody id="campaigns-tbody"></tbody></table></div>
         <div id="campaigns-pagination"></div>
-        <div class="empty" id="campaigns-empty" style="display:none"><div class="empty-icon">ðŸ“¢</div><p>Nenhuma campanha cadastrada.</p></div>
+        <div class="empty" id="campaigns-empty" style="display:none"><div class="empty-icon">📢</div><p>Nenhuma campanha cadastrada.</p></div>
       </section>
 
-      <!-- â•â• HUNTER / PROSPECÇÃO â•â• -->
+      <!-- ══ HUNTER / PROSPECÇÃO ══ -->
       <section id="page-hunter" class="page">
         <div class="page-header">
           <div><h3>Hunter</h3><p>Prospecção e enriquecimento de leads</p></div>
           <div class="action-bar">
-            <button class="btn btn-secondary" id="btn-refresh-hunter">âŸ³</button>
+            <button class="btn btn-secondary" id="btn-refresh-hunter">⟳</button>
             <button class="btn btn-primary" id="btn-new-enrichment">+ Enriquecer Lead</button>
           </div>
         </div>
@@ -837,38 +708,11 @@
           <div class="card-header"><span class="card-title">Histórico de Enriquecimentos</span></div>
           <div class="table-wrap"><table><thead><tr><th>Lead</th><th>Fonte</th><th>Score</th><th>Data</th><th style="text-align:right">Ações</th></tr></thead><tbody id="hunter-tbody"></tbody></table></div>
           <div id="hunter-pagination"></div>
-          <div class="empty" id="hunter-empty" style="display:none"><div class="empty-icon">ðŸŽ¯</div><p>Nenhum enriquecimento realizado.</p></div>
+          <div class="empty" id="hunter-empty" style="display:none"><div class="empty-icon">🎯</div><p>Nenhum enriquecimento realizado.</p></div>
         </div>
       </section>
 
-      <!-- â•â• COLABORADORES / USERS â•â• -->
-      <section id="page-users" class="page">
-        <div class="page-header">
-          <div><h3>Colaboradores</h3><p>Gerencie usuários, cargos e permissões do sistema</p></div>
-          <div class="action-bar">
-            <input type="text" id="user-search" placeholder="Buscar colaborador..." style="width:200px">
-            <select id="user-filter-role" style="width:auto">
-              <option value="">Todas as Roles</option>
-              <option value="ceo">CEO</option>
-              <option value="admin">Administrador</option>
-              <option value="comercial">Comercial</option>
-              <option value="developer">Developer</option>
-              <option value="user">Usuário</option>
-            </select>
-            <button class="btn btn-secondary" id="btn-refresh-users">âŸ³</button>
-            <button class="btn btn-primary" id="btn-new-user">+ Novo Colaborador</button>
-          </div>
-        </div>
-        <div class="table-wrap" style="margin-top:16px">
-          <table>
-            <thead><tr><th>Nome</th><th>Email</th><th>Role</th><th>Cargo</th><th>Função</th><th>Status</th><th>Criado em</th><th style="text-align:right">Ações</th></tr></thead>
-            <tbody id="users-tbody"></tbody>
-          </table>
-        </div>
-        <div class="empty" id="users-empty" style="display:none"><div class="empty-icon">ðŸ‘¥</div><p>Nenhum colaborador cadastrado.</p></div>
-      </section>
-
-      <!-- â•â• END PAGES â•â• -->
+      <!-- ══ END PAGES ══ -->
 
       </div><!-- content -->
     </div><!-- main -->
@@ -876,12 +720,12 @@
 
 <div id="toast-container" class="toast-container"></div>
 
-<!-- â”€â”€â”€â”€ Loader â”€â”€â”€â”€ -->
+<!-- ──── Loader ──── -->
 <div id="app-loader" class="loader-overlay" style="display:none">
   <div class="loader-spinner"></div>
 </div>
 
-<!-- â”€â”€â”€â”€ Modals â”€â”€â”€â”€ -->
+<!-- ──── Modals ──── -->
 
 <!-- Lead Modal -->
 <div class="modal-overlay" id="modal-lead">
@@ -919,14 +763,14 @@
 <!-- Inbound Webhook Modal -->
 <div class="modal-overlay" id="modal-inbound">
   <div class="modal">
-    <h3 id="modal-inbound-title">Novo Webhook Inbound</h3>
+    <h3>Novo Webhook Inbound</h3>
     <form id="modal-inbound-form">
       <input type="hidden" id="inbound-id">
       <div class="form-group"><label>Nome *</label><input type="text" id="inbound-name" placeholder="ex: n8n Campanha Google" required></div>
       <div class="form-group"><label>Descrição</label><textarea id="inbound-desc" rows="2" placeholder="Para que esse webhook será usado?"></textarea></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary close-modal">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Salvar</button>
+        <button type="submit" class="btn btn-primary">Criar</button>
       </div>
     </form>
   </div>
@@ -935,7 +779,7 @@
 <!-- Outbound Webhook Modal -->
 <div class="modal-overlay" id="modal-outbound">
   <div class="modal">
-    <h3 id="modal-outbound-title">Novo Webhook Outbound</h3>
+    <h3>Novo Webhook Outbound</h3>
     <form id="modal-outbound-form">
       <input type="hidden" id="outbound-id">
       <div class="form-group"><label>Nome *</label><input type="text" id="outbound-name" placeholder="ex: n8n Notificar Lead" required></div>
@@ -955,7 +799,7 @@
       </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary close-modal">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Salvar</button>
+        <button type="submit" class="btn btn-primary">Criar</button>
       </div>
     </form>
   </div>
@@ -964,9 +808,8 @@
 <!-- API Key Modal -->
 <div class="modal-overlay" id="modal-apikey">
   <div class="modal">
-    <h3 id="modal-apikey-title">Nova API Key</h3>
+    <h3>Nova API Key</h3>
     <form id="modal-apikey-form">
-      <input type="hidden" id="apikey-id">
       <div class="form-group"><label>Nome *</label><input type="text" id="apikey-name" placeholder="ex: Integração n8n" required></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary close-modal">Cancelar</button>
@@ -976,7 +819,7 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€ Transição Kanban Modal â”€â”€â”€â”€ -->
+<!-- ──── Transição Kanban Modal ──── -->
 <div class="modal-overlay" id="modal-transition">
   <div class="modal">
     <h3>Mover Lead</h3>
@@ -1010,7 +853,7 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€ Deal Modal â”€â”€â”€â”€ -->
+<!-- ──── Deal Modal ──── -->
 <div class="modal-overlay" id="modal-deal">
   <div class="modal">
     <h3 id="modal-deal-title">Novo Negócio</h3>
@@ -1040,7 +883,7 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€ Company Modal â”€â”€â”€â”€ -->
+<!-- ──── Company Modal ──── -->
 <div class="modal-overlay" id="modal-company">
   <div class="modal">
     <h3 id="modal-company-title">Nova Empresa</h3>
@@ -1071,7 +914,7 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€ Task Modal â”€â”€â”€â”€ -->
+<!-- ──── Task Modal ──── -->
 <div class="modal-overlay" id="modal-task">
   <div class="modal">
     <h3 id="modal-task-title">Nova Tarefa</h3>
@@ -1102,7 +945,7 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€ Equipment Modal â”€â”€â”€â”€ -->
+<!-- ──── Equipment Modal ──── -->
 <div class="modal-overlay" id="modal-equipment">
   <div class="modal">
     <h3 id="modal-equipment-title">Novo Equipamento</h3>
@@ -1138,7 +981,7 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€ Service Order Modal â”€â”€â”€â”€ -->
+<!-- ──── Service Order Modal ──── -->
 <div class="modal-overlay" id="modal-so">
   <div class="modal">
     <h3 id="modal-so-title">Nova OS</h3>
@@ -1178,7 +1021,7 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€ Contract Modal â”€â”€â”€â”€ -->
+<!-- ──── Contract Modal ──── -->
 <div class="modal-overlay" id="modal-contract">
   <div class="modal">
     <h3 id="modal-contract-title">Novo Contrato</h3>
@@ -1194,15 +1037,13 @@
           <select id="contract-type">
             <option value="rental">Locação</option>
             <option value="service">Serviço</option>
-            <option value="construction">Construção</option>
           </select>
         </div>
         <div style="flex:1"><label>Status</label>
           <select id="contract-status">
-            <option value="draft">Rascunho</option>
             <option value="active">Ativo</option>
-            <option value="expired">Expirado</option>
-            <option value="terminated">Encerrado</option>
+            <option value="ended">Encerrado</option>
+            <option value="cancelled">Cancelado</option>
           </select>
         </div>
       </div>
@@ -1225,7 +1066,7 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€ Show Key Modal â”€â”€â”€â”€ -->
+<!-- ──── Show Key Modal ──── -->
 <div class="modal-overlay" id="modal-showkey">
   <div class="modal">
     <h3>Chave criada</h3>
@@ -1238,7 +1079,7 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€ Invoice Modal â”€â”€â”€â”€ -->
+<!-- ──── Invoice Modal ──── -->
 <div class="modal-overlay" id="modal-invoice">
   <div class="modal">
     <h3 id="modal-invoice-title">Nova Fatura</h3>
@@ -1251,24 +1092,8 @@
         <div style="flex:1"><label>Vencimento</label><input type="date" id="invoice-due"></div>
       </div>
       <div class="form-group"><label>Status</label><select id="invoice-status"><option value="pending">Pendente</option><option value="paid">Pago</option><option value="overdue">Vencido</option><option value="cancelled">Cancelado</option></select></div>
-      <div id="invoice-detail-fields" style="display:none">
-        <div class="form-group"><label>Número NF</label><div id="invoice-detail-number" style="padding:8px 0;font-weight:600"></div></div>
-        <div class="form-group" style="display:flex;gap:10px">
-          <div style="flex:1"><label>Data Emissão</label><div id="invoice-detail-issue" style="padding:8px 0"></div></div>
-          <div style="flex:1"><label>Data Pagamento</label><div id="invoice-detail-payment" style="padding:8px 0"></div></div>
-        </div>
-        <div class="form-group" id="invoice-detail-contract-row" style="display:none">
-          <label>Contrato</label>
-          <div id="invoice-detail-contract" style="padding:8px 0"></div>
-        </div>
-      </div>
       <div class="form-group"><label>Observações</label><textarea id="invoice-notes" rows="2"></textarea></div>
-      <div id="invoice-detail-actions" class="modal-actions" style="display:none">
-        <button type="button" class="btn btn-primary" onclick="editInvoiceFromDetail()">Editar</button>
-        <button type="button" class="btn btn-secondary" onclick="deleteInvoiceFromDetail()" style="color:var(--red)">Excluir</button>
-        <button type="button" class="btn btn-secondary close-modal">Fechar</button>
-      </div>
-      <div class="modal-actions" id="invoice-form-actions">
+      <div class="modal-actions">
         <button type="button" class="btn btn-secondary close-modal">Cancelar</button>
         <button type="submit" class="btn btn-primary">Salvar</button>
       </div>
@@ -1276,7 +1101,7 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€ Proposal Modal â”€â”€â”€â”€ -->
+<!-- ──── Proposal Modal ──── -->
 <div class="modal-overlay" id="modal-proposal">
   <div class="modal">
     <h3 id="modal-proposal-title">Nova Proposta</h3>
@@ -1296,25 +1121,13 @@
             <input type="text" placeholder="Descrição" style="flex:3;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px">
             <input type="number" placeholder="Qtd" style="width:60px;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px" min="1" value="1">
             <input type="number" placeholder="Valor" style="width:100px;padding:6px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-color);font-size:12px" step="0.01" min="0">
-            <button type="button" class="btn btn-secondary" style="padding:4px 8px;font-size:12px" onclick="this.parentElement.remove()">âœ•</button>
+            <button type="button" class="btn btn-secondary" style="padding:4px 8px;font-size:12px" onclick="this.parentElement.remove()">✕</button>
           </div>
         </div>
         <button type="button" class="btn btn-secondary" style="margin-top:4px;font-size:12px;padding:4px 10px" id="btn-proposal-add-item">+ Item</button>
       </div>
-      <div id="proposal-detail-items" style="display:none;margin-top:8px">
-        <label style="font-weight:600;margin-bottom:6px;display:block">Itens da Proposta</label>
-        <div class="table-wrap"><table style="font-size:13px"><thead><tr><th>Descrição</th><th style="text-align:right">Qtd</th><th style="text-align:right">Valor Unit.</th><th style="text-align:right">Total</th></tr></thead><tbody id="proposal-detail-items-tbody"></tbody></table></div>
-        <div style="text-align:right;padding:8px 0;font-weight:700;font-size:15px" id="proposal-detail-total"></div>
-      </div>
       <div class="form-group"><label>Observações</label><textarea id="proposal-notes" rows="2"></textarea></div>
-      <div id="proposal-detail-actions" class="modal-actions" style="display:none">
-        <button type="button" class="btn btn-primary" onclick="editProposalFromDetail()">Editar</button>
-        <button type="button" class="btn btn-secondary" onclick="approveProposalFromDetail()" style="color:var(--green)">Aprovar</button>
-        <button type="button" class="btn btn-secondary" onclick="rejectProposalFromDetail()" style="color:var(--red)">Recusar</button>
-        <button type="button" class="btn btn-secondary" onclick="deleteProposalFromDetail()" style="color:var(--red)">Excluir</button>
-        <button type="button" class="btn btn-secondary close-modal">Fechar</button>
-      </div>
-      <div class="modal-actions" id="proposal-form-actions">
+      <div class="modal-actions">
         <button type="button" class="btn btn-secondary close-modal">Cancelar</button>
         <button type="submit" class="btn btn-primary">Salvar</button>
       </div>
@@ -1322,7 +1135,7 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€ Project Modal â”€â”€â”€â”€ -->
+<!-- ──── Project Modal ──── -->
 <div class="modal-overlay" id="modal-project">
   <div class="modal">
     <h3 id="modal-project-title">Nova Obra</h3>
@@ -1336,18 +1149,6 @@
         <div style="flex:1"><label>Término</label><input type="date" id="project-end"></div>
       </div>
       <div class="form-group"><label>Valor (R$)</label><input type="number" id="project-value" step="0.01" min="0"></div>
-      <div class="form-group">
-        <label style="display:flex;justify-content:space-between;align-items:center">
-          <span>Fases do Projeto</span>
-          <button type="button" class="btn btn-secondary btn-sm" id="btn-add-phase" style="font-size:12px;padding:4px 10px">+ Adicionar Fase</button>
-        </label>
-        <div id="project-phases-list">
-          <table style="width:100%;font-size:13px;margin-top:8px">
-            <thead><tr><th>Nome</th><th>Status</th><th>Progresso</th><th>Datas</th><th style="text-align:right">Ações</th></tr></thead>
-            <tbody id="phases-tbody"></tbody>
-          </table>
-        </div>
-      </div>
       <div class="form-group"><label>Observações</label><textarea id="project-notes" rows="2"></textarea></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary close-modal">Cancelar</button>
@@ -1357,12 +1158,11 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€ Rental Block Modal â”€â”€â”€â”€ -->
+<!-- ──── Rental Block Modal ──── -->
 <div class="modal-overlay" id="modal-rental">
   <div class="modal">
-    <h3 id="modal-rental-title">Bloquear Datas</h3>
+    <h3>Bloquear Datas</h3>
     <form id="modal-rental-form">
-      <input type="hidden" id="rental-block-id">
       <div class="form-group"><label>Equipamento *</label><select id="rental-equipment" required><option value="">Selecione</option></select></div>
       <div class="form-group" style="display:flex;gap:10px">
         <div style="flex:1"><label>Início</label><input type="date" id="rental-start" required></div>
@@ -1379,33 +1179,7 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€ Routine Modal â”€â”€â”€â”€ -->
-<div class="modal-overlay" id="modal-routine">
-  <div class="modal">
-    <h3 id="modal-routine-title">Nova Tarefa</h3>
-    <form id="modal-routine-form">
-      <input type="hidden" id="routine-id">
-      <div class="form-group"><label>Título *</label><input type="text" id="routine-title" required></div>
-      <div class="form-group"><label>Descrição</label><textarea id="routine-desc" rows="3"></textarea></div>
-      <div class="form-group" style="display:flex;gap:10px">
-        <div style="flex:1"><label>Status</label><select id="routine-status"><option value="pending">Pendente</option><option value="in_progress">Em Andamento</option><option value="done">Concluído</option></select></div>
-        <div style="flex:1"><label>Prioridade</label><select id="routine-priority"><option value="high">Alta</option><option value="medium" selected>Média</option><option value="low">Baixa</option></select></div>
-      </div>
-      <div class="form-group"><label>Responsável</label>
-        <select id="routine-assigned-to">
-          <option value="">Selecione...</option>
-        </select>
-      </div>
-      <div class="form-group"><label>Data de Vencimento</label><input type="date" id="routine-due"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-secondary close-modal">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Salvar</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- â”€â”€â”€â”€ Campaign Modal â”€â”€â”€â”€ -->
+<!-- ──── Campaign Modal ──── -->
 <div class="modal-overlay" id="modal-campaign">
   <div class="modal">
     <h3 id="modal-campaign-title">Nova Campanha</h3>
@@ -1428,7 +1202,7 @@
   </div>
 </div>
 
-<!-- â”€â”€â”€â”€ Enrichment Modal â”€â”€â”€â”€ -->
+<!-- ──── Enrichment Modal ──── -->
 <div class="modal-overlay" id="modal-enrichment">
   <div class="modal">
     <h3>Enriquecer Lead</h3>
@@ -1437,44 +1211,6 @@
       <div class="form-group"><label>Fonte</label><select id="enrichment-source"><option value="linkedin">LinkedIn</option><option value="manual">Manual</option><option value="cnae">CNAE</option><option value="google">Google</option><option value="api">API Externa</option></select></div>
       <div class="form-group"><label>Score (0-100)</label><input type="number" id="enrichment-score" min="0" max="100" placeholder="ex: 75"></div>
       <div class="form-group"><label>Dados (JSON)</label><textarea id="enrichment-data" rows="4" placeholder='{"cargo":"CEO","linkedin":"url","receita":"5M"}'></textarea></div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-secondary close-modal">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Salvar</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- â”€â”€â”€â”€ User Modal â”€â”€â”€â”€ -->
-<div class="modal-overlay" id="modal-user">
-  <div class="modal">
-    <h3 id="modal-user-title">Novo Colaborador</h3>
-    <form id="modal-user-form">
-      <input type="hidden" id="user-id">
-      <div class="form-group"><label>Nome *</label><input type="text" id="user-name-input" required></div>
-      <div class="form-group"><label>Email *</label><input type="email" id="user-email-input" required></div>
-      <div class="form-group"><label>Senha *</label><input type="password" id="user-password-input" placeholder="Mínimo 6 caracteres"><small id="user-password-hint" style="color:var(--text-muted);font-size:11px;display:none">Deixe vazio para manter a senha atual</small></div>
-      <div class="form-group" style="display:flex;gap:10px">
-        <div style="flex:1">
-          <label>Role *</label>
-          <select id="user-role-input">
-            <option value="comercial">Comercial</option>
-            <option value="admin">Administrador</option>
-            <option value="ceo">CEO</option>
-            <option value="developer">Developer</option>
-            <option value="user">Usuário</option>
-          </select>
-        </div>
-        <div style="flex:1">
-          <label>Status</label>
-          <select id="user-active-input">
-            <option value="1">Ativo</option>
-            <option value="0">Inativo</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group"><label>Cargo</label><input type="text" id="user-cargo-input" placeholder="ex: Gerente Comercial, Técnico, Analista"></div>
-      <div class="form-group"><label>Função</label><input type="text" id="user-funcao-input" placeholder="ex: Gestão de vendas, Atendimento ao cliente"></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary close-modal">Cancelar</button>
         <button type="submit" class="btn btn-primary">Salvar</button>
