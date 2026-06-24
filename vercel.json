@@ -5,7 +5,7 @@
   "installCommand": null,
   "outputDirectory": "public",
   "routes": [
-    { "src": "/api/(.*)", "dest": "https://grtengenharia.onrender.com/api/$1" },
+    { "src": "/api/(.*)", "dest": "https://crm-grt.onrender.com/api/$1" },
     { "src": "/app.html", "dest": "/app.html" },
     { "src": "/css/(.*)", "dest": "/css/$1" },
     { "src": "/js/(.*)", "dest": "/js/$1" },

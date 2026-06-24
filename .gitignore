@@ -13,3 +13,6 @@ squads/
 uploads/
 server.err
 content.json
+.claude/
+ROADMAP.md
+diagnostico-crm-grt.pdf
