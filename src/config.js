@@ -6,6 +6,9 @@ export const config = {
   port: parseInt(process.env.PORT || '3002', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 
+  adminUser: process.env.ADMIN_USER || 'admin',
+  adminPass: process.env.ADMIN_PASS || 'admin',
+
   jwtSecret: (() => {
     const v = process.env.JWT_SECRET;
     if (!v) {

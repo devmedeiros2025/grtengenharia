@@ -66,6 +66,12 @@ export async function authRoutes(app) {
       return { token, refreshToken, user: { name: dbUser.name, email: dbUser.email, role: dbUser.role } };
     }
 
+    // Fallback: admin credentials do .env (para setup inicial)
+    if (username === config.adminUser && password === config.adminPass) {
+      const token = await signJwt({ sub: 'admin', name: config.adminUser });
+      return { token, user: { name: config.adminUser } };
+    }
+
     throw new AuthError('Credenciais inválidas');
   });
 
